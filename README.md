@@ -1,0 +1,2 @@
+# polkahacks
+Hackathon Management Webapp
