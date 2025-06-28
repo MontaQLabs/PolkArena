@@ -11,153 +11,147 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Search, Calendar, MapPin, Users, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  short_description: string;
-  location: string;
-  is_online: boolean;
-  start_date: string;
-  end_date: string;
-  registration_deadline: string;
-  max_participants: number | null;
-  event_type: string;
-  technologies: string[];
-  website_url: string;
-  discord_url: string;
-  twitter_url: string;
-  github_url: string;
+  start_time: string;
+  end_time: string;
   organizer_id: string;
-  status: string;
+  organizer_name: string;
+  banner_image_url: string | null;
+  location: string | null;
+  is_online: boolean;
+  participant_limit: number | null;
+  tags: string[] | null;
+  custom_fields: any;
+  registration_deadline: string | null;
+  website_url: string | null;
+  discord_url: string | null;
+  twitter_url: string | null;
+  requirements: string | null;
   created_at: string;
   organizer: {
     name: string;
     email: string;
   };
+  _count?: {
+    registrations: number;
+  };
 }
 
 function EventCard({ event }: { event: Event }) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "upcoming":
-        return "bg-blue-500";
-      case "live":
-        return "bg-green-500";
-      case "registration_open":
-        return "bg-purple-500";
-      case "published":
-        return "bg-indigo-500";
-      case "draft":
-        return "bg-gray-500";
-      case "completed":
-        return "bg-gray-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "upcoming":
-        return "Upcoming";
-      case "live":
-        return "Live Now";
-      case "registration_open":
-        return "Registration Open";
-      case "published":
-        return "Published";
-      case "draft":
-        return "Draft";
-      case "completed":
-        return "Completed";
-      default:
-        return "Unknown";
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const getTechnologies = (technologies: string[]) => {
-    return technologies || [];
+  const getEventStatus = () => {
+    const now = new Date();
+    const startTime = new Date(event.start_time);
+    const endTime = new Date(event.end_time);
+    const registrationDeadline = event.registration_deadline 
+      ? new Date(event.registration_deadline) 
+      : startTime;
+
+    if (now > endTime) return { status: "completed", color: "bg-gray-500" };
+    if (now >= startTime && now <= endTime) return { status: "live", color: "bg-green-500" };
+    if (now > registrationDeadline) return { status: "registration_closed", color: "bg-red-500" };
+    return { status: "upcoming", color: "bg-blue-500" };
+  };
+
+  const { status, color } = getEventStatus();
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "live": return "Live Now";
+      case "upcoming": return "Upcoming";
+      case "registration_closed": return "Registration Closed";
+      case "completed": return "Completed";
+      default: return "Unknown";
+    }
   };
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-polkadot-pink/50 bg-white">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1">
             <div className="flex items-center gap-2">
-              <span
-                className={`${getStatusColor(
-                  event.status
-                )} text-white px-2 py-1 rounded-full text-xs font-medium`}
-              >
-                {getStatusText(event.status)}
+              <span className={`${color} text-white px-2 py-1 rounded-full text-xs font-medium`}>
+                {getStatusText(status)}
               </span>
               <span className="text-sm text-muted-foreground">
-                by {event.organizer?.name || "Anonymous"}
+                by {event.organizer?.name || event.organizer_name || "Anonymous"}
               </span>
             </div>
             <CardTitle className="group-hover:text-polkadot-pink transition-colors">
-              {event.title}
+              {event.name}
             </CardTitle>
             <CardDescription className="line-clamp-3">
-              {event.short_description || event.description}
+              {event.description}
             </CardDescription>
           </div>
+          {event.banner_image_url && (
+            <div className="ml-4 flex-shrink-0">
+              <img
+                src={event.banner_image_url}
+                alt={event.name}
+                className="w-16 h-16 rounded-lg object-cover"
+              />
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-4">
-          {getTechnologies(event.technologies).map((tech) => (
-            <span
-              key={tech}
-              className="px-2 py-1 bg-secondary text-secondary-foreground rounded text-xs"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
+        {event.tags && event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {event.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent>
-        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+        <div className="grid grid-cols-1 gap-3 mb-4 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4" />
             <span>
-              {formatDate(event.start_date)} -{" "}
-              {formatDate(event.end_date)}
+              {formatDate(event.start_time)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <span>
+              Duration: {Math.ceil((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / (1000 * 60 * 60))} hours
             </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="h-4 w-4" />
             <span>
-              {event.is_online ? "Online" : event.location || "TBD"}
+              {event.is_online ? "Online Event" : event.location || "TBD"}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>
-              {event.max_participants
-                ? `Max ${event.max_participants} participants`
-                : "Unlimited participants"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <span className="text-xs bg-accent px-2 py-1 rounded">
-              {event.event_type}
-            </span>
-          </div>
+          {event.participant_limit && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>
+                Max {event.participant_limit} participants
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2">
@@ -167,12 +161,11 @@ function EventCard({ event }: { event: Event }) {
           >
             <Link href={`/events/${event.id}`}>View Details</Link>
           </Button>
-          {event.status === "live" ||
-          event.status === "registration_open" ? (
+          {status === "upcoming" && (
             <Button asChild variant="outline" className="flex-1">
               <Link href={`/events/${event.id}/register`}>Register Now</Link>
             </Button>
-          ) : null}
+          )}
         </div>
       </CardContent>
     </Card>
@@ -207,23 +200,22 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
 
-        // Fetch events with organizer info
+        // Fetch upcoming events with organizer info
         const { data, error } = await supabase
           .from("events")
-          .select(
-            `
+          .select(`
             *,
             organizer:users(name, email)
-          `
-          )
-          .order("created_at", { ascending: false });
+          `)
+          .gte("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true });
 
         if (error) {
           console.error("Error fetching events:", error);
@@ -245,11 +237,14 @@ export default function EventsPage() {
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || event.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    const matchesType = typeFilter === "all" || 
+      (typeFilter === "online" && event.is_online) ||
+      (typeFilter === "offline" && !event.is_online);
+    
+    return matchesSearch && matchesType;
   });
 
   return (
@@ -283,18 +278,14 @@ export default function EventsPage() {
         </div>
         <div className="flex gap-2">
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
             className="px-3 py-2 border border-input rounded-md bg-background text-sm"
-            aria-label="Filter by status"
+            aria-label="Filter by type"
           >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="registration_open">Registration Open</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="live">Live</option>
-            <option value="completed">Completed</option>
+            <option value="all">All Events</option>
+            <option value="online">Online</option>
+            <option value="offline">In-Person</option>
           </select>
         </div>
       </div>
@@ -305,16 +296,16 @@ export default function EventsPage() {
       ) : filteredEvents.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-muted-foreground mb-4">
-            {searchTerm || statusFilter !== "all"
+            {searchTerm || typeFilter !== "all"
               ? "No events found matching your criteria."
-              : "No events found."}
+              : "No upcoming events found."}
           </div>
-          {searchTerm || statusFilter !== "all" ? (
+          {searchTerm || typeFilter !== "all" ? (
             <Button
               variant="outline"
               onClick={() => {
                 setSearchTerm("");
-                setStatusFilter("all");
+                setTypeFilter("all");
               }}
             >
               Clear Filters

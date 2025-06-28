@@ -179,3 +179,30 @@ CREATE INDEX idx_judges_hackathon_id ON public.judges(hackathon_id);
 CREATE INDEX idx_scores_team_id ON public.scores(team_id);
 CREATE INDEX idx_scores_judge_id ON public.scores(judge_id);
 CREATE INDEX idx_winners_hackathon_id ON public.winners(hackathon_id);
+
+CREATE TABLE events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ NOT NULL,
+  organizer_id UUID NOT NULL REFERENCES auth.users(id),
+  organizer_name TEXT NOT NULL,
+  banner_image_url TEXT,
+  location TEXT,
+  is_online BOOLEAN DEFAULT false,
+  participant_limit INTEGER,
+  tags TEXT[],
+  custom_fields JSONB,
+  registration_deadline TIMESTAMPTZ,
+  website_url TEXT,
+  discord_url TEXT,
+  twitter_url TEXT,
+  requirements TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for better query performance
+CREATE INDEX idx_events_organizer_id ON events(organizer_id);
+CREATE INDEX idx_events_start_time ON events(start_time);
+CREATE INDEX idx_events_tags ON events USING GIN(tags);

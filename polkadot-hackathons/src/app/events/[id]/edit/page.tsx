@@ -22,29 +22,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Save, Globe } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Globe, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  short_description: string;
-  location: string;
-  is_online: boolean;
-  start_date: string;
-  end_date: string;
-  registration_deadline: string;
-  max_participants: number | null;
-  event_type: string;
-  technologies: string[];
-  website_url: string;
-  discord_url: string;
-  twitter_url: string;
-  github_url: string;
+  start_time: string;
+  end_time: string;
   organizer_id: string;
-  status: string;
+  organizer_name: string;
+  banner_image_url: string | null;
+  location: string | null;
+  is_online: boolean;
+  participant_limit: number | null;
+  tags: string[] | null;
+  custom_fields: any;
+  registration_deadline: string | null;
+  website_url: string | null;
+  discord_url: string | null;
+  twitter_url: string | null;
+  requirements: string | null;
+}
+
+interface CustomField {
+  id: string;
+  label: string;
+  type: "text" | "email" | "textarea" | "select" | "checkbox";
+  required: boolean;
+  options?: string[];
 }
 
 export default function EditEventPage() {
@@ -54,23 +62,22 @@ export default function EditEventPage() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [formData, setFormData] = useState({
-    title: "",
+    name: "",
     description: "",
-    short_description: "",
+    start_time: "",
+    end_time: "",
     location: "",
     is_online: false,
-    start_date: "",
-    end_date: "",
+    participant_limit: "",
+    tags: "",
     registration_deadline: "",
-    max_participants: "",
-    event_type: "",
-    technologies: "",
     website_url: "",
     discord_url: "",
     twitter_url: "",
-    github_url: "",
-    status: "",
+    requirements: "",
+    banner_image_url: "",
   });
 
   useEffect(() => {
@@ -111,25 +118,25 @@ export default function EditEventPage() {
 
         setEvent(eventData);
         setFormData({
-          title: eventData.title,
+          name: eventData.name,
           description: eventData.description,
-          short_description: eventData.short_description || "",
+          start_time: eventData.start_time,
+          end_time: eventData.end_time,
           location: eventData.location || "",
           is_online: eventData.is_online,
-          start_date: eventData.start_date,
-          end_date: eventData.end_date,
-          registration_deadline: eventData.registration_deadline,
-          max_participants: eventData.max_participants?.toString() || "",
-          event_type: eventData.event_type,
-          technologies: eventData.technologies
-            ? eventData.technologies.join(", ")
-            : "",
+          participant_limit: eventData.participant_limit?.toString() || "",
+          tags: eventData.tags ? eventData.tags.join(", ") : "",
+          registration_deadline: eventData.registration_deadline || "",
           website_url: eventData.website_url || "",
           discord_url: eventData.discord_url || "",
           twitter_url: eventData.twitter_url || "",
-          github_url: eventData.github_url || "",
-          status: eventData.status,
+          requirements: eventData.requirements || "",
+          banner_image_url: eventData.banner_image_url || "",
         });
+
+        if (eventData.custom_fields) {
+          setCustomFields(eventData.custom_fields);
+        }
       } catch (error) {
         console.error("Error:", error);
         toast.error("Failed to load event");
@@ -142,6 +149,29 @@ export default function EditEventPage() {
     fetchData();
   }, [params.id, router]);
 
+  const addCustomField = () => {
+    const newField: CustomField = {
+      id: Date.now().toString(),
+      label: "",
+      type: "text",
+      required: false,
+      options: [],
+    };
+    setCustomFields([...customFields, newField]);
+  };
+
+  const updateCustomField = (id: string, updates: Partial<CustomField>) => {
+    setCustomFields(fields =>
+      fields.map(field =>
+        field.id === id ? { ...field, ...updates } : field
+      )
+    );
+  };
+
+  const removeCustomField = (id: string) => {
+    setCustomFields(fields => fields.filter(field => field.id !== id));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !event) return;
@@ -149,57 +179,56 @@ export default function EditEventPage() {
     setSaving(true);
     try {
       if (
-        !formData.title ||
+        !formData.name ||
         !formData.description ||
-        !formData.start_date ||
-        !formData.end_date ||
-        !formData.event_type
+        !formData.start_time ||
+        !formData.end_time
       ) {
         toast.error("Please fill in all required fields");
         return;
       }
 
-      const startDate = new Date(formData.start_date);
-      const endDate = new Date(formData.end_date);
-      const registrationDeadline = new Date(formData.registration_deadline);
+      const startTime = new Date(formData.start_time);
+      const endTime = new Date(formData.end_time);
+      const registrationDeadline = formData.registration_deadline 
+        ? new Date(formData.registration_deadline)
+        : null;
 
-      if (endDate <= startDate) {
-        toast.error("End date must be after start date");
+      if (endTime <= startTime) {
+        toast.error("End time must be after start time");
         return;
       }
 
-      if (registrationDeadline >= startDate) {
-        toast.error("Registration deadline must be before start date");
+      if (registrationDeadline && registrationDeadline >= startTime) {
+        toast.error("Registration deadline must be before start time");
         return;
       }
 
-      const technologiesArray = formData.technologies
+      const tagsArray = formData.tags
         .split(",")
-        .map((tech) => tech.trim())
-        .filter((tech) => tech.length > 0);
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
 
       const { error } = await supabase
         .from("events")
         .update({
-          title: formData.title,
+          name: formData.name,
           description: formData.description,
-          short_description: formData.short_description,
-          location: formData.location,
+          start_time: formData.start_time,
+          end_time: formData.end_time,
+          location: formData.location || null,
           is_online: formData.is_online,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-          registration_deadline: formData.registration_deadline,
-          max_participants: formData.max_participants
-            ? parseInt(formData.max_participants)
+          participant_limit: formData.participant_limit
+            ? parseInt(formData.participant_limit)
             : null,
-          event_type: formData.event_type,
-          technologies: technologiesArray.length > 0 ? technologiesArray : null,
+          tags: tagsArray.length > 0 ? tagsArray : null,
+          custom_fields: customFields.length > 0 ? customFields : null,
+          registration_deadline: formData.registration_deadline || null,
           website_url: formData.website_url || null,
           discord_url: formData.discord_url || null,
           twitter_url: formData.twitter_url || null,
-          github_url: formData.github_url || null,
-          status: formData.status,
-          updated_at: new Date().toISOString(),
+          requirements: formData.requirements || null,
+          banner_image_url: formData.banner_image_url || null,
         })
         .eq("id", event.id);
 
@@ -268,43 +297,6 @@ export default function EditEventPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Status */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Status</CardTitle>
-                <CardDescription>
-                  Change the status to control registration and visibility
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, status: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft (Private)</SelectItem>
-                      <SelectItem value="published">
-                        Published (Public)
-                      </SelectItem>
-                      <SelectItem value="registration_open">
-                        Registration Open
-                      </SelectItem>
-                      <SelectItem value="upcoming">Upcoming</SelectItem>
-                      <SelectItem value="live">Live</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -315,34 +307,19 @@ export default function EditEventPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Event Title *</Label>
+                  <Label htmlFor="name">Event Name *</Label>
                   <Input
-                    id="title"
-                    value={formData.title}
+                    id="name"
+                    value={formData.name}
                     onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
+                      setFormData({ ...formData, name: e.target.value })
                     }
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="short_description">Short Description *</Label>
-                  <Input
-                    id="short_description"
-                    value={formData.short_description}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        short_description: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Full Description *</Label>
+                  <Label htmlFor="description">Description *</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -354,30 +331,19 @@ export default function EditEventPage() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="banner_image_url">Banner Image URL</Label>
+                  <Input
+                    id="banner_image_url"
+                    type="url"
+                    value={formData.banner_image_url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, banner_image_url: e.target.value })
+                    }
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="event_type">Event Type *</Label>
-                    <Select
-                      value={formData.event_type}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, event_type: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="conference">Conference</SelectItem>
-                        <SelectItem value="workshop">Workshop</SelectItem>
-                        <SelectItem value="meetup">Meetup</SelectItem>
-                        <SelectItem value="webinar">Webinar</SelectItem>
-                        <SelectItem value="networking">Networking</SelectItem>
-                        <SelectItem value="demo_day">Demo Day</SelectItem>
-                        <SelectItem value="training">Training</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="space-y-2">
                     <Label>Event Format</Label>
                     <Select
@@ -398,56 +364,65 @@ export default function EditEventPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) =>
+                        setFormData({ ...formData, location: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
                   <Input
-                    id="location"
-                    value={formData.location}
+                    id="tags"
+                    value={formData.tags}
                     onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
+                      setFormData({ ...formData, tags: e.target.value })
                     }
-                    disabled={formData.is_online}
                   />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Schedule */}
+            {/* Schedule & Capacity */}
             <Card>
               <CardHeader>
-                <CardTitle>Schedule</CardTitle>
+                <CardTitle>Schedule & Capacity</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="start_date">Start Date *</Label>
+                    <Label htmlFor="start_time">Start Time *</Label>
                     <Input
-                      id="start_date"
+                      id="start_time"
                       type="datetime-local"
-                      value={formData.start_date}
+                      value={formData.start_time}
                       onChange={(e) =>
-                        setFormData({ ...formData, start_date: e.target.value })
+                        setFormData({ ...formData, start_time: e.target.value })
                       }
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="end_date">End Date *</Label>
+                    <Label htmlFor="end_time">End Time *</Label>
                     <Input
-                      id="end_date"
+                      id="end_time"
                       type="datetime-local"
-                      value={formData.end_date}
+                      value={formData.end_time}
                       onChange={(e) =>
-                        setFormData({ ...formData, end_date: e.target.value })
+                        setFormData({ ...formData, end_time: e.target.value })
                       }
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="registration_deadline">
-                      Registration Deadline *
+                      Registration Deadline
                     </Label>
                     <Input
                       id="registration_deadline"
@@ -459,59 +434,145 @@ export default function EditEventPage() {
                           registration_deadline: e.target.value,
                         })
                       }
-                      required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="max_participants">Maximum Participants</Label>
+                  <Label htmlFor="participant_limit">Maximum Participants</Label>
                   <Input
-                    id="max_participants"
+                    id="participant_limit"
                     type="number"
-                    value={formData.max_participants}
+                    value={formData.participant_limit}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        max_participants: e.target.value,
+                        participant_limit: e.target.value,
                       })
                     }
-                    placeholder="Leave empty for unlimited"
                     min="1"
                   />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Technologies */}
+            {/* Custom Registration Fields */}
             <Card>
               <CardHeader>
-                <CardTitle>Technologies & Topics</CardTitle>
+                <CardTitle>Registration Form Fields</CardTitle>
+                <CardDescription>
+                  Manage custom fields for participant registration
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="technologies">
-                    Technologies (comma-separated)
-                  </Label>
-                  <Input
-                    id="technologies"
-                    value={formData.technologies}
-                    onChange={(e) =>
-                      setFormData({ ...formData, technologies: e.target.value })
-                    }
-                    placeholder="e.g., Polkadot, Substrate, React, Rust"
-                  />
-                </div>
+                {customFields.map((field, index) => (
+                  <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Field #{index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeCustomField(field.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Field Label</Label>
+                        <Input
+                          value={field.label}
+                          onChange={(e) =>
+                            updateCustomField(field.id, { label: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Field Type</Label>
+                        <Select
+                          value={field.type}
+                          onValueChange={(value: any) =>
+                            updateCustomField(field.id, { type: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="textarea">Long Text</SelectItem>
+                            <SelectItem value="select">Dropdown</SelectItem>
+                            <SelectItem value="checkbox">Checkbox</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Required</Label>
+                        <Select
+                          value={field.required ? "true" : "false"}
+                          onValueChange={(value) =>
+                            updateCustomField(field.id, { required: value === "true" })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="false">Optional</SelectItem>
+                            <SelectItem value="true">Required</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    {field.type === "select" && (
+                      <div className="space-y-2">
+                        <Label>Options (comma-separated)</Label>
+                        <Input
+                          value={field.options?.join(", ") || ""}
+                          onChange={(e) =>
+                            updateCustomField(field.id, {
+                              options: e.target.value.split(",").map(opt => opt.trim()).filter(opt => opt)
+                            })
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addCustomField}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Custom Field
+                </Button>
               </CardContent>
             </Card>
 
-            {/* Social Links */}
+            {/* Additional Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Social Links</CardTitle>
+                <CardTitle>Additional Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="requirements">Requirements</Label>
+                  <Textarea
+                    id="requirements"
+                    value={formData.requirements}
+                    onChange={(e) =>
+                      setFormData({ ...formData, requirements: e.target.value })
+                    }
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="website_url">Website</Label>
                     <Input
@@ -551,17 +612,6 @@ export default function EditEventPage() {
                           ...formData,
                           twitter_url: e.target.value,
                         })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="github_url">GitHub</Label>
-                    <Input
-                      id="github_url"
-                      type="url"
-                      value={formData.github_url}
-                      onChange={(e) =>
-                        setFormData({ ...formData, github_url: e.target.value })
                       }
                     />
                   </div>

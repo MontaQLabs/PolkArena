@@ -23,31 +23,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Calendar, Globe } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+
+interface CustomField {
+  id: string;
+  label: string;
+  type: "text" | "email" | "textarea" | "select" | "checkbox";
+  required: boolean;
+  options?: string[];
+}
 
 export default function CreateEventPage() {
   const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [formData, setFormData] = useState({
-    title: "",
+    name: "",
     description: "",
-    short_description: "",
+    start_time: "",
+    end_time: "",
     location: "",
     is_online: false,
-    start_date: "",
-    end_date: "",
+    participant_limit: "",
+    tags: "",
     registration_deadline: "",
-    max_participants: "",
-    event_type: "",
-    technologies: "",
     website_url: "",
     discord_url: "",
     twitter_url: "",
-    github_url: "",
+    requirements: "",
+    banner_image_url: "",
   });
 
   useEffect(() => {
@@ -77,6 +85,29 @@ export default function CreateEventPage() {
     getUser();
   }, [router]);
 
+  const addCustomField = () => {
+    const newField: CustomField = {
+      id: Date.now().toString(),
+      label: "",
+      type: "text",
+      required: false,
+      options: [],
+    };
+    setCustomFields([...customFields, newField]);
+  };
+
+  const updateCustomField = (id: string, updates: Partial<CustomField>) => {
+    setCustomFields(fields =>
+      fields.map(field =>
+        field.id === id ? { ...field, ...updates } : field
+      )
+    );
+  };
+
+  const removeCustomField = (id: string) => {
+    setCustomFields(fields => fields.filter(field => field.id !== id));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -84,57 +115,65 @@ export default function CreateEventPage() {
     setSaving(true);
     try {
       if (
-        !formData.title ||
+        !formData.name ||
         !formData.description ||
-        !formData.start_date ||
-        !formData.end_date ||
-        !formData.event_type
+        !formData.start_time ||
+        !formData.end_time
       ) {
         toast.error("Please fill in all required fields");
         return;
       }
 
-      const startDate = new Date(formData.start_date);
-      const endDate = new Date(formData.end_date);
-      const registrationDeadline = new Date(formData.registration_deadline);
+      const startTime = new Date(formData.start_time);
+      const endTime = new Date(formData.end_time);
+      const registrationDeadline = formData.registration_deadline 
+        ? new Date(formData.registration_deadline)
+        : startTime;
 
-      if (endDate <= startDate) {
-        toast.error("End date must be after start date");
+      if (endTime <= startTime) {
+        toast.error("End time must be after start time");
         return;
       }
 
-      if (registrationDeadline >= startDate) {
-        toast.error("Registration deadline must be before start date");
+      if (registrationDeadline >= startTime) {
+        toast.error("Registration deadline must be before start time");
         return;
       }
 
-      const technologiesArray = formData.technologies
+      const tagsArray = formData.tags
         .split(",")
-        .map((tech) => tech.trim())
-        .filter((tech) => tech.length > 0);
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+
+      // Get user profile for organizer name
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("name")
+        .eq("id", user.id)
+        .single();
 
       const { data, error } = await supabase
         .from("events")
         .insert({
-          title: formData.title,
+          name: formData.name,
           description: formData.description,
-          short_description: formData.short_description,
-          location: formData.location,
+          start_time: formData.start_time,
+          end_time: formData.end_time,
+          organizer_id: user.id,
+          organizer_name: userProfile?.name || user.email || "Anonymous",
+          location: formData.location || null,
           is_online: formData.is_online,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-          registration_deadline: formData.registration_deadline,
-          max_participants: formData.max_participants
-            ? parseInt(formData.max_participants)
+          participant_limit: formData.participant_limit
+            ? parseInt(formData.participant_limit)
             : null,
-          event_type: formData.event_type,
-          technologies: technologiesArray.length > 0 ? technologiesArray : null,
+          tags: tagsArray.length > 0 ? tagsArray : null,
+          custom_fields: customFields.length > 0 ? customFields : null,
+          registration_deadline: formData.registration_deadline || null,
           website_url: formData.website_url || null,
           discord_url: formData.discord_url || null,
           twitter_url: formData.twitter_url || null,
-          github_url: formData.github_url || null,
-          organizer_id: user.id,
-          status: "draft",
+          requirements: formData.requirements || null,
+          banner_image_url: formData.banner_image_url || null,
         })
         .select()
         .single();
@@ -199,72 +238,46 @@ export default function CreateEventPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Event Title *</Label>
+                  <Label htmlFor="name">Event Name *</Label>
                   <Input
-                    id="title"
-                    value={formData.title}
+                    id="name"
+                    value={formData.name}
                     onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
+                      setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="e.g., Polkadot Developer Conference 2025"
+                    placeholder="e.g., Polkadot Developer Workshop"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="short_description">Short Description *</Label>
-                  <Input
-                    id="short_description"
-                    value={formData.short_description}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        short_description: e.target.value,
-                      })
-                    }
-                    placeholder="A brief one-line description"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Full Description *</Label>
+                  <Label htmlFor="description">Description *</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    placeholder="Describe your event, themes, goals, and what participants can expect..."
+                    placeholder="Describe your event, what participants will learn, and what to expect..."
                     rows={6}
                     required
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="banner_image_url">Banner Image URL</Label>
+                  <Input
+                    id="banner_image_url"
+                    type="url"
+                    value={formData.banner_image_url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, banner_image_url: e.target.value })
+                    }
+                    placeholder="https://example.com/banner.jpg"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="event_type">Event Type *</Label>
-                    <Select
-                      value={formData.event_type}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, event_type: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select event type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="conference">Conference</SelectItem>
-                        <SelectItem value="workshop">Workshop</SelectItem>
-                        <SelectItem value="meetup">Meetup</SelectItem>
-                        <SelectItem value="webinar">Webinar</SelectItem>
-                        <SelectItem value="networking">Networking</SelectItem>
-                        <SelectItem value="demo_day">Demo Day</SelectItem>
-                        <SelectItem value="training">Training</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="space-y-2">
                     <Label>Event Format</Label>
                     <Select
@@ -285,24 +298,34 @@ export default function CreateEventPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) =>
+                        setFormData({ ...formData, location: e.target.value })
+                      }
+                      placeholder={formData.is_online ? "Meeting platform (e.g., Zoom)" : "City, Country or Venue"}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
                   <Input
-                    id="location"
-                    value={formData.location}
+                    id="tags"
+                    value={formData.tags}
                     onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
+                      setFormData({ ...formData, tags: e.target.value })
                     }
-                    placeholder="City, Country or Online Platform"
-                    disabled={formData.is_online}
+                    placeholder="e.g., workshop, beginner, substrate, defi"
                   />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Dates and Capacity */}
+            {/* Schedule & Capacity */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -316,32 +339,32 @@ export default function CreateEventPage() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="start_date">Start Date *</Label>
+                    <Label htmlFor="start_time">Start Time *</Label>
                     <Input
-                      id="start_date"
+                      id="start_time"
                       type="datetime-local"
-                      value={formData.start_date}
+                      value={formData.start_time}
                       onChange={(e) =>
-                        setFormData({ ...formData, start_date: e.target.value })
+                        setFormData({ ...formData, start_time: e.target.value })
                       }
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="end_date">End Date *</Label>
+                    <Label htmlFor="end_time">End Time *</Label>
                     <Input
-                      id="end_date"
+                      id="end_time"
                       type="datetime-local"
-                      value={formData.end_date}
+                      value={formData.end_time}
                       onChange={(e) =>
-                        setFormData({ ...formData, end_date: e.target.value })
+                        setFormData({ ...formData, end_time: e.target.value })
                       }
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="registration_deadline">
-                      Registration Deadline *
+                      Registration Deadline
                     </Label>
                     <Input
                       id="registration_deadline"
@@ -353,21 +376,20 @@ export default function CreateEventPage() {
                           registration_deadline: e.target.value,
                         })
                       }
-                      required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="max_participants">Maximum Participants</Label>
+                  <Label htmlFor="participant_limit">Maximum Participants</Label>
                   <Input
-                    id="max_participants"
+                    id="participant_limit"
                     type="number"
-                    value={formData.max_participants}
+                    value={formData.participant_limit}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        max_participants: e.target.value,
+                        participant_limit: e.target.value,
                       })
                     }
                     placeholder="Leave empty for unlimited"
@@ -377,41 +399,129 @@ export default function CreateEventPage() {
               </CardContent>
             </Card>
 
-            {/* Technologies */}
+            {/* Custom Registration Fields */}
             <Card>
               <CardHeader>
-                <CardTitle>Technologies & Topics</CardTitle>
+                <CardTitle>Registration Form Fields</CardTitle>
                 <CardDescription>
-                  Define the technologies and topics covered
+                  Add custom fields for participant registration
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {customFields.map((field, index) => (
+                  <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Field #{index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeCustomField(field.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Field Label</Label>
+                        <Input
+                          value={field.label}
+                          onChange={(e) =>
+                            updateCustomField(field.id, { label: e.target.value })
+                          }
+                          placeholder="e.g., Experience Level"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Field Type</Label>
+                        <Select
+                          value={field.type}
+                          onValueChange={(value: any) =>
+                            updateCustomField(field.id, { type: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="textarea">Long Text</SelectItem>
+                            <SelectItem value="select">Dropdown</SelectItem>
+                            <SelectItem value="checkbox">Checkbox</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Required</Label>
+                        <Select
+                          value={field.required ? "true" : "false"}
+                          onValueChange={(value) =>
+                            updateCustomField(field.id, { required: value === "true" })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="false">Optional</SelectItem>
+                            <SelectItem value="true">Required</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    {field.type === "select" && (
+                      <div className="space-y-2">
+                        <Label>Options (comma-separated)</Label>
+                        <Input
+                          value={field.options?.join(", ") || ""}
+                          onChange={(e) =>
+                            updateCustomField(field.id, {
+                              options: e.target.value.split(",").map(opt => opt.trim()).filter(opt => opt)
+                            })
+                          }
+                          placeholder="e.g., Beginner, Intermediate, Advanced"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addCustomField}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Custom Field
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Additional Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+                <CardDescription>
+                  Optional details and social links
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="technologies">
-                    Technologies (comma-separated)
-                  </Label>
-                  <Input
-                    id="technologies"
-                    value={formData.technologies}
+                  <Label htmlFor="requirements">Requirements</Label>
+                  <Textarea
+                    id="requirements"
+                    value={formData.requirements}
                     onChange={(e) =>
-                      setFormData({ ...formData, technologies: e.target.value })
+                      setFormData({ ...formData, requirements: e.target.value })
                     }
-                    placeholder="e.g., Polkadot, Substrate, React, Rust"
+                    placeholder="Any prerequisites or requirements for participants..."
+                    rows={3}
                   />
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Social Links */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Social Links</CardTitle>
-                <CardDescription>
-                  Add links to your event&apos;s social presence
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="website_url">Website</Label>
                     <Input
@@ -455,18 +565,6 @@ export default function CreateEventPage() {
                         })
                       }
                       placeholder="https://twitter.com/your-handle"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="github_url">GitHub</Label>
-                    <Input
-                      id="github_url"
-                      type="url"
-                      value={formData.github_url}
-                      onChange={(e) =>
-                        setFormData({ ...formData, github_url: e.target.value })
-                      }
-                      placeholder="https://github.com/your-org"
                     />
                   </div>
                 </div>
