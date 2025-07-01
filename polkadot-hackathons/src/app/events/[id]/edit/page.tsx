@@ -82,30 +82,36 @@ function ImageUpload({
 
   // Load existing image if value exists
   useEffect(() => {
-    if (value && !preview) {
+    if (value) {
       const url = getImageUrl(value);
       if (url) setPreview(url);
-    } else if (!value && preview) {
+    } else {
       setPreview(null);
     }
   }, [value]);
+  
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
+  
     // Validate file size
     if (file.size > maxSize * 1024 * 1024) {
       toast.error(`File size must be less than ${maxSize}MB`);
       return;
     }
-
+  
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
-
+  
+    // Set preview immediately for better UX
+    const reader = new FileReader();
+    reader.onload = (e) => setPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  
     setUploading(true);
     try {
       // Get current user
@@ -113,18 +119,18 @@ function ImageUpload({
       if (!user) {
         throw new Error('User not authenticated');
       }
-
+  
       // Delete old image if exists
       if (value) {
         await supabase.storage
           .from('event-banners')
           .remove([value]);
       }
-
+  
       // Create unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
+  
       // Upload file
       const { data, error } = await supabase.storage
         .from('event-banners')
@@ -132,24 +138,21 @@ function ImageUpload({
           cacheControl: '3600',
           upsert: false
         });
-
+  
       if (error) {
         if (error.message.includes('Bucket not found')) {
           throw new Error('Storage bucket not configured. Please contact support.');
         }
         throw error;
       }
-
-      // Set preview
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target?.result as string);
-      reader.readAsDataURL(file);
-
+  
       onChange(data.path);
       toast.success('Image uploaded successfully!');
     } catch (error: any) {
       console.error('Upload error:', error);
       toast.error(error.message || 'Failed to upload image');
+      // Reset preview on error
+      setPreview(null);
     } finally {
       setUploading(false);
       if (event.target) {
@@ -157,6 +160,7 @@ function ImageUpload({
       }
     }
   };
+  
 
   const handleRemove = async () => {
     if (!value) return;

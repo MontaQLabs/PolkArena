@@ -433,14 +433,14 @@ export default function EventDetailPage() {
             <div className="lg:col-span-2 space-y-6">
               {/* CHANGED: Banner Image - use bannerUrl instead of event.banner_image_url */}
               {bannerUrl && (
-                <div className="w-full h-64 rounded-lg overflow-hidden">
-                  <img
-                    src={bannerUrl}
-                    alt={event.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+  <div className="w-auto h-auto rounded-lg overflow-hidden bg-gray-100">
+    <img
+      src={bannerUrl}
+      alt={event.name}
+      className="w-full h-full object-contain"
+    />
+  </div>
+)}
 
               {/* Description */}
               <Card>
