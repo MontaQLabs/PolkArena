@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Save, Globe, Plus, Trash2 } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Globe, Plus, Trash2, Upload, X, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -34,7 +34,7 @@ interface Event {
   end_time: string;
   organizer_id: string;
   organizer_name: string;
-  banner_image_url: string | null;
+  banner_image_url: string | null; // Changed from banner_image_url
   location: string | null;
   is_online: boolean;
   participant_limit: number | null;
@@ -53,6 +53,215 @@ interface CustomField {
   type: "text" | "email" | "textarea" | "select" | "checkbox";
   required: boolean;
   options?: string[];
+}
+
+// Image Upload Component
+function ImageUpload({
+  value,
+  onChange,
+  disabled = false,
+  maxSize = 5,
+}: {
+  value?: string;
+  onChange: (path: string | null) => void;
+  disabled?: boolean;
+  maxSize?: number;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Get public URL for display
+  const getImageUrl = (path: string) => {
+    if (!path) return null;
+    const { data } = supabase.storage
+      .from('event-banners')
+      .getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  // Load existing image if value exists
+  useEffect(() => {
+    if (value && !preview) {
+      const url = getImageUrl(value);
+      if (url) setPreview(url);
+    } else if (!value && preview) {
+      setPreview(null);
+    }
+  }, [value]);
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size
+    if (file.size > maxSize * 1024 * 1024) {
+      toast.error(`File size must be less than ${maxSize}MB`);
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Delete old image if exists
+      if (value) {
+        await supabase.storage
+          .from('event-banners')
+          .remove([value]);
+      }
+
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      // Upload file
+      const { data, error } = await supabase.storage
+        .from('event-banners')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        if (error.message.includes('Bucket not found')) {
+          throw new Error('Storage bucket not configured. Please contact support.');
+        }
+        throw error;
+      }
+
+      // Set preview
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+
+      onChange(data.path);
+      toast.success('Image uploaded successfully!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+      if (event.target) {
+        event.target.value = '';
+      }
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!value) return;
+
+    try {
+      // Delete from storage
+      const { error } = await supabase.storage
+        .from('event-banners')
+        .remove([value]);
+
+      if (error) {
+        console.error('Delete error:', error);
+      }
+
+      onChange(null);
+      setPreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      toast.success('Image removed');
+    } catch (error) {
+      console.error('Remove error:', error);
+      toast.error('Failed to remove image');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Label>Event Banner Image</Label>
+      
+      {preview ? (
+        <div className="relative">
+          <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
+            <img
+              src={preview}
+              alt="Event banner preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="absolute top-2 right-2"
+            onClick={handleRemove}
+            disabled={disabled || uploading}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+          <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-4">
+            Upload an image for your event banner
+          </p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Maximum file size: {maxSize}MB
+          </p>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <Input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          disabled={disabled || uploading}
+          className="hidden"
+          id="image-upload"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled || uploading}
+          className="flex-1"
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              {preview ? 'Change Image' : 'Upload Image'}
+            </>
+          )}
+        </Button>
+        
+        {preview && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleRemove}
+            disabled={disabled || uploading}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function EditEventPage() {
@@ -77,7 +286,7 @@ export default function EditEventPage() {
     discord_url: "",
     twitter_url: "",
     requirements: "",
-    banner_image_url: "",
+    banner_image_url: "", // Changed from banner_image_url
   });
 
   useEffect(() => {
@@ -117,21 +326,31 @@ export default function EditEventPage() {
         }
 
         setEvent(eventData);
+
+        // Format datetime values for datetime-local inputs
+        const formatDateTimeLocal = (dateString: string) => {
+          if (!dateString) return "";
+          const date = new Date(dateString);
+          return date.toISOString().slice(0, 16);
+        };
+
         setFormData({
           name: eventData.name,
           description: eventData.description,
-          start_time: eventData.start_time,
-          end_time: eventData.end_time,
+          start_time: formatDateTimeLocal(eventData.start_time),
+          end_time: formatDateTimeLocal(eventData.end_time),
           location: eventData.location || "",
           is_online: eventData.is_online,
           participant_limit: eventData.participant_limit?.toString() || "",
           tags: eventData.tags ? eventData.tags.join(", ") : "",
-          registration_deadline: eventData.registration_deadline || "",
+          registration_deadline: eventData.registration_deadline 
+            ? formatDateTimeLocal(eventData.registration_deadline) 
+            : "",
           website_url: eventData.website_url || "",
           discord_url: eventData.discord_url || "",
           twitter_url: eventData.twitter_url || "",
           requirements: eventData.requirements || "",
-          banner_image_url: eventData.banner_image_url || "",
+          banner_image_url: eventData.banner_image_url || "", // Changed field
         });
 
         if (eventData.custom_fields) {
@@ -188,8 +407,10 @@ export default function EditEventPage() {
         return;
       }
 
+      // Enhanced date validation
       const startTime = new Date(formData.start_time);
       const endTime = new Date(formData.end_time);
+      const now = new Date();
       const registrationDeadline = formData.registration_deadline 
         ? new Date(formData.registration_deadline)
         : null;
@@ -204,6 +425,11 @@ export default function EditEventPage() {
         return;
       }
 
+      if (registrationDeadline && registrationDeadline < now) {
+        toast.error("Registration deadline cannot be in the past");
+        return;
+      }
+
       const tagsArray = formData.tags
         .split(",")
         .map((tag) => tag.trim())
@@ -214,8 +440,8 @@ export default function EditEventPage() {
         .update({
           name: formData.name,
           description: formData.description,
-          start_time: formData.start_time,
-          end_time: formData.end_time,
+          start_time: new Date(formData.start_time).toISOString(),
+          end_time: new Date(formData.end_time).toISOString(),
           location: formData.location || null,
           is_online: formData.is_online,
           participant_limit: formData.participant_limit
@@ -223,12 +449,14 @@ export default function EditEventPage() {
             : null,
           tags: tagsArray.length > 0 ? tagsArray : null,
           custom_fields: customFields.length > 0 ? customFields : null,
-          registration_deadline: formData.registration_deadline || null,
+          registration_deadline: formData.registration_deadline 
+            ? new Date(formData.registration_deadline).toISOString()
+            : null,
           website_url: formData.website_url || null,
           discord_url: formData.discord_url || null,
           twitter_url: formData.twitter_url || null,
           requirements: formData.requirements || null,
-          banner_image_url: formData.banner_image_url || null,
+          banner_image_url: formData.banner_image_url || null, // Changed field
         })
         .eq("id", event.id);
 
@@ -331,17 +559,15 @@ export default function EditEventPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="banner_image_url">Banner Image URL</Label>
-                  <Input
-                    id="banner_image_url"
-                    type="url"
-                    value={formData.banner_image_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, banner_image_url: e.target.value })
-                    }
-                  />
-                </div>
+                {/* Replaced banner URL input with image upload component */}
+                <ImageUpload
+                  value={formData.banner_image_url}
+                  onChange={(path) =>
+                    setFormData({ ...formData, banner_image_url: path || "" })
+                  }
+                  disabled={saving}
+                  maxSize={5}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -372,6 +598,7 @@ export default function EditEventPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, location: e.target.value })
                       }
+                      placeholder={formData.is_online ? "Meeting platform (e.g., Zoom)" : "City, Country or Venue"}
                     />
                   </div>
                 </div>
@@ -384,6 +611,7 @@ export default function EditEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, tags: e.target.value })
                     }
+                    placeholder="e.g., workshop, beginner, substrate, defi"
                   />
                 </div>
               </CardContent>
@@ -450,6 +678,7 @@ export default function EditEventPage() {
                         participant_limit: e.target.value,
                       })
                     }
+                    placeholder="Leave empty for unlimited"
                     min="1"
                   />
                 </div>
@@ -487,6 +716,7 @@ export default function EditEventPage() {
                           onChange={(e) =>
                             updateCustomField(field.id, { label: e.target.value })
                           }
+                          placeholder="e.g., Experience Level"
                         />
                       </div>
                       <div className="space-y-2">
@@ -537,6 +767,7 @@ export default function EditEventPage() {
                               options: e.target.value.split(",").map(opt => opt.trim()).filter(opt => opt)
                             })
                           }
+                          placeholder="e.g., Beginner, Intermediate, Advanced"
                         />
                       </div>
                     )}
@@ -568,6 +799,7 @@ export default function EditEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, requirements: e.target.value })
                     }
+                    placeholder="Any prerequisites or requirements for participants..."
                     rows={3}
                   />
                 </div>
@@ -585,6 +817,7 @@ export default function EditEventPage() {
                           website_url: e.target.value,
                         })
                       }
+                      placeholder="https://your-event.com"
                     />
                   </div>
                   <div className="space-y-2">
@@ -599,6 +832,7 @@ export default function EditEventPage() {
                           discord_url: e.target.value,
                         })
                       }
+                      placeholder="https://discord.gg/your-server"
                     />
                   </div>
                   <div className="space-y-2">
@@ -613,6 +847,7 @@ export default function EditEventPage() {
                           twitter_url: e.target.value,
                         })
                       }
+                      placeholder="https://twitter.com/your-handle"
                     />
                   </div>
                 </div>

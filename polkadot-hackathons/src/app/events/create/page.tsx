@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { ensureUserProfile } from "@/lib/auth-utils";
@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2 } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2, Upload, X, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -33,6 +33,210 @@ interface CustomField {
   type: "text" | "email" | "textarea" | "select" | "checkbox";
   required: boolean;
   options?: string[];
+}
+
+// Image Upload Component
+function ImageUpload({
+  value,
+  onChange,
+  disabled = false,
+  maxSize = 5,
+}: {
+  value?: string;
+  onChange: (path: string | null) => void;
+  disabled?: boolean;
+  maxSize?: number;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Get public URL for display
+  const getImageUrl = (path: string) => {
+    if (!path) return null;
+    const { data } = supabase.storage
+      .from('event-banners')
+      .getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  // Load existing image if value exists - Fixed dependency array
+  useEffect(() => {
+    if (value && !preview) {
+      const url = getImageUrl(value);
+      if (url) setPreview(url);
+    } else if (!value && preview) {
+      setPreview(null);
+    }
+  }, [value]); // Removed preview from dependencies to prevent infinite loops
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size
+    if (file.size > maxSize * 1024 * 1024) {
+      toast.error(`File size must be less than ${maxSize}MB`);
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      // Upload file
+      const { data, error } = await supabase.storage
+        .from('event-banners')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        // Enhanced error handling
+        if (error.message.includes('Bucket not found')) {
+          throw new Error('Storage bucket not configured. Please contact support.');
+        }
+        throw error;
+      }
+
+      // Set preview
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+
+      onChange(data.path);
+      toast.success('Image uploaded successfully!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+      // Clear the input to allow re-uploading the same file
+      if (event.target) {
+        event.target.value = '';
+      }
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!value) return;
+
+    try {
+      // Delete from storage
+      const { error } = await supabase.storage
+        .from('event-banners')
+        .remove([value]);
+
+      if (error) {
+        console.error('Delete error:', error);
+      }
+
+      onChange(null);
+      setPreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      toast.success('Image removed');
+    } catch (error) {
+      console.error('Remove error:', error);
+      toast.error('Failed to remove image');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Label>Event Banner Image</Label>
+      
+      {preview ? (
+        <div className="relative">
+          <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
+            <img
+              src={preview}
+              alt="Event banner preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="absolute top-2 right-2"
+            onClick={handleRemove}
+            disabled={disabled || uploading}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+          <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground mb-4">
+            Upload an image for your event banner
+          </p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Maximum file size: {maxSize}MB
+          </p>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <Input
+          ref={fileInputRef} // Fixed: Use direct ref assignment instead of callback
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          disabled={disabled || uploading}
+          className="hidden"
+          id="image-upload"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled || uploading}
+          className="flex-1"
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              {preview ? 'Change Image' : 'Upload Image'}
+            </>
+          )}
+        </Button>
+        
+        {preview && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleRemove}
+            disabled={disabled || uploading}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function CreateEventPage() {
@@ -124,19 +328,32 @@ export default function CreateEventPage() {
         return;
       }
 
+      // Enhanced date validation
       const startTime = new Date(formData.start_time);
       const endTime = new Date(formData.end_time);
+      const now = new Date();
       const registrationDeadline = formData.registration_deadline 
         ? new Date(formData.registration_deadline)
-        : startTime;
+        : null;
+
+      // Check if start time is in the past
+      if (startTime < now) {
+        toast.error("Start time cannot be in the past");
+        return;
+      }
 
       if (endTime <= startTime) {
         toast.error("End time must be after start time");
         return;
       }
 
-      if (registrationDeadline >= startTime) {
+      if (registrationDeadline && registrationDeadline >= startTime) {
         toast.error("Registration deadline must be before start time");
+        return;
+      }
+
+      if (registrationDeadline && registrationDeadline < now) {
+        toast.error("Registration deadline cannot be in the past");
         return;
       }
 
@@ -152,35 +369,39 @@ export default function CreateEventPage() {
         .eq("id", user.id)
         .single();
 
+      const eventData = {
+        name: formData.name,
+        description: formData.description,
+        start_time: new Date(formData.start_time).toISOString(),
+        end_time: new Date(formData.end_time).toISOString(),
+        organizer_id: user.id,
+        organizer_name: userProfile?.name || user.email || "Anonymous",
+        location: formData.location || null,
+        is_online: formData.is_online,
+        participant_limit: formData.participant_limit
+          ? parseInt(formData.participant_limit)
+          : null,
+        tags: tagsArray.length > 0 ? tagsArray : null,
+        custom_fields: customFields.length > 0 ? customFields : null,
+        registration_deadline: formData.registration_deadline 
+          ? new Date(formData.registration_deadline).toISOString() 
+          : null,
+        website_url: formData.website_url || null,
+        discord_url: formData.discord_url || null,
+        twitter_url: formData.twitter_url || null,
+        requirements: formData.requirements || null,
+        banner_image_url: formData.banner_image_url || null,
+      };
+
       const { data, error } = await supabase
         .from("events")
-        .insert({
-          name: formData.name,
-          description: formData.description,
-          start_time: formData.start_time,
-          end_time: formData.end_time,
-          organizer_id: user.id,
-          organizer_name: userProfile?.name || user.email || "Anonymous",
-          location: formData.location || null,
-          is_online: formData.is_online,
-          participant_limit: formData.participant_limit
-            ? parseInt(formData.participant_limit)
-            : null,
-          tags: tagsArray.length > 0 ? tagsArray : null,
-          custom_fields: customFields.length > 0 ? customFields : null,
-          registration_deadline: formData.registration_deadline || null,
-          website_url: formData.website_url || null,
-          discord_url: formData.discord_url || null,
-          twitter_url: formData.twitter_url || null,
-          requirements: formData.requirements || null,
-          banner_image_url: formData.banner_image_url || null,
-        })
+        .insert(eventData)
         .select()
         .single();
 
       if (error) {
         console.error("Error creating event:", error);
-        toast.error("Failed to create event");
+        toast.error(`Failed to create event: ${error.message}`);
         return;
       }
 
@@ -264,18 +485,15 @@ export default function CreateEventPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="banner_image_url">Banner Image URL</Label>
-                  <Input
-                    id="banner_image_url"
-                    type="url"
-                    value={formData.banner_image_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, banner_image_url: e.target.value })
-                    }
-                    placeholder="https://example.com/banner.jpg"
-                  />
-                </div>
+                {/* Image upload component */}
+                <ImageUpload
+                  value={formData.banner_image_url}
+                  onChange={(path) =>
+                    setFormData({ ...formData, banner_image_url: path || "" })
+                  }
+                  disabled={saving}
+                  maxSize={5}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">

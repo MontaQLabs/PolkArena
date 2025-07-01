@@ -24,7 +24,7 @@ interface Event {
   end_time: string;
   organizer_id: string;
   organizer_name: string;
-  banner_image_url: string | null;
+  banner_image_url: string | null; // Changed from banner_image_url
   location: string | null;
   is_online: boolean;
   participant_limit: number | null;
@@ -44,6 +44,15 @@ interface Event {
     registrations: number;
   };
 }
+
+// Helper function to get image URL from storage path
+const getEventBannerUrl = (imagePath: string | null) => {
+  if (!imagePath) return null;
+  const { data } = supabase.storage
+    .from('event-banners')
+    .getPublicUrl(imagePath);
+  return data.publicUrl;
+};
 
 function EventCard({ event }: { event: Event }) {
   const formatDate = (dateString: string) => {
@@ -82,8 +91,22 @@ function EventCard({ event }: { event: Event }) {
     }
   };
 
+  // Get banner image URL from storage path
+  const bannerUrl = getEventBannerUrl(event.banner_image_url);
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-polkadot-pink/50 bg-white">
+      {/* Show banner image at the top if available */}
+      {bannerUrl && (
+        <div className="w-full h-48 overflow-hidden rounded-t-lg">
+          <img
+            src={bannerUrl}
+            alt={event.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+          />
+        </div>
+      )}
+      
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-2 flex-1">
@@ -102,15 +125,6 @@ function EventCard({ event }: { event: Event }) {
               {event.description}
             </CardDescription>
           </div>
-          {event.banner_image_url && (
-            <div className="ml-4 flex-shrink-0">
-              <img
-                src={event.banner_image_url}
-                alt={event.name}
-                className="w-16 h-16 rounded-lg object-cover"
-              />
-            </div>
-          )}
         </div>
 
         {event.tags && event.tags.length > 0 && (
@@ -177,6 +191,7 @@ function EventsLoading() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(6)].map((_, i) => (
         <Card key={i} className="animate-pulse bg-white">
+          <div className="w-full h-48 bg-muted rounded-t-lg"></div>
           <CardHeader>
             <div className="h-4 bg-muted rounded w-20 mb-2"></div>
             <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
@@ -207,12 +222,12 @@ export default function EventsPage() {
       try {
         setLoading(true);
 
-        // Fetch upcoming events with organizer info
+        // Updated query to use the correct foreign key relationship
         const { data, error } = await supabase
           .from("events")
           .select(`
             *,
-            organizer:users(name, email)
+            organizer:organizer_id(name, email)
           `)
           .gte("start_time", new Date().toISOString())
           .order("start_time", { ascending: true });

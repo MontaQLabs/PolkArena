@@ -21,30 +21,39 @@ import {
   MapPin,
   Users,
   CheckCircle,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Event {
   id: string;
-  title: string;
+  name: string; // Changed from title
   description: string;
-  short_description: string;
-  location: string;
+  location: string | null;
   is_online: boolean;
-  start_date: string;
-  end_date: string;
-  registration_deadline: string;
-  max_participants: number | null;
-  event_type: string;
-  technologies: string[];
+  start_time: string; // Changed from start_date
+  end_time: string; // Changed from end_date
+  registration_deadline: string | null;
+  participant_limit: number | null; // Changed from max_participants
+  tags: string[] | null; // Changed from technologies
   organizer_id: string;
-  status: string;
+  organizer_name: string;
+  banner_image_url: string | null; // Added for consistency
   organizer: {
     name: string;
     email: string;
   };
 }
+
+// Helper function to get image URL from storage path
+const getEventBannerUrl = (imagePath: string | null) => {
+  if (!imagePath) return null;
+  const { data } = supabase.storage
+    .from('event-banners')
+    .getPublicUrl(imagePath);
+  return data.publicUrl;
+};
 
 export default function RegisterEventPage() {
   const params = useParams();
@@ -69,17 +78,17 @@ export default function RegisterEventPage() {
 
         if (!user) {
           toast.error("Please sign in to register for an event");
-          router.push("/auth/signin");
+          router.push("/auth/login"); // Updated route
           return;
         }
 
-        // Fetch event
+        // Fetch event with updated query
         const { data: eventData, error: eventError } = await supabase
           .from("events")
           .select(
             `
             *,
-            organizer:users(name, email)
+            organizer:organizer_id(name, email)
           `
           )
           .eq("id", eventId)
@@ -94,9 +103,9 @@ export default function RegisterEventPage() {
 
         setEvent(eventData);
 
-        // Check if user is already registered
+        // Check if user is already registered using event_participants table
         const { data: registration } = await supabase
-          .from("event_registrations")
+          .from("event_participants")
           .select("id")
           .eq("event_id", eventId)
           .eq("user_id", user.id)
@@ -122,12 +131,11 @@ export default function RegisterEventPage() {
 
     setRegistering(true);
     try {
-      // Register for event
-      const { error } = await supabase.from("event_registrations").insert({
+      // Register for event using event_participants table
+      const { error } = await supabase.from("event_participants").insert({
         event_id: event.id,
         user_id: user.id,
-        motivation: motivation.trim() || null,
-        status: "registered",
+        status: "going", // Updated status value
       });
 
       if (error) {
@@ -156,23 +164,19 @@ export default function RegisterEventPage() {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "bg-gray-100 text-gray-800";
-      case "published":
-        return "bg-blue-100 text-blue-800";
-      case "registration_open":
-        return "bg-green-100 text-green-800";
-      case "upcoming":
-        return "bg-purple-100 text-purple-800";
-      case "live":
-        return "bg-yellow-100 text-yellow-800";
-      case "completed":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  // Updated status logic for events
+  const getEventStatus = () => {
+    const now = new Date();
+    const startTime = new Date(event!.start_time);
+    const endTime = new Date(event!.end_time);
+    const registrationDeadline = event!.registration_deadline 
+      ? new Date(event!.registration_deadline) 
+      : startTime;
+
+    if (now > endTime) return { status: "completed", color: "bg-gray-100 text-gray-800" };
+    if (now >= startTime && now <= endTime) return { status: "live", color: "bg-green-100 text-green-800" };
+    if (now > registrationDeadline) return { status: "registration_closed", color: "bg-red-100 text-red-800" };
+    return { status: "upcoming", color: "bg-blue-100 text-blue-800" };
   };
 
   if (loading) {
@@ -201,12 +205,15 @@ export default function RegisterEventPage() {
     );
   }
 
-  // Check if registration is allowed
-  const canRegister =
-    event.status === "registration_open" ||
-    event.status === "upcoming" ||
-    event.status === "live";
-  const isPastDeadline = new Date() > new Date(event.registration_deadline);
+  // Updated registration logic
+  const eventStatus = getEventStatus();
+  const canRegister = eventStatus.status === "upcoming";
+  const isPastDeadline = event.registration_deadline 
+    ? new Date() > new Date(event.registration_deadline)
+    : false;
+
+  // Get banner image URL
+  const bannerUrl = getEventBannerUrl(event.banner_image_url);
 
   return (
     <div className="min-h-screen bg-background">
@@ -223,21 +230,28 @@ export default function RegisterEventPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold text-foreground">
-                  Register for {event.title}
+                  Register for {event.name}
                 </h1>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    event.status
-                  )}`}
-                >
-                  {event.status.replace("_", " ").toUpperCase()}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${eventStatus.color}`}>
+                  {eventStatus.status.replace("_", " ").toUpperCase()}
                 </span>
               </div>
               <p className="text-muted-foreground">
-                {event.short_description}
+                {event.description.substring(0, 150)}...
               </p>
             </div>
           </div>
+
+          {/* Banner Image */}
+          {bannerUrl && (
+            <div className="w-full h-64 rounded-lg overflow-hidden mb-8">
+              <img
+                src={bannerUrl}
+                alt={event.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
@@ -266,7 +280,7 @@ export default function RegisterEventPage() {
                     </Button>
                   </CardContent>
                 </Card>
-              ) : !canRegister ? (
+              ) : !canRegister || isPastDeadline ? (
                 <Card className="border-red-200 bg-red-50">
                   <CardHeader>
                     <CardTitle className="text-red-800">
@@ -275,12 +289,14 @@ export default function RegisterEventPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-red-700">
-                      {event.status === "draft" &&
-                        "This event is still in draft mode and not open for registration yet."}
-                      {event.status === "completed" &&
+                      {eventStatus.status === "completed" &&
                         "This event has already ended."}
+                      {eventStatus.status === "live" &&
+                        "This event is currently live. Registration is closed."}
                       {isPastDeadline &&
                         "The registration deadline has passed."}
+                      {eventStatus.status === "registration_closed" &&
+                        "Registration is closed for this event."}
                     </p>
                   </CardContent>
                 </Card>
@@ -362,32 +378,34 @@ export default function RegisterEventPage() {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Start Date</p>
+                      <p className="text-sm font-medium">Start Time</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(event.start_date)}
+                        {formatDate(event.start_time)}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Clock className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">End Date</p>
+                      <p className="text-sm font-medium">End Time</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(event.end_date)}
+                        {formatDate(event.end_time)}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        Registration Deadline
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(event.registration_deadline)}
-                      </p>
+                  {event.registration_deadline && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          Registration Deadline
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDate(event.registration_deadline)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <div>
@@ -399,34 +417,43 @@ export default function RegisterEventPage() {
                       </p>
                     </div>
                   </div>
-                  {event.max_participants && (
+                  {event.participant_limit && (
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Max Participants</p>
                         <p className="text-sm text-muted-foreground">
-                          {event.max_participants}
+                          {event.participant_limit}
                         </p>
                       </div>
                     </div>
                   )}
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Organizer</p>
+                      <p className="text-sm text-muted-foreground">
+                        {event.organizer?.name || event.organizer_name}
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Technologies */}
-              {event.technologies && event.technologies.length > 0 && (
+              {/* Tags */}
+              {event.tags && event.tags.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Technologies & Topics</CardTitle>
+                    <CardTitle>Tags & Topics</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {event.technologies.map((tech, index) => (
+                      {event.tags.map((tag, index) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-muted rounded text-sm"
                         >
-                          {tech}
+                          {tag}
                         </span>
                       ))}
                     </div>

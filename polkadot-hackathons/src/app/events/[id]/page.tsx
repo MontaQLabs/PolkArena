@@ -48,7 +48,7 @@ interface Event {
   end_time: string;
   organizer_id: string;
   organizer_name: string;
-  banner_image_url: string | null;
+  banner_image_url: string | null; // CHANGED: from banner_image_url to banner_image_url
   location: string | null;
   is_online: boolean;
   participant_limit: number | null;
@@ -77,6 +77,15 @@ interface Registration {
   };
 }
 
+// ADDED: Helper function to get image URL from storage path
+const getEventBannerUrl = (imagePath: string | null) => {
+  if (!imagePath) return null;
+  const { data } = supabase.storage
+    .from('event-banners')
+    .getPublicUrl(imagePath);
+  return data.publicUrl;
+};
+
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -100,12 +109,12 @@ export default function EventDetailPage() {
         } = await supabase.auth.getUser();
         setUser(user);
 
-        // Fetch event
+        // CHANGED: Updated query to use correct foreign key relationship
         const { data: eventData, error: eventError } = await supabase
           .from("events")
           .select(`
             *,
-            organizer:users(name, email)
+            organizer:organizer_id(name, email)
           `)
           .eq("id", eventId)
           .single();
@@ -120,23 +129,23 @@ export default function EventDetailPage() {
         setEvent(eventData);
 
         if (user) {
-          // Check if user is already registered
+          // FIXED: Use maybeSingle() instead of single() to avoid 406 error
           const { data: registration } = await supabase
-            .from("event_registrations")
+            .from("event_participants")
             .select("id")
             .eq("event_id", eventId)
             .eq("user_id", user.id)
-            .single();
+            .maybeSingle(); // CHANGED: from .single() to .maybeSingle()
 
           setIsRegistered(!!registration);
 
           // If user is the organizer, fetch all registrations
           if (user.id === eventData.organizer_id) {
             const { data: registrationsData } = await supabase
-              .from("event_registrations")
+              .from("event_participants")
               .select(`
                 *,
-                user:users(name, email)
+                user:user_id(name, email)
               `)
               .eq("event_id", eventId)
               .order("registered_at", { ascending: false });
@@ -177,10 +186,11 @@ export default function EventDetailPage() {
         }
       }
 
-      const { error } = await supabase.from("event_registrations").insert({
+      // CHANGED: Updated to use event_participants table
+      const { error } = await supabase.from("event_participants").insert({
         event_id: event.id,
         user_id: user.id,
-        responses: formData,
+        status: "going",
       });
 
       if (error) {
@@ -364,6 +374,9 @@ export default function EventDetailPage() {
   const { status, color } = getEventStatus();
   const canRegister = status === "upcoming" && !isRegistered;
 
+  // CHANGED: Get banner URL using helper function
+  const bannerUrl = getEventBannerUrl(event.banner_image_url);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -418,11 +431,11 @@ export default function EventDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Banner Image */}
-              {event.banner_image_url && (
+              {/* CHANGED: Banner Image - use bannerUrl instead of event.banner_image_url */}
+              {bannerUrl && (
                 <div className="w-full h-64 rounded-lg overflow-hidden">
                   <img
-                    src={event.banner_image_url}
+                    src={bannerUrl}
                     alt={event.name}
                     className="w-full h-full object-cover"
                   />
