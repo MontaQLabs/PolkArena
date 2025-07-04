@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/lib/database.types";
+import { ensureUserProfile } from "@/lib/auth-utils";
 
 type UserProfile = Database["public"]["Tables"]["users"]["Row"];
 
@@ -25,6 +26,7 @@ interface AuthContextType {
   updateProfile: (
     updates: Partial<UserProfile>
   ) => Promise<{ error: Error | null }>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,7 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        // Ensure profile exists (especially important for OAuth users)
+        await ensureProfileExists(session.user.id);
       } else {
         setProfile(null);
       }
@@ -75,9 +78,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data) {
         setProfile(data);
+      } else {
+        // Profile doesn't exist, try to create it
+        await ensureProfileExists(userId);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+    }
+  };
+
+  const ensureProfileExists = async (userId: string) => {
+    try {
+      const result = await ensureUserProfile(userId);
+      if (result.success && result.profile) {
+        setProfile(result.profile);
+      }
+    } catch (error) {
+      console.error("Error ensuring profile exists:", error);
     }
   };
 
@@ -94,21 +111,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     name: string
   ) => {
+    // Include name in user metadata for consistency
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name: name,
+          full_name: name, // Some systems use full_name
+        }
+      }
     });
 
+    // If you have a database trigger, it will handle profile creation
+    // If not, create profile manually
     if (!error && data.user) {
-      // Create user profile
-      const { error: profileError } = await supabase.from("users").insert({
-        id: data.user.id,
-        email: data.user.email!,
-        name,
-      });
-
-      if (profileError) {
+      try {
+        await ensureUserProfile(data.user.id);
+      } catch (profileError) {
         console.error("Error creating profile:", profileError);
+        // Don't return this as an error since auth succeeded
       }
     }
 
@@ -127,7 +149,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    setProfile(null);
+    if (!error) {
+      setProfile(null);
+    }
     return { error };
   };
 
@@ -136,16 +160,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("No user logged in") };
     }
 
-    const { error } = await supabase
-      .from("users")
-      .update(updates)
-      .eq("id", user.id);
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .update(updates)
+        .eq("id", user.id)
+        .select()
+        .single();
 
-    if (!error) {
-      setProfile((prev) => (prev ? { ...prev, ...updates } : null));
+      if (error) {
+        return { error };
+      }
+
+      if (data) {
+        setProfile(data);
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
     }
+  };
 
-    return { error };
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
   };
 
   const value = {
@@ -157,6 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signOut,
     updateProfile,
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

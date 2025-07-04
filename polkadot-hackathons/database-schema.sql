@@ -179,3 +179,58 @@ CREATE INDEX idx_judges_hackathon_id ON public.judges(hackathon_id);
 CREATE INDEX idx_scores_team_id ON public.scores(team_id);
 CREATE INDEX idx_scores_judge_id ON public.scores(judge_id);
 CREATE INDEX idx_winners_hackathon_id ON public.winners(hackathon_id);
+
+-- Events table (Changed organizer_id reference to public.users)
+CREATE TABLE public.events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ NOT NULL,
+  organizer_id UUID NOT NULL REFERENCES public.users(id),
+  organizer_name TEXT NOT NULL,
+  banner_image_url TEXT,
+  location TEXT,
+  is_online BOOLEAN DEFAULT false,
+  participant_limit INTEGER,
+  tags TEXT[],
+  custom_fields JSONB,
+  registration_deadline TIMESTAMPTZ,
+  website_url TEXT,
+  discord_url TEXT,
+  twitter_url TEXT,
+  requirements TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Event participants table (ADDED)
+CREATE TABLE public.event_participants (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  event_id UUID NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'invited'::text CHECK (status = ANY (ARRAY['going'::text, 'maybe'::text, 'not_going'::text, 'invited'::text])),
+  registered_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  UNIQUE(event_id, user_id)
+);
+
+-- Add trigger for event_participants updated_at
+CREATE TRIGGER handle_event_participants_updated_at BEFORE
+UPDATE ON public.event_participants FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+
+-- Event participants table policies
+ALTER TABLE public.event_participants ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Everyone can view event participants" ON public.event_participants FOR
+SELECT USING (true);
+CREATE POLICY "Users can manage their own participation" ON public.event_participants FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Event organizers can manage participants" ON public.event_participants FOR ALL USING (
+    event_id IN (SELECT id FROM public.events WHERE organizer_id = auth.uid())
+);
+
+-- Index for better query performance
+CREATE INDEX idx_events_organizer_id ON public.events(organizer_id);
+CREATE INDEX idx_events_start_time ON public.events(start_time);
+CREATE INDEX idx_events_tags ON public.events USING GIN(tags);
+CREATE INDEX idx_event_participants_event_id ON public.event_participants(event_id);
+CREATE INDEX idx_event_participants_user_id ON public.event_participants(user_id);
+CREATE INDEX idx_event_participants_status ON public.event_participants(status);

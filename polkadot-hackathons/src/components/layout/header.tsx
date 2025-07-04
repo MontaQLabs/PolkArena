@@ -65,6 +65,13 @@ export function Header() {
             >
               Leaderboard
             </Link>
+            <Link
+              href="/events"
+              className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium"
+            >
+              Events
+            </Link>
+
             {user && (
               <Link
                 href="/hackathons/create"
