@@ -51,30 +51,38 @@ interface Event {
   end_time: string;
   organizer_id: string;
   organizer_name: string;
-  banner_image_url: string | null;
   location: string | null;
   is_online: boolean;
   participant_limit: number | null;
   tags: string[] | null;
-  custom_fields: any;
+  custom_fields: CustomField[] | null;
   registration_deadline: string | null;
   website_url: string | null;
   discord_url: string | null;
   twitter_url: string | null;
   requirements: string | null;
+  banner_image_url: string | null;
   short_code: string;
-  created_at: string;
   organizer: {
     name: string;
     email: string;
   };
 }
 
+interface CustomField {
+  id: string;
+  name: string;
+  type: string;
+  required: boolean;
+  options?: string[];
+}
+
 interface Registration {
   id: string;
   user_id: string;
-  responses: any;
-  registered_at: string;
+  event_id: string;
+  registration_data: Record<string, unknown>;
+  created_at: string;
   user: {
     name: string;
     email: string;
@@ -100,7 +108,7 @@ export default function EventDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -184,7 +192,7 @@ export default function EventDetailPage() {
       if (event.custom_fields) {
         for (const field of event.custom_fields) {
           if (field.required && !formData[field.id]) {
-            toast.error(`${field.label} is required`);
+            toast.error(`${field.name} is required`);
             return;
           }
         }
@@ -296,7 +304,7 @@ export default function EventDetailPage() {
           text: `Check out this epic battle: ${event.name}`,
           url: shareableURL,
         });
-      } catch (error) {
+      } catch {
         // Fallback to clipboard if share fails
         copyToClipboard(shareableURL);
       }
@@ -309,7 +317,7 @@ export default function EventDetailPage() {
     try {
       await navigator.clipboard.writeText(text);
       toast.success("Link copied to clipboard!");
-    } catch (error) {
+    } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = text;
@@ -321,14 +329,14 @@ export default function EventDetailPage() {
     }
   };
 
-  const renderCustomField = (field: any) => {
+  const renderCustomField = (field: CustomField) => {
     switch (field.type) {
       case "text":
       case "email":
         return (
           <Input
             type={field.type}
-            value={formData[field.id] || ""}
+            value={String(formData[field.id] || "")}
             onChange={(e) =>
               setFormData({ ...formData, [field.id]: e.target.value })
             }
@@ -338,7 +346,7 @@ export default function EventDetailPage() {
       case "textarea":
         return (
           <Textarea
-            value={formData[field.id] || ""}
+            value={String(formData[field.id] || "")}
             onChange={(e) =>
               setFormData({ ...formData, [field.id]: e.target.value })
             }
@@ -349,7 +357,7 @@ export default function EventDetailPage() {
       case "select":
         return (
           <Select
-            value={formData[field.id] || ""}
+            value={String(formData[field.id] || "")}
             onValueChange={(value) =>
               setFormData({ ...formData, [field.id]: value })
             }
@@ -371,7 +379,7 @@ export default function EventDetailPage() {
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
-              checked={formData[field.id] || false}
+              checked={Boolean(formData[field.id])}
               onChange={(e) =>
                 setFormData({ ...formData, [field.id]: e.target.checked })
               }
@@ -520,10 +528,10 @@ export default function EventDetailPage() {
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleRegister} className="space-y-4">
-                      {event.custom_fields.map((field: any) => (
+                      {event.custom_fields.map((field: CustomField) => (
                         <div key={field.id} className="space-y-2">
                           <Label htmlFor={field.id}>
-                            {field.label}
+                            {field.name}
                             {field.required && <span className="text-red-500 ml-1">*</span>}
                           </Label>
                           {renderCustomField(field)}
@@ -576,19 +584,19 @@ export default function EventDetailPage() {
                               {registration.user?.name || "Anonymous"}
                             </h4>
                             <span className="text-sm text-muted-foreground">
-                              {new Date(registration.registered_at).toLocaleDateString()}
+                              {new Date(registration.created_at).toLocaleDateString()}
                             </span>
                           </div>
                           <p className="text-sm text-muted-foreground mb-2">
                             {registration.user?.email}
                           </p>
-                          {registration.responses && Object.keys(registration.responses).length > 0 && (
+                          {registration.registration_data && Object.keys(registration.registration_data).length > 0 && (
                             <div className="space-y-1">
-                              {Object.entries(registration.responses).map(([key, value]) => {
-                                const field = event.custom_fields?.find((f: any) => f.id === key);
+                              {Object.entries(registration.registration_data).map(([key, value]) => {
+                                const field = event.custom_fields?.find((f: CustomField) => f.id === key);
                                 return (
                                   <div key={key} className="text-sm">
-                                    <span className="font-medium">{field?.label || key}:</span>{" "}
+                                    <span className="font-medium">{field?.name || key}:</span>{" "}
                                     <span className="text-muted-foreground">
                                       {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
                                     </span>
@@ -771,7 +779,8 @@ export default function EventDetailPage() {
                           return;
                         }
                         if (!event.custom_fields || event.custom_fields.length === 0) {
-                          handleRegister(new Event("submit") as any);
+                          const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                          handleRegister(fakeEvent);
                         } else {
                           // Scroll to registration form
                           document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' });

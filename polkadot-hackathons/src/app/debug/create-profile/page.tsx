@@ -74,7 +74,7 @@ export default function CreateProfilePage() {
       }
     } catch (error) {
       // Profile doesn't exist, which is fine
-      console.log("No existing profile found");
+      console.log("No existing profile found", error);
     }
   };
 
@@ -106,15 +106,9 @@ export default function CreateProfilePage() {
           toast.success("User profile already existed!");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating profile:", error);
-      const errorMessage = error.message || "Failed to create user profile";
-      setResult({ 
-        success: false, 
-        message: errorMessage,
-        created: false 
-      });
-      toast.error(errorMessage);
+      toast.error("Failed to create profile");
     } finally {
       setCreating(false);
     }

@@ -24,12 +24,12 @@ interface Event {
   end_time: string;
   organizer_id: string;
   organizer_name: string;
-  banner_image_url: string | null; // Changed from banner_image_url
+  banner_image_url: string | null;
   location: string | null;
   is_online: boolean;
   participant_limit: number | null;
   tags: string[] | null;
-  custom_fields: any;
+  custom_fields: CustomField[] | null;
   registration_deadline: string | null;
   website_url: string | null;
   discord_url: string | null;
@@ -43,6 +43,14 @@ interface Event {
   _count?: {
     registrations: number;
   };
+}
+
+interface CustomField {
+  id: string;
+  name: string;
+  type: string;
+  required: boolean;
+  options?: string[];
 }
 
 // Helper function to get image URL from storage path

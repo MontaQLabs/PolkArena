@@ -19,7 +19,7 @@ export function TypingEffect({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
-
+  console.log(currentIndex, isTyping);
   useEffect(() => {
     const startTyping = () => {
       setIsTyping(true);

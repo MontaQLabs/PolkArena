@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Users, Trophy, Rocket, Zap, Shield, Globe, Swords, Target, Crown } from "lucide-react";
+import { ArrowRight, Shield, Swords, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,

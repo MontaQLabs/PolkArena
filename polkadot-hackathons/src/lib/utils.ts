@@ -51,6 +51,7 @@ export async function generateUniqueShortCode(eventName?: string): Promise<strin
       .eq('short_code', shortCode)
       .single();
     
+    console.log(data, error);
     if (error && error.code === 'PGRST116') {
       // No match found - code is available
       return shortCode;

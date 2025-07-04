@@ -30,8 +30,8 @@ import { generateUniqueShortCode } from "@/lib/utils";
 
 interface CustomField {
   id: string;
-  label: string;
-  type: "text" | "email" | "textarea" | "select" | "checkbox";
+  name: string;
+  type: string;
   required: boolean;
   options?: string[];
 }
@@ -122,9 +122,9 @@ function ImageUpload({
 
       onChange(data.path);
       toast.success('Image uploaded successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload image');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload image');
     } finally {
       setUploading(false);
       // Clear the input to allow re-uploading the same file
@@ -293,7 +293,7 @@ export default function CreateEventPage() {
   const addCustomField = () => {
     const newField: CustomField = {
       id: Date.now().toString(),
-      label: "",
+      name: "",
       type: "text",
       required: false,
       options: [],
@@ -649,9 +649,9 @@ export default function CreateEventPage() {
                       <div className="space-y-2">
                         <Label>Field Label</Label>
                         <Input
-                          value={field.label}
+                          value={field.name}
                           onChange={(e) =>
-                            updateCustomField(field.id, { label: e.target.value })
+                            updateCustomField(field.id, { name: e.target.value })
                           }
                           placeholder="e.g., Experience Level"
                         />
@@ -660,7 +660,7 @@ export default function CreateEventPage() {
                         <Label>Field Type</Label>
                         <Select
                           value={field.type}
-                          onValueChange={(value: any) =>
+                          onValueChange={(value: string) =>
                             updateCustomField(field.id, { type: value })
                           }
                         >

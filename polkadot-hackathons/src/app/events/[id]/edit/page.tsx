@@ -34,26 +34,29 @@ interface Event {
   end_time: string;
   organizer_id: string;
   organizer_name: string;
-  banner_image_url: string | null; // Changed from banner_image_url
   location: string | null;
   is_online: boolean;
   participant_limit: number | null;
   tags: string[] | null;
-  custom_fields: any;
+  custom_fields: CustomField[] | null;
   registration_deadline: string | null;
   website_url: string | null;
   discord_url: string | null;
   twitter_url: string | null;
   requirements: string | null;
+  banner_image_url: string | null;
+  short_code: string;
 }
 
 interface CustomField {
   id: string;
-  label: string;
-  type: "text" | "email" | "textarea" | "select" | "checkbox";
+  name: string;
+  type: string;
   required: boolean;
   options?: string[];
 }
+
+
 
 // Image Upload Component
 function ImageUpload({
@@ -148,9 +151,9 @@ function ImageUpload({
   
       onChange(data.path);
       toast.success('Image uploaded successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload image');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload image');
       // Reset preview on error
       setPreview(null);
     } finally {
@@ -290,7 +293,7 @@ export default function EditEventPage() {
     discord_url: "",
     twitter_url: "",
     requirements: "",
-    banner_image_url: "", // Changed from banner_image_url
+    banner_image_url: "",
   });
 
   useEffect(() => {
@@ -354,7 +357,7 @@ export default function EditEventPage() {
           discord_url: eventData.discord_url || "",
           twitter_url: eventData.twitter_url || "",
           requirements: eventData.requirements || "",
-          banner_image_url: eventData.banner_image_url || "", // Changed field
+          banner_image_url: eventData.banner_image_url || "",
         });
 
         if (eventData.custom_fields) {
@@ -375,7 +378,7 @@ export default function EditEventPage() {
   const addCustomField = () => {
     const newField: CustomField = {
       id: Date.now().toString(),
-      label: "",
+      name: "",
       type: "text",
       required: false,
       options: [],
@@ -460,7 +463,7 @@ export default function EditEventPage() {
           discord_url: formData.discord_url || null,
           twitter_url: formData.twitter_url || null,
           requirements: formData.requirements || null,
-          banner_image_url: formData.banner_image_url || null, // Changed field
+          banner_image_url: formData.banner_image_url || null,
         })
         .eq("id", event.id);
 
@@ -716,9 +719,9 @@ export default function EditEventPage() {
                       <div className="space-y-2">
                         <Label>Field Label</Label>
                         <Input
-                          value={field.label}
+                          value={field.name}
                           onChange={(e) =>
-                            updateCustomField(field.id, { label: e.target.value })
+                            updateCustomField(field.id, { name: e.target.value })
                           }
                           placeholder="e.g., Experience Level"
                         />
@@ -727,7 +730,7 @@ export default function EditEventPage() {
                         <Label>Field Type</Label>
                         <Select
                           value={field.type}
-                          onValueChange={(value: any) =>
+                          onValueChange={(value: string) =>
                             updateCustomField(field.id, { type: value })
                           }
                         >
