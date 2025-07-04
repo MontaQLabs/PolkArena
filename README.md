@@ -1,2 +1,2 @@
-# polkahacks
-Hackathon Management Webapp
+# PolkArena
+Hackathon & Event Management Webapp
