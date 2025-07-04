@@ -9,21 +9,24 @@ export function Footer() {
           {/* Logo and description */}
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-polkadot-pink flex items-center justify-center">
-                <span className="text-white font-bold text-sm">PH</span>
+              <div className="h-8 w-8 rounded-lg overflow-hidden">
+                <img 
+                  src="/logo.png" 
+                  alt="PolkaArena Logo" 
+                  className="h-full w-full object-contain"
+                />
               </div>
               <span className="font-bold text-xl text-polkadot-pink">
-                PolkaHacks
+                PolkaArena
               </span>
             </Link>
             <p className="text-muted-foreground mb-4 max-w-md">
-              The premier platform for Polkadot ecosystem hackathons. Build,
-              compete, and innovate with the next generation of blockchain
-              technology.
+              The ultimate battleground for Polkadot ecosystem innovation. 
+              Where warriors forge the future and legends are born in the heat of battle.
             </p>
             <div className="flex space-x-4">
               <a
-                href="https://github.com"
+                href="https://github.com/montaqlabs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-polkadot-pink transition-colors"
@@ -31,7 +34,7 @@ export function Footer() {
                 <Github className="h-5 w-5" />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/montaqlabs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-polkadot-pink transition-colors"
@@ -43,14 +46,14 @@ export function Footer() {
 
           {/* Platform */}
           <div>
-            <h3 className="font-semibold mb-4">Platform</h3>
+            <h3 className="font-semibold mb-4">Arena</h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link
                   href="/hackathons"
                   className="hover:text-polkadot-pink transition-colors"
                 >
-                  Browse Hackathons
+                  ⚔️ Browse Hackathons
                 </Link>
               </li>
               <li>
@@ -58,7 +61,7 @@ export function Footer() {
                   href="/hackathons/create"
                   className="hover:text-polkadot-pink transition-colors"
                 >
-                  Host an Event
+                  🏟️ Host a Hackathon
                 </Link>
               </li>
               <li>
@@ -66,7 +69,7 @@ export function Footer() {
                   href="/leaderboard"
                   className="hover:text-polkadot-pink transition-colors"
                 >
-                  Leaderboard
+                  🏆 Hall of Fame
                 </Link>
               </li>
             </ul>
@@ -105,8 +108,8 @@ export function Footer() {
             © 2025 MontaQ Labs. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground flex items-center mt-4 sm:mt-0">
-            Made with <Heart className="h-4 w-4 mx-1 text-polkadot-pink" /> for
-            the Polkadot ecosystem
+            Forged with <Heart className="h-4 w-4 mx-1 text-polkadot-pink" /> for
+            the warrior spirit
           </p>
         </div>
       </div>

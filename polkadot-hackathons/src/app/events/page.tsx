@@ -114,9 +114,6 @@ function EventCard({ event }: { event: Event }) {
               <span className={`${color} text-white px-2 py-1 rounded-full text-xs font-medium`}>
                 {getStatusText(status)}
               </span>
-              <span className="text-sm text-muted-foreground">
-                by {event.organizer?.name || event.organizer_name || "Anonymous"}
-              </span>
             </div>
             <CardTitle className="group-hover:text-polkadot-pink transition-colors">
               {event.name}

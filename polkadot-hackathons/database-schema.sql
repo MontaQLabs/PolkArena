@@ -116,6 +116,8 @@ CREATE POLICY "Authenticated users can create hackathons" ON public.hackathons F
 INSERT WITH CHECK (auth.uid() = host_id);
 CREATE POLICY "Hosts can update own hackathons" ON public.hackathons FOR
 UPDATE USING (auth.uid() = host_id);
+CREATE POLICY "Hosts can delete own hackathons" ON public.hackathons FOR
+DELETE USING (auth.uid() = host_id);
 -- Teams table policies
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Everyone can view teams" ON public.teams FOR
@@ -200,6 +202,7 @@ CREATE TABLE public.events (
   discord_url TEXT,
   twitter_url TEXT,
   requirements TEXT,
+  short_code TEXT UNIQUE NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -227,10 +230,22 @@ CREATE POLICY "Event organizers can manage participants" ON public.event_partici
     event_id IN (SELECT id FROM public.events WHERE organizer_id = auth.uid())
 );
 
+-- Events table policies
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Everyone can view events" ON public.events FOR
+SELECT USING (true);
+CREATE POLICY "Authenticated users can create events" ON public.events FOR
+INSERT WITH CHECK (auth.uid() = organizer_id);
+CREATE POLICY "Organizers can update own events" ON public.events FOR
+UPDATE USING (auth.uid() = organizer_id);
+CREATE POLICY "Organizers can delete own events" ON public.events FOR
+DELETE USING (auth.uid() = organizer_id);
+
 -- Index for better query performance
 CREATE INDEX idx_events_organizer_id ON public.events(organizer_id);
 CREATE INDEX idx_events_start_time ON public.events(start_time);
 CREATE INDEX idx_events_tags ON public.events USING GIN(tags);
+CREATE INDEX idx_events_short_code ON public.events(short_code);
 CREATE INDEX idx_event_participants_event_id ON public.event_participants(event_id);
 CREATE INDEX idx_event_participants_user_id ON public.event_participants(user_id);
 CREATE INDEX idx_event_participants_status ON public.event_participants(status);

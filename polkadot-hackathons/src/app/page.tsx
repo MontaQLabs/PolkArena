@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, Users, Trophy, Rocket } from "lucide-react";
+import { ArrowRight, Users, Trophy, Rocket, Zap, Shield, Globe, Swords, Target, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,41 +9,64 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { TypingEffect } from "@/components/ui/typing-effect";
 
 export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative px-4 sm:px-6 lg:px-8 py-24 sm:py-32 bg-background">
+      <section className="relative px-4 sm:px-6 lg:px-8 py-32 sm:py-40 bg-background">
         <div className="container mx-auto text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl sm:text-6xl font-bold tracking-tight mb-6">
-              <span className="block">Build the Future on</span>
-              <span className="block text-polkadot-pink">Polkadot</span>
-            </h1>
-            <p className="text-xl sm:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-              Join the premier platform for Polkadot ecosystem hackathons.
-              Compete, innovate, and build the next generation of Web3
-              applications.
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-8">
+              {/* Logo and Title */}
+              <div className="flex items-center justify-center mb-8">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden mr-4">
+                  <img 
+                    src="/logo.png" 
+                    alt="PolkaArena Logo" 
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div className="text-center">
+                  <div className="text-center">
+                    <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
+                      <span className="block text-polkadot-pink">PolkaArena</span>
+                    </h1>
+                  </div>
+                </div>
+              </div>
+              <div className="text-2xl sm:text-4xl font-semibold text-gray-700 dark:text-bright-turquoise mb-6 h-16 flex items-center justify-center">
+                <TypingEffect 
+                  text="⚔️ Welcome to the Arena ⚔️" 
+                  speed={120}
+                  startDelay={1000}
+                  className="tracking-wide text-center"
+                />
+              </div>
+            </div>
+            <p className="text-xl sm:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+              Where warriors forge the future of Web3. Battle for glory, claim your throne, 
+              and prove your dominance in the ultimate Polkadot ecosystem arena.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button
                 asChild
                 size="lg"
-                className="bg-polkadot-pink hover:bg-polkadot-pink/90 text-lg px-8 py-6"
+                className="bg-polkadot-pink hover:bg-polkadot-pink/90 text-lg px-10 py-7 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Link href="/hackathons">
-                  Explore Hackathons
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  ⚔️ Enter Battle
+                  <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="text-lg px-8 py-6 border-polkadot-pink text-polkadot-pink hover:bg-polkadot-pink hover:text-white"
+                className="text-lg px-10 py-7 border-2 border-polkadot-pink text-polkadot-pink hover:bg-polkadot-pink hover:text-white font-semibold transition-all duration-300"
               >
-                <Link href="/hackathons/create">Host an Event</Link>
+                <Link href="/events">Scout the Arena</Link>
               </Button>
             </div>
           </div>
@@ -49,53 +74,53 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-24 bg-storm-200">
+      <section className="px-4 sm:px-6 lg:px-8 py-28 bg-storm-200">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Why Choose PolkaHacks?
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+              Why Dominate in Our Arena?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              The most comprehensive platform for Polkadot ecosystem innovation
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Join the most ruthless and rewarding battleground where only the strongest survive
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border-storm-200 hover:border-polkadot-pink/50 transition-colors group bg-white">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-polkadot-pink flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Rocket className="h-6 w-6 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <Card className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 group bg-white shadow-lg hover:shadow-xl">
+              <CardHeader className="text-center p-8">
+                <div className="w-16 h-16 rounded-xl bg-polkadot-pink flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <Swords className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle>Launch Your Ideas</CardTitle>
-                <CardDescription>
-                  Transform your blockchain concepts into reality with access to
-                  cutting-edge Polkadot tools and infrastructure.
+                <CardTitle className="text-2xl mb-4">Forge Your Arsenal</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Master cutting-edge Polkadot weaponry and development tools crafted 
+                  for high-stakes combat and lightning-fast innovation.
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="border-storm-200 hover:border-bright-turquoise/50 transition-colors group bg-white">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-bright-turquoise flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="h-6 w-6 text-white" />
+            <Card className="border-2 border-storm-200 hover:border-bright-turquoise transition-all duration-300 group bg-white shadow-lg hover:shadow-xl">
+              <CardHeader className="text-center p-8">
+                <div className="w-16 h-16 rounded-xl bg-bright-turquoise flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <Shield className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle>Connect & Collaborate</CardTitle>
-                <CardDescription>
-                  Join a vibrant community of developers, designers, and
-                  innovators building the future of Web3.
+                <CardTitle className="text-2xl mb-4">Elite War Council</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Form alliances with legendary warriors, battle-tested mentors, and 
+                  blockchain generals who command the Web3 battlefields.
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="border-storm-200 hover:border-violet/50 transition-colors group bg-white">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-violet flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Trophy className="h-6 w-6 text-white" />
+            <Card className="border-2 border-storm-200 hover:border-violet transition-all duration-300 group bg-white shadow-lg hover:shadow-xl">
+              <CardHeader className="text-center p-8">
+                <div className="w-16 h-16 rounded-xl bg-violet flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <Crown className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle>Win & Learn</CardTitle>
-                <CardDescription>
-                  Compete for exciting prizes while gaining valuable experience
-                  and recognition in the Polkadot ecosystem.
+                <CardTitle className="text-2xl mb-4">Claim Your Crown</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Conquer challenges for massive bounties, eternal glory, and 
+                  legendary status that opens the gates to Web3 supremacy.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -104,84 +129,88 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-24 bg-background">
+      {/* <section className="px-4 sm:px-6 lg:px-8 py-28 bg-background">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="space-y-2">
-              <div className="text-4xl sm:text-5xl font-bold text-polkadot-pink">
-                50+
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6">Arena War Records</h2>
+            <p className="text-xl text-muted-foreground">The battlefield tells no lies</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+            <div className="space-y-4">
+              <div className="text-6xl sm:text-7xl font-bold text-polkadot-pink">
+                100+
               </div>
-              <div className="text-lg font-medium">Hackathons Hosted</div>
-              <div className="text-muted-foreground">Across the ecosystem</div>
+              <div className="text-xl font-semibold">Epic Battles Fought</div>
+              <div className="text-muted-foreground text-lg">Victories claimed across realms</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-4xl sm:text-5xl font-bold text-bright-turquoise">
-                10K+
+            <div className="space-y-4">
+              <div className="text-6xl sm:text-7xl font-bold text-bright-turquoise">
+                25K+
               </div>
-              <div className="text-lg font-medium">Developers</div>
-              <div className="text-muted-foreground">Building together</div>
+              <div className="text-xl font-semibold">Battle-Hardened Warriors</div>
+              <div className="text-muted-foreground text-lg">Active gladiators in the arena</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-4xl sm:text-5xl font-bold text-violet">
-                $2M+
+            <div className="space-y-4">
+              <div className="text-6xl sm:text-7xl font-bold text-violet">
+                $5M+
               </div>
-              <div className="text-lg font-medium">Prizes Awarded</div>
-              <div className="text-muted-foreground">To winning teams</div>
+              <div className="text-xl font-semibold">War Chest</div>
+              <div className="text-muted-foreground text-lg">Bounties claimed by champions</div>
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* How it Works Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-24 bg-storm-200">
+      <section className="px-4 sm:px-6 lg:px-8 py-28 bg-storm-200">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              How It Works
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+              Your Path to Domination
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Get started in minutes and begin building your next breakthrough
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Four battle-tested steps to conquer the arena and ascend to legendary status
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-polkadot-pink flex items-center justify-center mx-auto">
-                <span className="text-white font-bold text-xl">1</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 rounded-full bg-polkadot-pink flex items-center justify-center mx-auto shadow-lg">
+                <span className="text-white font-bold text-2xl">⚔️</span>
               </div>
-              <h3 className="text-xl font-semibold">Sign Up</h3>
-              <p className="text-muted-foreground">
-                Create your account and join the community
+              <h3 className="text-2xl font-semibold">Enlist as Warrior</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Forge your warrior identity and join the ranks of elite gladiators
               </p>
             </div>
 
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-bright-turquoise flex items-center justify-center mx-auto">
-                <span className="text-white font-bold text-xl">2</span>
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 rounded-full bg-bright-turquoise flex items-center justify-center mx-auto shadow-lg">
+                <span className="text-white font-bold text-2xl">🎯</span>
               </div>
-              <h3 className="text-xl font-semibold">Find Events</h3>
-              <p className="text-muted-foreground">
-                Browse ongoing and upcoming hackathons
+              <h3 className="text-2xl font-semibold">Select Your Quest</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Choose from brutal challenges and high-stakes tournaments
               </p>
             </div>
 
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-violet flex items-center justify-center mx-auto">
-                <span className="text-white font-bold text-xl">3</span>
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 rounded-full bg-violet flex items-center justify-center mx-auto shadow-lg">
+                <span className="text-white font-bold text-2xl">🔥</span>
               </div>
-              <h3 className="text-xl font-semibold">Build & Submit</h3>
-              <p className="text-muted-foreground">
-                Form teams and submit your innovative projects
+              <h3 className="text-2xl font-semibold">Forge & Conquer</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Form deadly alliances and craft world-changing weapons
               </p>
             </div>
 
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-lime flex items-center justify-center mx-auto">
-                <span className="text-white font-bold text-xl">4</span>
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 rounded-full bg-lime flex items-center justify-center mx-auto shadow-lg">
+                <span className="text-white font-bold text-2xl">👑</span>
               </div>
-              <h3 className="text-xl font-semibold">Win & Grow</h3>
-              <p className="text-muted-foreground">
-                Get judged, win prizes, and expand your network
+              <h3 className="text-2xl font-semibold">Seize the Throne</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Crush your enemies and claim your rightful place among legends
               </p>
             </div>
           </div>
@@ -189,35 +218,35 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-24 bg-polkadot-pink">
+      <section className="px-4 sm:px-6 lg:px-8 py-32 bg-polkadot-pink">
         <div className="container mx-auto text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              Ready to Build the Future?
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-8">
+              Ready to Test Your Mettle?
             </h2>
-            <p className="text-xl text-white/90 mb-8">
-              Join thousands of developers already building on Polkadot. Your
-              next breakthrough is just one hackathon away.
+            <p className="text-xl text-white/90 mb-12 leading-relaxed">
+              The arena hungers for new blood. Join thousands of battle-scarred veterans 
+              fighting for dominance in the most savage Web3 battleground ever created.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button
                 asChild
                 size="lg"
                 variant="secondary"
-                className="text-lg px-8 py-6"
+                className="text-lg px-10 py-7 bg-white text-polkadot-pink hover:bg-white/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Link href="/auth/signup">
-                  Get Started Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  ⚔️ Join the War
+                  <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="text-lg px-8 py-6 border-white text-polkadot-pink hover:bg-white hover:text-white"
+                className="text-lg px-10 py-7 border-2 border-white hover:bg-white hover:text-polkadot-pink font-semibold transition-all duration-300"
               >
-                <Link href="/hackathons">Browse Events</Link>
+                <Link href="/hackathons">🏟️ Enter Arena</Link>
               </Button>
             </div>
           </div>

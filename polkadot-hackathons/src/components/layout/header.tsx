@@ -43,11 +43,15 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-polkadot-pink flex items-center justify-center">
-              <span className="text-white font-bold text-sm">PH</span>
+            <div className="h-8 w-8 rounded-lg overflow-hidden">
+              <img 
+                src="/logo.png" 
+                alt="PolkaArena Logo" 
+                className="h-full w-full object-contain"
+              />
             </div>
             <span className="font-bold text-xl text-polkadot-pink">
-              PolkaHacks
+              PolkaArena
             </span>
           </Link>
 
@@ -57,29 +61,29 @@ export function Header() {
               href="/hackathons"
               className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium"
             >
-              Hackathons
+              ⚔️ Hackathons
             </Link>
             <Link
               href="/leaderboard"
               className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium"
             >
-              Leaderboard
+              🏆 Hall of Fame
             </Link>
             <Link
               href="/events"
               className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium"
             >
-              Events
+              📅 Events
             </Link>
 
-            {user && (
+            {/* {user && (
               <Link
                 href="/hackathons/create"
                 className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium"
               >
                 Host Event
               </Link>
-            )}
+            )} */}
           </nav>
 
           {/* Right side actions */}
@@ -135,13 +139,13 @@ export function Header() {
                       <DropdownMenuItem asChild>
                         <Link href="/profile">
                           <User className="mr-2 h-4 w-4" />
-                          Profile
+                          ⚔️ Warrior Profile
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/hackathons/create">
                           <Plus className="mr-2 h-4 w-4" />
-                          Create Hackathon
+                          🏟️ Host Hackathon
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -170,19 +174,19 @@ export function Header() {
                   variant="ghost"
                   className="hidden md:inline-flex"
                 >
-                  <Link href="/auth/login">Sign in</Link>
+                  <Link href="/auth/login">⚔️ Enter Arena</Link>
                 </Button>
                 <Button
                   asChild
                   className="hidden md:inline-flex bg-polkadot-pink hover:bg-polkadot-pink/90"
                 >
-                  <Link href="/auth/signup">Get Started</Link>
+                  <Link href="/auth/signup">🛡️ Join Warriors</Link>
                 </Button>
 
                 {/* Mobile auth buttons */}
                 <div className="md:hidden">
                   <Button asChild variant="ghost" size="sm">
-                    <Link href="/auth/login">Sign in</Link>
+                    <Link href="/auth/login">⚔️ Enter</Link>
                   </Button>
                 </div>
               </>
@@ -200,7 +204,7 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Calendar className="h-4 w-4" />
-                <span>Hackathons</span>
+                <span>⚔️ Hackathons</span>
               </Link>
               <Link
                 href="/leaderboard"
@@ -208,25 +212,25 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Trophy className="h-4 w-4" />
-                <span>Leaderboard</span>
+                <span>🏆 Hall of Fame</span>
+              </Link>
+              <Link
+                href="/events"
+                className="flex items-center space-x-2 text-foreground/80 hover:text-polkadot-pink transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>📅 Events</span>
               </Link>
               {user && (
                 <>
-                  <Link
-                    href="/hackathons/create"
-                    className="flex items-center space-x-2 text-foreground/80 hover:text-polkadot-pink transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Host Event</span>
-                  </Link>
                   <Link
                     href="/profile"
                     className="flex items-center space-x-2 text-foreground/80 hover:text-polkadot-pink transition-colors py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4" />
-                    <span>Profile</span>
+                    <span>⚔️ Warrior Profile</span>
                   </Link>
                   <button
                     onClick={() => {
@@ -236,7 +240,7 @@ export function Header() {
                     className="flex items-center space-x-2 text-foreground/80 hover:text-polkadot-pink transition-colors py-2 text-left"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span>Sign out</span>
+                    <span>🚪 Leave Arena</span>
                   </button>
                 </>
               )}
@@ -247,7 +251,7 @@ export function Header() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Get Started</span>
+                  <span>🛡️ Join Warriors</span>
                 </Link>
               )}
             </nav>

@@ -36,9 +36,12 @@ import {
   Clock,
   CheckCircle,
   CalendarPlus,
+  Share2,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { createShareableEventURL } from "@/lib/utils";
 
 interface Event {
   id: string;
@@ -48,7 +51,7 @@ interface Event {
   end_time: string;
   organizer_id: string;
   organizer_name: string;
-  banner_image_url: string | null; // CHANGED: from banner_image_url to banner_image_url
+  banner_image_url: string | null;
   location: string | null;
   is_online: boolean;
   participant_limit: number | null;
@@ -59,6 +62,7 @@ interface Event {
   discord_url: string | null;
   twitter_url: string | null;
   requirements: string | null;
+  short_code: string;
   created_at: string;
   organizer: {
     name: string;
@@ -278,6 +282,43 @@ export default function EventDetailPage() {
     const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.name)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location || 'Online')}`;
     
     window.open(calendarUrl, '_blank');
+  };
+
+  const shareEvent = async () => {
+    if (!event) return;
+    
+    const shareableURL = createShareableEventURL(event.short_code);
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event.name,
+          text: `Check out this epic battle: ${event.name}`,
+          url: shareableURL,
+        });
+      } catch (error) {
+        // Fallback to clipboard if share fails
+        copyToClipboard(shareableURL);
+      }
+    } else {
+      copyToClipboard(shareableURL);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Link copied to clipboard!");
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast.success("Link copied to clipboard!");
+    }
   };
 
   const renderCustomField = (field: any) => {
@@ -758,6 +799,33 @@ export default function EventDetailPage() {
                     <CalendarPlus className="h-4 w-4 mr-2" />
                     Add to Calendar
                   </Button>
+
+                  <Button
+                    onClick={shareEvent}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share Event
+                  </Button>
+
+                  {/* Shareable URL Display */}
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-muted-foreground mb-2">Shareable link:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+                        {createShareableEventURL(event.short_code).replace('https://', '')}
+                      </code>
+                      <Button
+                        onClick={() => copyToClipboard(createShareableEventURL(event.short_code))}
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>

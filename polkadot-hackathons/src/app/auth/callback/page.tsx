@@ -93,11 +93,15 @@ export default function AuthCallbackPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-polkadot-pink flex items-center justify-center">
-              <span className="text-white font-bold text-lg">PH</span>
+            <div className="h-10 w-10 rounded-lg overflow-hidden">
+              <img 
+                src="/logo.png" 
+                alt="PolkaArena Logo" 
+                className="h-full w-full object-contain"
+              />
             </div>
             <span className="font-bold text-2xl text-polkadot-pink">
-              PolkaHacks
+              PolkaArena
             </span>
           </Link>
         </div>

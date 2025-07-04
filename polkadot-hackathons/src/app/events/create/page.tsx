@@ -26,6 +26,7 @@ import {
 import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2, Upload, X, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { generateUniqueShortCode } from "@/lib/utils";
 
 interface CustomField {
   id: string;
@@ -369,6 +370,9 @@ export default function CreateEventPage() {
         .eq("id", user.id)
         .single();
 
+      // Generate unique short code for shareable URL
+      const shortCode = await generateUniqueShortCode(formData.name);
+
       const eventData = {
         name: formData.name,
         description: formData.description,
@@ -391,6 +395,7 @@ export default function CreateEventPage() {
         twitter_url: formData.twitter_url || null,
         requirements: formData.requirements || null,
         banner_image_url: formData.banner_image_url || null,
+        short_code: shortCode,
       };
 
       const { data, error } = await supabase

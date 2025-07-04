@@ -99,24 +99,28 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-polkadot-pink to-violet flex items-center justify-center">
-              <span className="text-white font-bold text-lg">PH</span>
+            <div className="h-10 w-10 rounded-lg overflow-hidden">
+              <img 
+                src="/logo.png" 
+                alt="PolkaArena Logo" 
+                className="h-full w-full object-contain"
+              />
             </div>
-            <span className="font-bold text-2xl bg-gradient-to-r from-polkadot-pink to-violet bg-clip-text text-transparent">
-              PolkaHacks
+            <span className="font-bold text-2xl text-polkadot-pink">
+              PolkaArena
             </span>
           </Link>
-          <h1 className="text-3xl font-bold mb-2">Join PolkaHacks</h1>
-          <p className="text-muted-foreground">
-            Create your account to start building the future on Polkadot
+          <h1 className="text-3xl font-bold mb-2">Join the Arena</h1>
+          <p className="text-muted-foreground mb-8">
+            Forge your warrior identity and begin your conquest
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Create Account</CardTitle>
+            <CardTitle>Enlist as Warrior</CardTitle>
             <CardDescription>
-              Get started with your free PolkaHacks account
+              Create your PolkaArena warrior account and enter the battlefield
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

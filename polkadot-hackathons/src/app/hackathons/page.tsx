@@ -119,9 +119,6 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
               >
                 {getStatusText(hackathon.status)}
               </span>
-              <span className="text-sm text-muted-foreground">
-                by {hackathon.organizer?.name || "Anonymous"}
-              </span>
             </div>
             <CardTitle className="group-hover:text-polkadot-pink transition-colors">
               {hackathon.title}

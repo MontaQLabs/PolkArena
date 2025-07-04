@@ -84,16 +84,20 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-polkadot-pink to-violet flex items-center justify-center">
-              <span className="text-white font-bold text-lg">PH</span>
+            <div className="h-10 w-10 rounded-lg overflow-hidden">
+              <img 
+                src="/logo.png" 
+                alt="PolkaArena Logo" 
+                className="h-full w-full object-contain"
+              />
             </div>
-            <span className="font-bold text-2xl bg-gradient-to-r from-polkadot-pink to-violet bg-clip-text text-transparent">
-              PolkaHacks
+            <span className="font-bold text-2xl text-polkadot-pink">
+              PolkaArena
             </span>
           </Link>
-          <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
-          <p className="text-muted-foreground">
-            Sign in to your account to continue building the future
+          <h1 className="text-3xl font-bold mb-2">Return to Battle</h1>
+          <p className="text-muted-foreground mb-8">
+            Enter your credentials to rejoin the arena
           </p>
         </div>
 
