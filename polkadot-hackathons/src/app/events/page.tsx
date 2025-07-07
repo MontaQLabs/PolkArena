@@ -81,10 +81,10 @@ function EventCard({ event }: { event: Event }) {
       ? new Date(event.registration_deadline) 
       : startTime;
 
-    if (now > endTime) return { status: "completed", color: "bg-gray-500" };
-    if (now >= startTime && now <= endTime) return { status: "live", color: "bg-green-500" };
-    if (now > registrationDeadline) return { status: "registration_closed", color: "bg-red-500" };
-    return { status: "upcoming", color: "bg-blue-500" };
+    if (now > endTime) return { status: "completed", color: "bg-gray-500 dark:bg-gray-700" };
+    if (now >= startTime && now <= endTime) return { status: "live", color: "bg-green-500 dark:bg-green-700" };
+    if (now > registrationDeadline) return { status: "registration_closed", color: "bg-red-500 dark:bg-red-700" };
+    return { status: "upcoming", color: "bg-blue-500 dark:bg-blue-700" };
   };
 
   const { status, color } = getEventStatus();
@@ -103,7 +103,7 @@ function EventCard({ event }: { event: Event }) {
   const bannerUrl = getEventBannerUrl(event.banner_image_url);
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-polkadot-pink/50 bg-white">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-polkadot-pink/50 bg-white dark:bg-gray-900">
       {/* Show banner image at the top if available */}
       {bannerUrl && (
         <div className="w-full h-48 overflow-hidden rounded-t-lg">
@@ -123,10 +123,10 @@ function EventCard({ event }: { event: Event }) {
                 {getStatusText(status)}
               </span>
             </div>
-            <CardTitle className="group-hover:text-polkadot-pink transition-colors">
+            <CardTitle className="group-hover:text-polkadot-pink transition-colors dark:text-white">
               {event.name}
             </CardTitle>
-            <CardDescription className="line-clamp-3">
+            <CardDescription className="line-clamp-3 dark:text-gray-300">
               {event.description}
             </CardDescription>
           </div>
@@ -145,26 +145,26 @@ function EventCard({ event }: { event: Event }) {
 
       <CardContent>
         <div className="grid grid-cols-1 gap-3 mb-4 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <Calendar className="h-4 w-4" />
             <span>
               {formatDate(event.start_time)}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <Clock className="h-4 w-4" />
             <span>
               Duration: {Math.ceil((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / (1000 * 60 * 60))} hours
             </span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <MapPin className="h-4 w-4" />
             <span>
               {event.is_online ? "Online Event" : event.location || "TBD"}
             </span>
           </div>
           {event.participant_limit && (
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
               <Users className="h-4 w-4" />
               <span>
                 Max {event.participant_limit} participants
@@ -195,19 +195,19 @@ function EventsLoading() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse bg-white">
-          <div className="w-full h-48 bg-muted rounded-t-lg"></div>
+        <Card key={i} className="animate-pulse bg-white dark:bg-gray-900">
+          <div className="w-full h-48 bg-muted dark:bg-gray-800 rounded-t-lg"></div>
           <CardHeader>
-            <div className="h-4 bg-muted rounded w-20 mb-2"></div>
-            <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-full mb-1"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-20 mb-2"></div>
+            <div className="h-6 bg-muted dark:bg-gray-800 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-full mb-1"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-2/3"></div>
           </CardHeader>
           <CardContent>
-            <div className="h-20 bg-muted rounded mb-4"></div>
+            <div className="h-20 bg-muted dark:bg-gray-800 rounded mb-4"></div>
             <div className="flex gap-2">
-              <div className="h-9 bg-muted rounded flex-1"></div>
-              <div className="h-9 bg-muted rounded flex-1"></div>
+              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
+              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
             </div>
           </CardContent>
         </Card>

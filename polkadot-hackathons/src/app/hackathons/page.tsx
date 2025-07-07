@@ -52,19 +52,19 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "in_progress":
-        return "bg-green-500";
+        return "bg-green-500 dark:bg-green-700";
       case "registration_open":
-        return "bg-blue-500";
+        return "bg-blue-500 dark:bg-blue-700";
       case "published":
-        return "bg-purple-500";
+        return "bg-purple-500 dark:bg-purple-700";
       case "draft":
-        return "bg-gray-500";
+        return "bg-gray-500 dark:bg-gray-700";
       case "completed":
-        return "bg-gray-500";
+        return "bg-gray-500 dark:bg-gray-700";
       case "judging":
-        return "bg-yellow-500";
+        return "bg-yellow-500 dark:bg-yellow-700";
       default:
-        return "bg-gray-500";
+        return "bg-gray-500 dark:bg-gray-700";
     }
   };
 
@@ -107,7 +107,7 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-polkadot-pink/50 bg-white">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-polkadot-pink/50 bg-white dark:bg-gray-900">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -120,10 +120,10 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
                 {getStatusText(hackathon.status)}
               </span>
             </div>
-            <CardTitle className="group-hover:text-polkadot-pink transition-colors">
+            <CardTitle className="group-hover:text-polkadot-pink transition-colors dark:text-white">
               {hackathon.title}
             </CardTitle>
-            <CardDescription className="line-clamp-3">
+            <CardDescription className="line-clamp-3 dark:text-gray-300">
               {hackathon.short_description || hackathon.description}
             </CardDescription>
           </div>
@@ -143,20 +143,20 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
 
       <CardContent>
         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <Calendar className="h-4 w-4" />
             <span>
               {formatDate(hackathon.start_date)} -{" "}
               {formatDate(hackathon.end_date)}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <MapPin className="h-4 w-4" />
             <span>
               {hackathon.is_online ? "Online" : hackathon.location || "TBD"}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <Award className="h-4 w-4" />
             <span>{getPrizeText(hackathon.prizes)} in prizes</span>
           </div>
@@ -185,18 +185,18 @@ function HackathonsLoading() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse bg-white">
+        <Card key={i} className="animate-pulse bg-white dark:bg-gray-900">
           <CardHeader>
-            <div className="h-4 bg-muted rounded w-20 mb-2"></div>
-            <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-full mb-1"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-20 mb-2"></div>
+            <div className="h-6 bg-muted dark:bg-gray-800 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-full mb-1"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-2/3"></div>
           </CardHeader>
           <CardContent>
-            <div className="h-20 bg-muted rounded mb-4"></div>
+            <div className="h-20 bg-muted dark:bg-gray-800 rounded mb-4"></div>
             <div className="flex gap-2">
-              <div className="h-9 bg-muted rounded flex-1"></div>
-              <div className="h-9 bg-muted rounded flex-1"></div>
+              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
+              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
             </div>
           </CardContent>
         </Card>
