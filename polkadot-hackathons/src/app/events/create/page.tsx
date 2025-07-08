@@ -55,21 +55,32 @@ function ImageUpload({
   // Get public URL for display
   const getImageUrl = (path: string) => {
     if (!path) return null;
-    const { data } = supabase.storage
-      .from('event-banners')
-      .getPublicUrl(path);
-    return data.publicUrl;
+    try {
+      const { data } = supabase.storage
+        .from('event-banners')
+        .getPublicUrl(path);
+      
+      // Log for debugging
+      console.log('Generated public URL for path:', path, '→', data.publicUrl);
+      
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error generating public URL:', error);
+      return null;
+    }
   };
 
-  // Load existing image if value exists - Fixed dependency array
+  // Load existing image if value exists
   useEffect(() => {
-    if (value && !preview) {
+    if (value) {
       const url = getImageUrl(value);
-      if (url) setPreview(url);
-    } else if (!value && preview) {
+      if (url) {
+        setPreview(url);
+      }
+    } else {
       setPreview(null);
     }
-  }, [value]); // Removed preview from dependencies to prevent infinite loops
+  }, [value]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -99,6 +110,11 @@ function ImageUpload({
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
+      // Set preview immediately for better UX
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+
       // Upload file
       const { data, error } = await supabase.storage
         .from('event-banners')
@@ -115,16 +131,19 @@ function ImageUpload({
         throw error;
       }
 
-      // Set preview
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target?.result as string);
-      reader.readAsDataURL(file);
+      // Update preview to use the uploaded image URL
+      const uploadedImageUrl = getImageUrl(data.path);
+      if (uploadedImageUrl) {
+        setPreview(uploadedImageUrl);
+      }
 
       onChange(data.path);
       toast.success('Image uploaded successfully!');
     } catch (error: unknown) {
       console.error('Upload error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload image');
+      // Reset preview on error
+      setPreview(null);
     } finally {
       setUploading(false);
       // Clear the input to allow re-uploading the same file
@@ -170,6 +189,13 @@ function ImageUpload({
               src={preview}
               alt="Event banner preview"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error('Image failed to load:', preview);
+                console.error('Error details:', e);
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully:', preview);
+              }}
             />
           </div>
           <Button
@@ -326,36 +352,69 @@ export default function CreateEventPage() {
         !formData.end_time
       ) {
         toast.error("Please fill in all required fields");
+        setSaving(false);
         return;
       }
 
       // Enhanced date validation
+      console.log("Create form data dates:", {
+        start_time: formData.start_time,
+        end_time: formData.end_time,
+        registration_deadline: formData.registration_deadline
+      });
+
       const startTime = new Date(formData.start_time);
       const endTime = new Date(formData.end_time);
       const now = new Date();
-      const registrationDeadline = formData.registration_deadline 
-        ? new Date(formData.registration_deadline)
-        : null;
+
+      console.log("Create parsed dates:", {
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        now: now.toISOString()
+      });
+
+      // Check for invalid dates
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        toast.error("Please enter valid start and end times");
+        setSaving(false);
+        return;
+      }
 
       // Check if start time is in the past
-      if (startTime < now) {
+      if (startTime.getTime() < now.getTime()) {
         toast.error("Start time cannot be in the past");
+        setSaving(false);
         return;
       }
 
-      if (endTime <= startTime) {
+      if (endTime.getTime() <= startTime.getTime()) {
         toast.error("End time must be after start time");
+        setSaving(false);
         return;
       }
 
-      if (registrationDeadline && registrationDeadline >= startTime) {
-        toast.error("Registration deadline must be before start time");
-        return;
-      }
+      // Validate registration deadline if provided
+      let registrationDeadline = null;
+      if (formData.registration_deadline) {
+        registrationDeadline = new Date(formData.registration_deadline);
+        
+        if (isNaN(registrationDeadline.getTime())) {
+          toast.error("Please enter a valid registration deadline");
+          setSaving(false);
+          return;
+        }
 
-      if (registrationDeadline && registrationDeadline < now) {
-        toast.error("Registration deadline cannot be in the past");
-        return;
+        if (registrationDeadline.getTime() >= startTime.getTime()) {
+          toast.error("Registration deadline must be before start time");
+          setSaving(false);
+          return;
+        }
+
+        if (registrationDeadline.getTime() < now.getTime()) {
+          toast.error("Registration deadline cannot be in the past");
+          setSaving(false);
+          return;
+        }
       }
 
       const tagsArray = formData.tags
@@ -373,11 +432,17 @@ export default function CreateEventPage() {
       // Generate unique short code for shareable URL
       const shortCode = await generateUniqueShortCode(formData.name);
 
+      console.log("Creating event with data:", {
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        registration_deadline: registrationDeadline?.toISOString() || null
+      });
+
       const eventData = {
         name: formData.name,
         description: formData.description,
-        start_time: new Date(formData.start_time).toISOString(),
-        end_time: new Date(formData.end_time).toISOString(),
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
         organizer_id: user.id,
         organizer_name: userProfile?.name || user.email || "Anonymous",
         location: formData.location || null,
@@ -387,9 +452,7 @@ export default function CreateEventPage() {
           : null,
         tags: tagsArray.length > 0 ? tagsArray : null,
         custom_fields: customFields.length > 0 ? customFields : null,
-        registration_deadline: formData.registration_deadline 
-          ? new Date(formData.registration_deadline).toISOString() 
-          : null,
+        registration_deadline: registrationDeadline?.toISOString() || null,
         website_url: formData.website_url || null,
         discord_url: formData.discord_url || null,
         twitter_url: formData.twitter_url || null,
@@ -407,6 +470,7 @@ export default function CreateEventPage() {
       if (error) {
         console.error("Error creating event:", error);
         toast.error(`Failed to create event: ${error.message}`);
+        setSaving(false);
         return;
       }
 
@@ -433,15 +497,17 @@ export default function CreateEventPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/events">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Events
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
+          <div className="mb-6 lg:mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/events">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Events
+                </Link>
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Create Event
               </h1>
               <p className="text-muted-foreground">
@@ -450,7 +516,7 @@ export default function CreateEventPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -632,7 +698,7 @@ export default function CreateEventPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {customFields.map((field, index) => (
-                  <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                  <div key={field.id} className="border rounded-lg p-3 sm:p-4 space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Field #{index + 1}</h4>
                       <Button
@@ -640,12 +706,13 @@ export default function CreateEventPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => removeCustomField(field.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Remove field</span>
                       </Button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label>Field Label</Label>
                         <Input

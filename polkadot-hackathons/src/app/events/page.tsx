@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { formatEventDuration } from "@/lib/utils";
 
 interface Event {
   id: string;
@@ -56,10 +57,19 @@ interface CustomField {
 // Helper function to get image URL from storage path
 const getEventBannerUrl = (imagePath: string | null) => {
   if (!imagePath) return null;
-  const { data } = supabase.storage
-    .from('event-banners')
-    .getPublicUrl(imagePath);
-  return data.publicUrl;
+  try {
+    const { data } = supabase.storage
+      .from('event-banners')
+      .getPublicUrl(imagePath);
+    
+    // Log for debugging
+    console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
+    
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Error generating event banner URL:', error);
+    return null;
+  }
 };
 
 function EventCard({ event }: { event: Event }) {
@@ -154,7 +164,7 @@ function EventCard({ event }: { event: Event }) {
           <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <Clock className="h-4 w-4" />
             <span>
-              Duration: {Math.ceil((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / (1000 * 60 * 60))} hours
+              Duration: {formatEventDuration(event.start_time, event.end_time)}
             </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">

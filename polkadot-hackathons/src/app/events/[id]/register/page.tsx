@@ -22,6 +22,7 @@ import {
   Users,
   CheckCircle,
   Clock,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -64,6 +65,7 @@ export default function RegisterEventPage() {
   const [registering, setRegistering] = useState(false);
   const [motivation, setMotivation] = useState("");
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationStatus, setRegistrationStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -106,12 +108,13 @@ export default function RegisterEventPage() {
         // Check if user is already registered using event_participants table
         const { data: registration } = await supabase
           .from("event_participants")
-          .select("id")
+          .select("id, status")
           .eq("event_id", eventId)
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         setIsRegistered(!!registration);
+        setRegistrationStatus(registration?.status || null);
       } catch (error) {
         console.error("Error:", error);
         toast.error("Failed to load event");
@@ -135,7 +138,7 @@ export default function RegisterEventPage() {
       const { error } = await supabase.from("event_participants").insert({
         event_id: event.id,
         user_id: user.id,
-        status: "going", // Updated status value
+        status: "pending", // Status pending for organizer approval
       });
 
       if (error) {
@@ -144,8 +147,9 @@ export default function RegisterEventPage() {
         return;
       }
 
-      toast.success("Successfully registered for the event!");
+      toast.success("Registration submitted! Please wait for organizer approval.");
       setIsRegistered(true);
+      setRegistrationStatus("pending");
     } catch (error) {
       console.error("Error:", error);
       toast.error("Failed to register for event");
@@ -256,30 +260,109 @@ export default function RegisterEventPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Registration Form */}
-              {isRegistered ? (
-                <Card className="border-green-200 bg-green-50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-800">
-                      <CheckCircle className="h-5 w-5" />
-                      Already Registered
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-green-700 mb-4">
-                      You are already registered for this event. We&apos;ll send you
-                      updates and details as the event approaches.
-                    </p>
-                    <Button
-                      asChild
-                      className="bg-polkadot-pink hover:bg-polkadot-pink/90"
-                    >
-                      <Link href={`/events/${event.id}`}>
-                        View Event Details
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
+              {/* Registration Status */}
+              {isRegistered && registrationStatus ? (
+                <>
+                  {registrationStatus === "pending" && (
+                    <Card className="border-yellow-200 bg-yellow-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-yellow-800">
+                          <Clock className="h-5 w-5" />
+                          Registration Pending Approval
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-yellow-700 mb-4">
+                          Your registration has been submitted and is waiting for organizer approval. 
+                          You&apos;ll be notified once your registration is reviewed.
+                        </p>
+                        <Button
+                          asChild
+                          className="bg-polkadot-pink hover:bg-polkadot-pink/90"
+                        >
+                          <Link href={`/events/${event.id}`}>
+                            View Event Details
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {registrationStatus === "approved" && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-green-800">
+                          <CheckCircle className="h-5 w-5" />
+                          Registration Approved ✅
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-green-700 mb-4">
+                          Congratulations! Your registration has been approved. 
+                          You&apos;ll receive event details and updates via email.
+                        </p>
+                        <Button
+                          asChild
+                          className="bg-polkadot-pink hover:bg-polkadot-pink/90"
+                        >
+                          <Link href={`/events/${event.id}`}>
+                            View Event Details
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {registrationStatus === "rejected" && (
+                    <Card className="border-red-200 bg-red-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-red-800">
+                          <X className="h-5 w-5" />
+                          Registration Not Approved
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-red-700 mb-4">
+                          Unfortunately, your registration was not approved for this event. 
+                          The event may be full or may not match the requirements.
+                        </p>
+                        <Button
+                          asChild
+                          variant="outline"
+                        >
+                          <Link href={`/events/${event.id}`}>
+                            View Event Details
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Legacy statuses */}
+                  {(registrationStatus === "going" || registrationStatus === "invited") && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-green-800">
+                          <CheckCircle className="h-5 w-5" />
+                          Registration Confirmed (Legacy)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-green-700 mb-4">
+                          Your registration is confirmed. You&apos;ll receive event details and updates via email.
+                        </p>
+                        <Button
+                          asChild
+                          className="bg-polkadot-pink hover:bg-polkadot-pink/90"
+                        >
+                          <Link href={`/events/${event.id}`}>
+                            View Event Details
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
               ) : !canRegister || isPastDeadline ? (
                 <Card className="border-red-200 bg-red-50">
                   <CardHeader>

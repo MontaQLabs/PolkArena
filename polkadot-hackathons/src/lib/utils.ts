@@ -79,3 +79,25 @@ export function extractShortCodeFromURL(url: string): string | null {
   const match = url.match(/\/e\/([a-z0-9]+)/i);
   return match ? match[1] : null;
 }
+
+/**
+ * Format event duration with accurate hours and minutes
+ */
+export function formatEventDuration(startTime: string, endTime: string): string {
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  
+  const durationMs = end.getTime() - start.getTime();
+  const totalMinutes = Math.floor(durationMs / (1000 * 60));
+  
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  
+  if (hours === 0) {
+    return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  } else if (minutes === 0) {
+    return `${hours} hour${hours !== 1 ? 's' : ''}`;
+  } else {
+    return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  }
+}

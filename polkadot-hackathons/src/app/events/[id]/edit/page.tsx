@@ -77,17 +77,28 @@ function ImageUpload({
   // Get public URL for display
   const getImageUrl = (path: string) => {
     if (!path) return null;
-    const { data } = supabase.storage
-      .from('event-banners')
-      .getPublicUrl(path);
-    return data.publicUrl;
+    try {
+      const { data } = supabase.storage
+        .from('event-banners')
+        .getPublicUrl(path);
+      
+      // Log for debugging
+      console.log('Generated public URL for path:', path, '→', data.publicUrl);
+      
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error generating public URL:', error);
+      return null;
+    }
   };
 
   // Load existing image if value exists
   useEffect(() => {
     if (value) {
       const url = getImageUrl(value);
-      if (url) setPreview(url);
+      if (url) {
+        setPreview(url);
+      }
     } else {
       setPreview(null);
     }
@@ -110,30 +121,30 @@ function ImageUpload({
       return;
     }
   
-    // Set preview immediately for better UX
-    const reader = new FileReader();
-    reader.onload = (e) => setPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
-  
-    setUploading(true);
+        setUploading(true);
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
-  
+
+      // Set preview immediately for better UX
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+
       // Delete old image if exists
       if (value) {
         await supabase.storage
           .from('event-banners')
           .remove([value]);
       }
-  
+
       // Create unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-  
+
       // Upload file
       const { data, error } = await supabase.storage
         .from('event-banners')
@@ -141,14 +152,20 @@ function ImageUpload({
           cacheControl: '3600',
           upsert: false
         });
-  
+
       if (error) {
         if (error.message.includes('Bucket not found')) {
           throw new Error('Storage bucket not configured. Please contact support.');
         }
         throw error;
       }
-  
+
+      // Update preview to use the uploaded image URL
+      const uploadedImageUrl = getImageUrl(data.path);
+      if (uploadedImageUrl) {
+        setPreview(uploadedImageUrl);
+      }
+
       onChange(data.path);
       toast.success('Image uploaded successfully!');
     } catch (error: unknown) {
@@ -201,6 +218,13 @@ function ImageUpload({
               src={preview}
               alt="Event banner preview"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error('Image failed to load:', preview);
+                console.error('Error details:', e);
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully:', preview);
+              }}
             />
           </div>
           <Button
@@ -338,7 +362,9 @@ export default function EditEventPage() {
         const formatDateTimeLocal = (dateString: string) => {
           if (!dateString) return "";
           const date = new Date(dateString);
-          return date.toISOString().slice(0, 16);
+          // Convert to local timezone for datetime-local input
+          const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+          return localDate.toISOString().slice(0, 16);
         };
 
         setFormData({
@@ -411,30 +437,82 @@ export default function EditEventPage() {
         !formData.end_time
       ) {
         toast.error("Please fill in all required fields");
+        setSaving(false);
         return;
       }
 
-      // Enhanced date validation
+      // Enhanced date validation with better error handling
+      console.log("Form data dates:", {
+        start_time: formData.start_time,
+        end_time: formData.end_time,
+        registration_deadline: formData.registration_deadline
+      });
+
+      // Validate date format first
+      if (!formData.start_time || !formData.end_time) {
+        toast.error("Please enter both start and end times");
+        setSaving(false);
+        return;
+      }
+
+      // Create dates from datetime-local format (YYYY-MM-DDTHH:MM)
       const startTime = new Date(formData.start_time);
       const endTime = new Date(formData.end_time);
       const now = new Date();
-      const registrationDeadline = formData.registration_deadline 
-        ? new Date(formData.registration_deadline)
-        : null;
 
-      if (endTime <= startTime) {
+      console.log("Parsed dates:", {
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        now: now.toISOString()
+      });
+
+      // Check for invalid dates
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        toast.error("Please enter valid start and end times");
+        setSaving(false);
+        return;
+      }
+
+      // Basic time validation
+      if (endTime.getTime() <= startTime.getTime()) {
         toast.error("End time must be after start time");
+        setSaving(false);
         return;
       }
 
-      if (registrationDeadline && registrationDeadline >= startTime) {
-        toast.error("Registration deadline must be before start time");
-        return;
+      // Validate registration deadline if provided
+      let registrationDeadline = null;
+      if (formData.registration_deadline) {
+        registrationDeadline = new Date(formData.registration_deadline);
+        
+        if (isNaN(registrationDeadline.getTime())) {
+          toast.error("Please enter a valid registration deadline");
+          setSaving(false);
+          return;
+        }
+
+        if (registrationDeadline.getTime() >= startTime.getTime()) {
+          toast.error("Registration deadline must be before start time");
+          setSaving(false);
+          return;
+        }
+
+        // For editing existing events, allow past deadlines with warning
+        if (registrationDeadline.getTime() < now.getTime()) {
+          console.warn("Registration deadline is in the past - this may affect new registrations");
+        }
       }
 
-      if (registrationDeadline && registrationDeadline < now) {
-        toast.error("Registration deadline cannot be in the past");
-        return;
+      // Validate participant limit
+      let participantLimit = null;
+      if (formData.participant_limit && formData.participant_limit.trim()) {
+        const parsedLimit = parseInt(formData.participant_limit.trim());
+        if (isNaN(parsedLimit) || parsedLimit < 1) {
+          toast.error("Participant limit must be a positive number");
+          setSaving(false);
+          return;
+        }
+        participantLimit = parsedLimit;
       }
 
       const tagsArray = formData.tags
@@ -442,39 +520,65 @@ export default function EditEventPage() {
         .map((tag) => tag.trim())
         .filter((tag) => tag.length > 0);
 
-      const { error } = await supabase
-        .from("events")
-        .update({
-          name: formData.name,
-          description: formData.description,
-          start_time: new Date(formData.start_time).toISOString(),
-          end_time: new Date(formData.end_time).toISOString(),
-          location: formData.location || null,
-          is_online: formData.is_online,
-          participant_limit: formData.participant_limit
-            ? parseInt(formData.participant_limit)
-            : null,
-          tags: tagsArray.length > 0 ? tagsArray : null,
-          custom_fields: customFields.length > 0 ? customFields : null,
-          registration_deadline: formData.registration_deadline 
-            ? new Date(formData.registration_deadline).toISOString()
-            : null,
-          website_url: formData.website_url || null,
-          discord_url: formData.discord_url || null,
-          twitter_url: formData.twitter_url || null,
-          requirements: formData.requirements || null,
-          banner_image_url: formData.banner_image_url || null,
-        })
-        .eq("id", event.id);
+      console.log("Updating event with data:", {
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        registration_deadline: registrationDeadline?.toISOString() || null
+      });
 
-      if (error) {
-        console.error("Error updating event:", error);
-        toast.error("Failed to update event");
+      const updateData = {
+        name: formData.name,
+        description: formData.description,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        location: formData.location || null,
+        is_online: formData.is_online,
+        participant_limit: participantLimit,
+        tags: tagsArray.length > 0 ? tagsArray : null,
+        custom_fields: customFields.length > 0 ? customFields : null,
+        registration_deadline: registrationDeadline?.toISOString() || null,
+        website_url: formData.website_url || null,
+        discord_url: formData.discord_url || null,
+        twitter_url: formData.twitter_url || null,
+        requirements: formData.requirements || null,
+        banner_image_url: formData.banner_image_url || null,
+      };
+
+      console.log("About to update event with:", updateData);
+
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .update(updateData)
+          .eq("id", event.id)
+          .select();
+
+        console.log("Supabase update result:", { data, error });
+
+        if (error) {
+          console.error("Error updating event:", error);
+          toast.error(`Failed to update event: ${error.message}`);
+          setSaving(false);
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          console.error("No data returned from update");
+          toast.error("Event update failed - no data returned");
+          setSaving(false);
+          return;
+        }
+
+        console.log("Event updated successfully, navigating...");
+        toast.success("Event updated successfully!");
+        router.push(`/events/${event.id}`);
+      } catch (supabaseError) {
+        console.error("Supabase operation failed:", supabaseError);
+        const errorMessage = supabaseError instanceof Error ? supabaseError.message : 'Unknown error';
+        toast.error(`Database error: ${errorMessage}`);
+        setSaving(false);
         return;
       }
-
-      toast.success("Event updated successfully!");
-      router.push(`/events/${event.id}`);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Failed to update event");
@@ -514,15 +618,17 @@ export default function EditEventPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/events/${event.id}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Event
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
+          <div className="mb-6 lg:mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/events/${event.id}`}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Event
+                </Link>
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Edit Event
               </h1>
               <p className="text-muted-foreground">
@@ -531,7 +637,7 @@ export default function EditEventPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -702,7 +808,7 @@ export default function EditEventPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {customFields.map((field, index) => (
-                  <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                  <div key={field.id} className="border rounded-lg p-3 sm:p-4 space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Field #{index + 1}</h4>
                       <Button
@@ -710,12 +816,13 @@ export default function EditEventPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => removeCustomField(field.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Remove field</span>
                       </Button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label>Field Label</Label>
                         <Input

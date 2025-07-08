@@ -24,6 +24,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Loader2,
   ArrowLeft,
   Calendar,
@@ -38,10 +44,17 @@ import {
   CalendarPlus,
   Share2,
   Copy,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
-import { createShareableEventURL } from "@/lib/utils";
+import { createShareableEventURL, formatEventDuration } from "@/lib/utils";
+import { 
+  formatDateWithTimezone, 
+  getUserTimezone, 
+  createCalendarUrls, 
+  downloadICSFile 
+} from "@/lib/timezone-utils";
 
 interface Event {
   id: string;
@@ -89,13 +102,22 @@ interface Registration {
   };
 }
 
-// ADDED: Helper function to get image URL from storage path
+// Helper function to get image URL from storage path
 const getEventBannerUrl = (imagePath: string | null) => {
   if (!imagePath) return null;
-  const { data } = supabase.storage
-    .from('event-banners')
-    .getPublicUrl(imagePath);
-  return data.publicUrl;
+  try {
+    const { data } = supabase.storage
+      .from('event-banners')
+      .getPublicUrl(imagePath);
+    
+    // Log for debugging
+    console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
+    
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Error generating event banner URL:', error);
+    return null;
+  }
 };
 
 export default function EventDetailPage() {
@@ -107,6 +129,7 @@ export default function EventDetailPage() {
   const [registering, setRegistering] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationStatus, setRegistrationStatus] = useState<string | null>(null);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
 
@@ -141,15 +164,16 @@ export default function EventDetailPage() {
         setEvent(eventData);
 
         if (user) {
-          // FIXED: Use maybeSingle() instead of single() to avoid 406 error
+          // Check user registration status
           const { data: registration } = await supabase
             .from("event_participants")
-            .select("id")
+            .select("id, status")
             .eq("event_id", eventId)
             .eq("user_id", user.id)
-            .maybeSingle(); // CHANGED: from .single() to .maybeSingle()
+            .maybeSingle();
 
           setIsRegistered(!!registration);
+          setRegistrationStatus(registration?.status || null);
 
           // If user is the organizer, fetch all registrations
           if (user.id === eventData.organizer_id) {
@@ -202,7 +226,7 @@ export default function EventDetailPage() {
       const { error } = await supabase.from("event_participants").insert({
         event_id: event.id,
         user_id: user.id,
-        status: "going",
+        status: "pending",
       });
 
       if (error) {
@@ -211,8 +235,9 @@ export default function EventDetailPage() {
         return;
       }
 
-      toast.success("Successfully registered for the event!");
+      toast.success("Registration submitted! Please wait for organizer approval.");
       setIsRegistered(true);
+      setRegistrationStatus("pending");
     } catch (error) {
       console.error("Error:", error);
       toast.error("Failed to register for event");
@@ -256,9 +281,9 @@ export default function EventDetailPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return formatDateWithTimezone(dateString, getUserTimezone(), {
       year: "numeric",
-      month: "long",
+      month: "long", 
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
@@ -281,15 +306,34 @@ export default function EventDetailPage() {
     return { status: "upcoming", color: "bg-blue-500" };
   };
 
-  const addToCalendar = () => {
+  const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
+
+  const addToCalendar = (provider: 'google' | 'outlook' | 'yahoo' | 'ics') => {
     if (!event) return;
     
-    const startDate = new Date(event.start_time).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const endDate = new Date(event.end_time).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const calendarUrls = createCalendarUrls({
+      name: event.name,
+      description: event.description,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      location: event.location
+    });
+
+    if (provider === 'ics') {
+      downloadICSFile({
+        name: event.name,
+        description: event.description,
+        start_time: event.start_time,
+        end_time: event.end_time,
+        location: event.location
+      });
+      toast.success("Calendar file downloaded!");
+    } else {
+      window.open(calendarUrls[provider], '_blank');
+      toast.success(`Opening ${provider} calendar...`);
+    }
     
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.name)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location || 'Online')}`;
-    
-    window.open(calendarUrl, '_blank');
+    setCalendarDropdownOpen(false);
   };
 
   const shareEvent = async () => {
@@ -431,19 +475,45 @@ export default function EventDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/events">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Events
-              </Link>
-            </Button>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-foreground">
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/events">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Events
+                </Link>
+              </Button>
+              {isOrganizer && (
+                <div className="ml-auto flex gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/events/${event.id}/edit`}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      <span className="hidden sm:inline">Edit</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    {deleting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    <span className="hidden sm:inline">Delete</span>
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-words">
                   {event.name}
                 </h1>
-                <Badge className={`${color} text-white`}>
+                <Badge className={`${color} text-white w-fit`}>
                   {status.replace("_", " ").toUpperCase()}
                 </Badge>
               </div>
@@ -451,45 +521,28 @@ export default function EventDetailPage() {
                 Organized by {event.organizer?.name || event.organizer_name}
               </p>
             </div>
-            {isOrganizer && (
-              <div className="flex gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/events/${event.id}/edit`}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  {deleting ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4 mr-2" />
-                  )}
-                  Delete
-                </Button>
-              </div>
-            )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* CHANGED: Banner Image - use bannerUrl instead of event.banner_image_url */}
+              {/* Banner Image */}
               {bannerUrl && (
-  <div className="w-auto h-auto rounded-lg overflow-hidden bg-gray-100">
-    <img
-      src={bannerUrl}
-      alt={event.name}
-      className="w-full h-full object-contain"
-    />
-  </div>
-)}
+                <div className="w-full h-48 sm:h-64 lg:h-auto rounded-lg overflow-hidden bg-gray-100">
+                  <img
+                    src={bannerUrl}
+                    alt={event.name}
+                    className="w-full h-full object-cover lg:object-contain"
+                    onError={(e) => {
+                      console.error('Event banner failed to load:', bannerUrl);
+                      console.error('Error details:', e);
+                    }}
+                    onLoad={() => {
+                      console.log('Event banner loaded successfully:', bannerUrl);
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Description */}
               <Card>
@@ -552,21 +605,110 @@ export default function EventDetailPage() {
                 </Card>
               )}
 
-              {/* Already Registered */}
-              {isRegistered && (
-                <Card className="border-green-200 bg-green-50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-800">
-                      <CheckCircle className="h-5 w-5" />
-                      Registration Confirmed
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-green-700">
-                      You are registered for this event. We&apos;ll send you updates and details as the event approaches.
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Registration Status */}
+              {isRegistered && registrationStatus && (
+                <>
+                  {registrationStatus === "pending" && (
+                    <Card className="border-yellow-200 bg-yellow-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-yellow-800">
+                          <Clock className="h-5 w-5" />
+                          Registration Pending Approval
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-yellow-700">
+                          Your registration has been submitted and is waiting for organizer approval. 
+                          You&apos;ll be notified once your registration is reviewed.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {registrationStatus === "approved" && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-green-800">
+                          <CheckCircle className="h-5 w-5" />
+                          Registration Approved ✅
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-green-700 mb-4">
+                          Congratulations! Your registration has been approved. 
+                          You&apos;ll receive event details and updates via email.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {registrationStatus === "rejected" && (
+                    <Card className="border-red-200 bg-red-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-red-800">
+                          <X className="h-5 w-5" />
+                          Registration Not Approved
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-red-700 mb-4">
+                          Unfortunately, your registration was not approved for this event. 
+                          The event may be full or may not match the requirements.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Legacy statuses from before approval system */}
+                  {(registrationStatus === "going" || registrationStatus === "invited") && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-green-800">
+                          <CheckCircle className="h-5 w-5" />
+                          Registration Confirmed (Legacy)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-green-700 mb-4">
+                          Your registration is confirmed. You&apos;ll receive event details and updates via email.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {registrationStatus === "maybe" && (
+                    <Card className="border-blue-200 bg-blue-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-blue-800">
+                          <Clock className="h-5 w-5" />
+                          Registration: Maybe (Legacy)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-blue-700">
+                          You&apos;ve indicated you might attend this event. 
+                          Please confirm your attendance closer to the event date.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {registrationStatus === "not_going" && (
+                    <Card className="border-gray-200 bg-gray-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-gray-800">
+                          <X className="h-5 w-5" />
+                          Not Attending (Legacy)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-700">
+                          You&apos;ve indicated you won&apos;t be attending this event.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
               )}
 
               {/* Participant List (Organizer Only) */}
@@ -614,7 +756,7 @@ export default function EventDetailPage() {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               {/* Event Details */}
               <Card>
                 <CardHeader>
@@ -644,7 +786,16 @@ export default function EventDetailPage() {
                     <div>
                       <p className="text-sm font-medium">Duration</p>
                       <p className="text-sm text-muted-foreground">
-                        {Math.ceil((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / (1000 * 60 * 60))} hours
+                        {formatEventDuration(event.start_time, event.end_time)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Time Zone</p>
+                      <p className="text-sm text-muted-foreground">
+                        {getUserTimezone().replace('_', ' ')} (Your local time)
                       </p>
                     </div>
                   </div>
@@ -765,6 +916,43 @@ export default function EventDetailPage() {
                 </Card>
               )}
 
+              {/* Organizer Actions */}
+              {isOrganizer && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Organizer Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Button asChild className="w-full" variant="outline">
+                      <Link href={`/events/${event.id}/participants`}>
+                        <Users className="h-4 w-4 mr-2" />
+                        Manage Participants
+                      </Link>
+                    </Button>
+                    <Button asChild className="w-full" variant="outline">
+                      <Link href={`/events/${event.id}/edit`}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Event
+                      </Link>
+                    </Button>
+                    <Button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                    >
+                      {deleting ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4 mr-2" />
+                      )}
+                      Delete Event
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Actions */}
               <Card>
                 <CardHeader>
@@ -800,14 +988,32 @@ export default function EventDetailPage() {
                     </Button>
                   )}
                   
-                  <Button
-                    onClick={addToCalendar}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <CalendarPlus className="h-4 w-4 mr-2" />
-                    Add to Calendar
-                  </Button>
+                  <DropdownMenu open={calendarDropdownOpen} onOpenChange={setCalendarDropdownOpen}>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <CalendarPlus className="h-4 w-4 mr-2" />
+                        Add to Calendar
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="w-56">
+                      <DropdownMenuItem onClick={() => addToCalendar('google')}>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Google Calendar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addToCalendar('outlook')}>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Outlook Calendar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addToCalendar('yahoo')}>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Yahoo Calendar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addToCalendar('ics')}>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Download .ics file
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
                   <Button
                     onClick={shareEvent}
@@ -822,14 +1028,17 @@ export default function EventDetailPage() {
                   <div className="pt-2 border-t">
                     <p className="text-xs text-muted-foreground mb-2">Shareable link:</p>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
-                        {createShareableEventURL(event.short_code).replace('https://', '')}
+                      <code className="flex-1 text-xs bg-muted px-2 py-1 rounded text-muted-foreground overflow-hidden">
+                        <span className="block truncate">
+                          {createShareableEventURL(event.short_code).replace('https://', '')}
+                        </span>
                       </code>
                       <Button
                         onClick={() => copyToClipboard(createShareableEventURL(event.short_code))}
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0"
+                        className="h-7 w-7 p-0 flex-shrink-0"
+                        title="Copy link"
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
