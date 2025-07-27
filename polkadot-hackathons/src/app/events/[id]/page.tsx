@@ -55,32 +55,7 @@ import {
   createCalendarUrls, 
   downloadICSFile 
 } from "@/lib/timezone-utils";
-
-interface Event {
-  id: string;
-  name: string;
-  description: string;
-  start_time: string;
-  end_time: string;
-  organizer_id: string;
-  organizer_name: string;
-  location: string | null;
-  is_online: boolean;
-  participant_limit: number | null;
-  tags: string[] | null;
-  custom_fields: CustomField[] | null;
-  registration_deadline: string | null;
-  website_url: string | null;
-  discord_url: string | null;
-  twitter_url: string | null;
-  requirements: string | null;
-  banner_image_url: string | null;
-  short_code: string;
-  organizer: {
-    name: string;
-    email: string;
-  };
-}
+import { useEventCache } from "@/lib/cache";
 
 interface CustomField {
   id: string;
@@ -123,9 +98,7 @@ const getEventBannerUrl = (imagePath: string | null) => {
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [event, setEvent] = useState<Event | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -133,37 +106,65 @@ export default function EventDetailPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const eventId = params.id as string;
+  const eventId = params.id as string;
 
+  // Use cache for event details
+  const {
+    data: event,
+    loading: eventLoading
+  } = useEventCache(
+    `event_${eventId}`,
+    async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select(`
+          *,
+          organizer:organizer_id(name, email)
+        `)
+        .eq("id", eventId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching event:", error);
+        toast.error("Failed to load event");
+        throw error;
+      }
+
+      return data;
+    },
+    5 * 60 * 1000 // 5 minutes cache
+  );
+
+  // Use cache for participant count
+  const {
+    data: participantCount,
+    loading: participantLoading
+  } = useEventCache(
+    `participants_${eventId}`,
+    async () => {
+      const { count } = await supabase
+        .from("event_participants")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", eventId)
+        .in("status", ["approved", "going"]);
+
+      return count || 0;
+    },
+    2 * 60 * 1000 // 2 minutes cache
+  );
+
+  const loading = eventLoading || participantLoading;
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
         // Get current user
         const {
           data: { user },
         } = await supabase.auth.getUser();
         setUser(user);
 
-        // CHANGED: Updated query to use correct foreign key relationship
-        const { data: eventData, error: eventError } = await supabase
-          .from("events")
-          .select(`
-            *,
-            organizer:organizer_id(name, email)
-          `)
-          .eq("id", eventId)
-          .single();
-
-        if (eventError) {
-          console.error("Error fetching event:", eventError);
-          toast.error("Failed to load event");
-          router.push("/events");
-          return;
-        }
-
-        setEvent(eventData);
-
-        if (user) {
+        if (user && event) {
           // Check user registration status
           const { data: registration } = await supabase
             .from("event_participants")
@@ -176,7 +177,7 @@ export default function EventDetailPage() {
           setRegistrationStatus(registration?.status || null);
 
           // If user is the organizer, fetch all registrations
-          if (user.id === eventData.organizer_id) {
+          if (user.id === event.organizer_id) {
             const { data: registrationsData } = await supabase
               .from("event_participants")
               .select(`
@@ -191,15 +192,14 @@ export default function EventDetailPage() {
         }
       } catch (error) {
         console.error("Error:", error);
-        toast.error("Failed to load event");
-        router.push("/events");
-      } finally {
-        setLoading(false);
+        toast.error("Failed to load user data");
       }
     };
 
-    fetchData();
-  }, [params.id, router]);
+    if (event) {
+      fetchUserData();
+    }
+  }, [event, eventId]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -830,6 +830,15 @@ export default function EventDetailPage() {
                       </div>
                     </div>
                   )}
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Current Participants</p>
+                      <p className="text-sm text-muted-foreground">
+                        {(participantCount || 0) > 99 ? "99+" : participantCount || 0} {(participantCount || 0) === 1 ? "participant" : "participants"}
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -841,7 +850,7 @@ export default function EventDetailPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {event.tags.map((tag, index) => (
+                      {event.tags.map((tag: string, index: number) => (
                         <Badge key={index} variant="secondary">
                           {tag}
                         </Badge>

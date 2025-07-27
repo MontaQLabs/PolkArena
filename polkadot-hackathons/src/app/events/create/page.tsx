@@ -27,6 +27,7 @@ import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2, Upload, X, Image as 
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { generateUniqueShortCode } from "@/lib/utils";
+import { cacheUtils } from "@/lib/cache";
 
 interface CustomField {
   id: string;
@@ -475,6 +476,10 @@ export default function CreateEventPage() {
       }
 
       toast.success("Event created successfully!");
+      
+      // Invalidate cache since we added a new event
+      cacheUtils.invalidateAllEvents();
+      
       router.push(`/events/${data.id}`);
     } catch (error) {
       console.error("Error:", error);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { Search, Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react
 import Link from "next/link";
 import { toast } from "sonner";
 import { formatEventDuration } from "@/lib/utils";
+import { useEventCache } from "@/lib/cache";
 
 interface Event {
   id: string;
@@ -227,45 +228,70 @@ function EventsLoading() {
 }
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
+  // Use cache for upcoming events
+  const {
+    data: events,
+    loading: upcomingLoading
+  } = useEventCache(
+    "events_list",
+    async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select(`
+          *,
+          organizer:organizer_id(name, email)
+        `)
+        .gte("start_time", new Date().toISOString())
+        .order("start_time", { ascending: true });
 
-        // Updated query to use the correct foreign key relationship
-        const { data, error } = await supabase
-          .from("events")
-          .select(`
-            *,
-            organizer:organizer_id(name, email)
-          `)
-          .gte("start_time", new Date().toISOString())
-          .order("start_time", { ascending: true });
-
-        if (error) {
-          console.error("Error fetching events:", error);
-          toast.error("Failed to load events");
-          return;
-        }
-
-        setEvents(data || []);
-      } catch (error) {
-        console.error("Error:", error);
-        toast.error("Failed to load events");
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error("Error fetching upcoming events:", error);
+        toast.error("Failed to load upcoming events");
+        throw error;
       }
-    };
 
-    fetchEvents();
-  }, []);
+      return data || [];
+    },
+    2 * 60 * 1000 // 2 minutes cache
+  );
 
-  const filteredEvents = events.filter((event) => {
+  // Use cache for past events
+  const {
+    data: pastEvents,
+    loading: pastLoading
+  } = useEventCache(
+    "past_events_list",
+    async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select(`
+          *,
+          organizer:organizer_id(name, email)
+        `)
+        .lt("start_time", new Date().toISOString())
+        .order("start_time", { ascending: false })
+        .limit(20); // Limit past events to avoid overwhelming the page
+
+      if (error) {
+        console.error("Error fetching past events:", error);
+        toast.error("Failed to load past events");
+        throw error;
+      }
+
+      return data || [];
+    },
+    10 * 60 * 1000 // 10 minutes cache
+  );
+
+  const loading = upcomingLoading || pastLoading;
+  const eventsData = events || [];
+  const pastEventsData = pastEvents || [];
+
+  const filteredEvents = (activeTab === "upcoming" ? eventsData : pastEventsData).filter((event) => {
     const matchesSearch =
       event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -320,6 +346,30 @@ export default function EventsPage() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex border-b mb-6">
+        <button
+          onClick={() => setActiveTab("upcoming")}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === "upcoming"
+              ? "border-polkadot-pink text-polkadot-pink"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Upcoming Events ({eventsData.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("past")}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === "past"
+              ? "border-polkadot-pink text-polkadot-pink"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Past Events ({pastEventsData.length})
+        </button>
+      </div>
+
       {/* Events Grid */}
       {loading ? (
         <EventsLoading />
@@ -328,7 +378,9 @@ export default function EventsPage() {
           <div className="text-muted-foreground mb-4">
             {searchTerm || typeFilter !== "all"
               ? "No events found matching your criteria."
-              : "No upcoming events found."}
+              : activeTab === "upcoming" 
+                ? "No upcoming events found."
+                : "No past events found."}
           </div>
           {searchTerm || typeFilter !== "all" ? (
             <Button
@@ -340,10 +392,14 @@ export default function EventsPage() {
             >
               Clear Filters
             </Button>
-          ) : (
+          ) : activeTab === "upcoming" ? (
             <Button asChild>
               <Link href="/events/create">Create the First Event</Link>
             </Button>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              Past events will appear here once they are completed.
+            </div>
           )}
         </div>
       ) : (

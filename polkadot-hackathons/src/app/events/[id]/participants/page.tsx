@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { cacheUtils } from "@/lib/cache";
 
 interface Event {
   id: string;
@@ -174,6 +175,10 @@ export default function EventParticipantsPage() {
       }
 
       toast.success("Participant approved!");
+      
+      // Invalidate cache for this event's participant count
+      cacheUtils.invalidateEvent(event.id);
+      
       await fetchParticipants(event.id);
     } catch (error) {
       console.error("Error:", error);
@@ -205,6 +210,10 @@ export default function EventParticipantsPage() {
       }
 
       toast.success("Participant rejected");
+      
+      // Invalidate cache for this event's participant count
+      cacheUtils.invalidateEvent(event.id);
+      
       await fetchParticipants(event.id);
       setRejectionReason("");
     } catch (error) {

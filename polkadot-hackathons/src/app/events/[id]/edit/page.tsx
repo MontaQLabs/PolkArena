@@ -25,6 +25,7 @@ import {
 import { Loader2, ArrowLeft, Save, Globe, Plus, Trash2, Upload, X, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { cacheUtils } from "@/lib/cache";
 
 interface Event {
   id: string;
@@ -570,6 +571,10 @@ export default function EditEventPage() {
         }
 
         console.log("Event updated successfully, navigating...");
+        
+        // Invalidate cache for this event
+        cacheUtils.invalidateEvent(event.id);
+        
         toast.success("Event updated successfully!");
         router.push(`/events/${event.id}`);
       } catch (supabaseError) {

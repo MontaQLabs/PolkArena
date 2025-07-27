@@ -38,10 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        await ensureProfileExists(session.user.id);
       }
       setLoading(false);
     });
@@ -63,29 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Error fetching profile:", error);
-        return;
-      }
-
-      if (data) {
-        setProfile(data);
-      } else {
-        // Profile doesn't exist, try to create it
-        await ensureProfileExists(userId);
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    }
-  };
 
   const ensureProfileExists = async (userId: string) => {
     try {
@@ -184,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await ensureProfileExists(user.id);
     }
   };
 
