@@ -83,12 +83,22 @@ function getTimezoneAbbreviation(timezone: string): string {
   return abbr?.value || timezone.split("/").pop() || "";
 }
 
+export interface EventDay {
+  id: string;
+  day_number: number;
+  day_name: string | null;
+  start_time: string;
+  end_time: string;
+}
+
 export function createCalendarUrls(event: {
   name: string;
   description: string;
   start_time: string;
   end_time: string;
   location?: string | null;
+  is_multi_day?: boolean;
+  event_days?: EventDay[];
 }) {
   const startDate = new Date(event.start_time);
   const endDate = new Date(event.end_time);
@@ -102,8 +112,19 @@ export function createCalendarUrls(event: {
   const endFormatted = formatCalendarDate(endDate);
   
   const encodedTitle = encodeURIComponent(event.name);
-  const encodedDescription = encodeURIComponent(event.description);
   const encodedLocation = encodeURIComponent(event.location || 'Online Event');
+  
+  // Enhanced description for multi-day events
+  let description = event.description;
+  if (event.is_multi_day && event.event_days && event.event_days.length > 0) {
+    description += '\n\nSchedule:\n';
+    event.event_days.forEach(day => {
+      const dayStart = new Date(day.start_time);
+      const dayEnd = new Date(day.end_time);
+      description += `Day ${day.day_number}${day.day_name ? ` (${day.day_name})` : ''}: ${dayStart.toLocaleString()} - ${dayEnd.toLocaleString()}\n`;
+    });
+  }
+  const encodedDescription = encodeURIComponent(description);
 
   return {
     google: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodedTitle}&dates=${startFormatted}/${endFormatted}&details=${encodedDescription}&location=${encodedLocation}`,
@@ -113,7 +134,7 @@ export function createCalendarUrls(event: {
     yahoo: `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${encodedTitle}&st=${startFormatted}&dur=false&et=${endFormatted}&desc=${encodedDescription}&in_loc=${encodedLocation}`,
     
     // ICS file for Apple Calendar and other apps
-    ics: generateICSFile(event, startDate, endDate)
+    ics: generateICSFile(event, startDate, endDate, description)
   };
 }
 
@@ -121,7 +142,7 @@ function generateICSFile(event: {
   name: string;
   description: string;
   location?: string | null;
-}, startDate: Date, endDate: Date): string {
+}, startDate: Date, endDate: Date, description?: string): string {
   const formatICSDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
@@ -135,7 +156,7 @@ function generateICSFile(event: {
     `DTSTART:${formatICSDate(startDate)}`,
     `DTEND:${formatICSDate(endDate)}`,
     `SUMMARY:${event.name}`,
-    `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
+    `DESCRIPTION:${(description || event.description).replace(/\n/g, '\\n')}`,
     `LOCATION:${event.location || 'Online Event'}`,
     `DTSTAMP:${formatICSDate(new Date())}`,
     'END:VEVENT',
@@ -153,10 +174,24 @@ export function downloadICSFile(event: {
   start_time: string;
   end_time: string;
   location?: string | null;
+  is_multi_day?: boolean;
+  event_days?: EventDay[];
 }) {
   const startDate = new Date(event.start_time);
   const endDate = new Date(event.end_time);
-  const icsUrl = generateICSFile(event, startDate, endDate);
+  
+  // Enhanced description for multi-day events
+  let description = event.description;
+  if (event.is_multi_day && event.event_days && event.event_days.length > 0) {
+    description += '\n\nSchedule:\n';
+    event.event_days.forEach(day => {
+      const dayStart = new Date(day.start_time);
+      const dayEnd = new Date(day.end_time);
+      description += `Day ${day.day_number}${day.day_name ? ` (${day.day_name})` : ''}: ${dayStart.toLocaleString()} - ${dayEnd.toLocaleString()}\n`;
+    });
+  }
+  
+  const icsUrl = generateICSFile(event, startDate, endDate, description);
   
   const link = document.createElement('a');
   link.href = icsUrl;

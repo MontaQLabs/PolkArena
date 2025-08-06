@@ -42,7 +42,10 @@ import {
   User,
   Clock,
   MessageSquare,
+  CheckSquare,
+  Square,
 } from "lucide-react";
+
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { cacheUtils } from "@/lib/cache";
@@ -53,6 +56,8 @@ interface Event {
   organizer_id: string;
   start_time: string;
   end_time: string;
+  location: string | null;
+  is_online: boolean;
 }
 
 interface Participant {
@@ -83,6 +88,8 @@ export default function EventParticipantsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,7 +107,7 @@ export default function EventParticipantsPage() {
         // Fetch event
         const { data: eventData, error: eventError } = await supabase
           .from("events")
-          .select("id, name, organizer_id, start_time, end_time")
+          .select("id, name, organizer_id, start_time, end_time, location, is_online")
           .eq("id", eventId)
           .single();
 
@@ -174,7 +181,38 @@ export default function EventParticipantsPage() {
         return;
       }
 
-      toast.success("Participant approved!");
+      // Send email notification
+      try {
+        const participant = participants.find(p => p.id === participantId);
+        if (participant && participant.user?.email) {
+          const emailData = [{
+            participantName: participant.user?.name || 'Participant',
+            participantEmail: participant.user?.email || '',
+            eventName: event.name,
+            eventDate: new Date(event.start_time).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            eventLocation: event.location || 'TBD',
+            isOnline: event.is_online || false,
+            eventId: event.id,
+          }];
+
+          await fetch('/api/send-notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'approval', participants: emailData }),
+          });
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+
+      toast.success("Participant approved! Email notification sent.");
       
       // Invalidate cache for this event's participant count
       cacheUtils.invalidateEvent(event.id);
@@ -209,7 +247,42 @@ export default function EventParticipantsPage() {
         return;
       }
 
-      toast.success("Participant rejected");
+      // Send email notification
+      try {
+        const participant = participants.find(p => p.id === participantId);
+        if (participant && participant.user?.email) {
+          const emailData = [{
+            participantName: participant.user?.name || 'Participant',
+            participantEmail: participant.user?.email || '',
+            eventName: event.name,
+            eventDate: new Date(event.start_time).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            eventLocation: event.location || 'TBD',
+            isOnline: event.is_online || false,
+            eventId: event.id,
+          }];
+
+          await fetch('/api/send-notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              type: 'rejection', 
+              participants: emailData,
+              rejectionReason: reason || 'No specific reason provided'
+            }),
+          });
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+
+      toast.success("Participant rejected. Email notification sent.");
       
       // Invalidate cache for this event's participant count
       cacheUtils.invalidateEvent(event.id);
@@ -221,6 +294,202 @@ export default function EventParticipantsPage() {
       toast.error("Failed to reject participant");
     } finally {
       setProcessing(null);
+    }
+  };
+
+  const toggleParticipantSelection = (participantId: string) => {
+    const newSelected = new Set(selectedParticipants);
+    if (newSelected.has(participantId)) {
+      newSelected.delete(participantId);
+    } else {
+      newSelected.add(participantId);
+    }
+    setSelectedParticipants(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    const pendingParticipants = filteredParticipants.filter(p => p.status === 'pending');
+    if (selectedParticipants.size === pendingParticipants.length) {
+      // If all pending are selected, deselect all
+      setSelectedParticipants(new Set());
+    } else {
+      // Select all pending participants
+      setSelectedParticipants(new Set(pendingParticipants.map(p => p.id)));
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (!user || !event || selectedParticipants.size === 0) return;
+
+    setBulkProcessing(true);
+    try {
+      const participantIds = Array.from(selectedParticipants);
+      
+      // Get participant details for email notifications
+      const selectedParticipantDetails = participants.filter(p => 
+        selectedParticipants.has(p.id)
+      );
+
+      // Update database first
+      const { error } = await supabase
+        .from("event_participants")
+        .update({
+          status: "approved",
+          approved_at: new Date().toISOString(),
+          approved_by: user.id,
+          rejection_reason: null,
+        })
+        .in("id", participantIds);
+
+      if (error) {
+        console.error("Error bulk approving participants:", error);
+        toast.error("Failed to approve participants");
+        return;
+      }
+
+      // Send email notifications (don't block the UI if this fails)
+      try {
+        const emailData = selectedParticipantDetails.map(participant => ({
+          participantName: participant.user?.name || 'Participant',
+          participantEmail: participant.user?.email || '',
+          eventName: event.name,
+          eventDate: new Date(event.start_time).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          eventLocation: event.location || 'TBD',
+          isOnline: event.is_online || false,
+          eventId: event.id,
+        }));
+
+        const emailResponse = await fetch('/api/send-notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'approval',
+            participants: emailData,
+          }),
+        });
+
+        if (emailResponse.ok) {
+          const emailResult = await emailResponse.json();
+          console.log('Email notifications sent:', emailResult);
+          toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} approved! Email notifications sent.`);
+        } else {
+          console.error('Failed to send email notifications');
+          toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} approved! (Email notifications failed)`);
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+        toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} approved! (Email notifications failed)`);
+      }
+      
+      // Clear selection and refresh data
+      setSelectedParticipants(new Set());
+      
+      // Invalidate cache for this event's participant count
+      cacheUtils.invalidateEvent(event.id);
+      
+      await fetchParticipants(event.id);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to approve participants");
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
+  const handleBulkReject = async (reason: string) => {
+    if (!user || !event || selectedParticipants.size === 0) return;
+
+    setBulkProcessing(true);
+    try {
+      const participantIds = Array.from(selectedParticipants);
+      
+      // Get participant details for email notifications
+      const selectedParticipantDetails = participants.filter(p => 
+        selectedParticipants.has(p.id)
+      );
+
+      // Update database first
+      const { error } = await supabase
+        .from("event_participants")
+        .update({
+          status: "rejected",
+          rejection_reason: reason || "Bulk rejection",
+          approved_at: null,
+          approved_by: null,
+        })
+        .in("id", participantIds);
+
+      if (error) {
+        console.error("Error bulk rejecting participants:", error);
+        toast.error("Failed to reject participants");
+        return;
+      }
+
+      // Send email notifications (don't block the UI if this fails)
+      try {
+        const emailData = selectedParticipantDetails.map(participant => ({
+          participantName: participant.user?.name || 'Participant',
+          participantEmail: participant.user?.email || '',
+          eventName: event.name,
+          eventDate: new Date(event.start_time).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          eventLocation: event.location || 'TBD',
+          isOnline: event.is_online || false,
+          eventId: event.id,
+        }));
+
+        const emailResponse = await fetch('/api/send-notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'rejection',
+            participants: emailData,
+            rejectionReason: reason || 'No specific reason provided',
+          }),
+        });
+
+        if (emailResponse.ok) {
+          const emailResult = await emailResponse.json();
+          console.log('Email notifications sent:', emailResult);
+          toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} rejected. Email notifications sent.`);
+        } else {
+          console.error('Failed to send email notifications');
+          toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} rejected. (Email notifications failed)`);
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+        toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} rejected. (Email notifications failed)`);
+      }
+      
+      // Clear selection and refresh data
+      setSelectedParticipants(new Set());
+      
+      // Invalidate cache for this event's participant count
+      cacheUtils.invalidateEvent(event.id);
+      
+      await fetchParticipants(event.id);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to reject participants");
+    } finally {
+      setBulkProcessing(false);
     }
   };
 
@@ -430,10 +699,92 @@ export default function EventParticipantsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={exportToCSV} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
+                
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Bulk Actions */}
+                  {stats.pending > 0 && (
+                    <>
+                      <Button 
+                        onClick={toggleSelectAll}
+                        variant="outline" 
+                        size="sm"
+                        className="whitespace-nowrap"
+                      >
+                        {selectedParticipants.size === filteredParticipants.filter(p => p.status === 'pending').length && selectedParticipants.size > 0
+                          ? <Square className="h-4 w-4 mr-2" />
+                          : <CheckSquare className="h-4 w-4 mr-2" />
+                        }
+                        {selectedParticipants.size === filteredParticipants.filter(p => p.status === 'pending').length && selectedParticipants.size > 0
+                          ? 'Deselect All'
+                          : `Select All Pending (${stats.pending})`
+                        }
+                      </Button>
+                      
+                      {selectedParticipants.size > 0 && (
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={handleBulkApprove}
+                            disabled={bulkProcessing}
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                          >
+                            {bulkProcessing ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Check className="h-4 w-4 mr-2" />
+                            )}
+                            Approve {selectedParticipants.size}
+                          </Button>
+                          
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="destructive"
+                                size="sm"
+                                disabled={bulkProcessing}
+                                className="whitespace-nowrap"
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Reject {selectedParticipants.size}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Reject {selectedParticipants.size} Participants</DialogTitle>
+                                <DialogDescription>
+                                  Please provide a reason for rejecting these participants. This will be sent to them via email.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <Textarea
+                                placeholder="Enter rejection reason..."
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
+                                rows={3}
+                              />
+                              <DialogFooter>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => handleBulkReject(rejectionReason)}
+                                  disabled={bulkProcessing}
+                                >
+                                  {bulkProcessing ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : null}
+                                  Reject Participants
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  <Button onClick={exportToCSV} variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -456,7 +807,24 @@ export default function EventParticipantsPage() {
                 <Card key={participant.id}>
                   <CardContent className="p-4">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                      <div className="flex-1 space-y-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        {/* Selection Checkbox - only for pending participants */}
+                        {participant.status === 'pending' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 mt-1"
+                            onClick={() => toggleParticipantSelection(participant.id)}
+                          >
+                            {selectedParticipants.has(participant.id) ? (
+                              <CheckSquare className="h-4 w-4 text-polkadot-pink" />
+                            ) : (
+                              <Square className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        )}
+                        
+                        <div className="flex-1 space-y-3">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
@@ -498,6 +866,7 @@ export default function EventParticipantsPage() {
                           </div>
                         )}
                       </div>
+                    </div>
 
                       {(participant.status === "pending" || participant.status === "maybe" || participant.status === "invited") && (
                         <div className="flex flex-col sm:flex-row gap-2 lg:flex-col xl:flex-row">

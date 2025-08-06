@@ -90,14 +90,27 @@ export function formatEventDuration(startTime: string, endTime: string): string 
   const durationMs = end.getTime() - start.getTime();
   const totalMinutes = Math.floor(durationMs / (1000 * 60));
   
-  const hours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
   const minutes = totalMinutes % 60;
   
-  if (hours === 0) {
-    return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
-  } else if (minutes === 0) {
-    return `${hours} hour${hours !== 1 ? 's' : ''}`;
-  } else {
-    return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  const parts = [];
+  
+  if (days > 0) {
+    parts.push(`${days} day${days !== 1 ? 's' : ''}`);
   }
+  
+  if (hours > 0) {
+    parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+  }
+  
+  if (minutes > 0) {
+    parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+  }
+  
+  if (parts.length === 0) {
+    return '0 minutes';
+  }
+  
+  return parts.join(' ');
 }

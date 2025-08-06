@@ -230,6 +230,132 @@ export type Database = {
           announced_at?: string;
         };
       };
+      events: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          start_time: string;
+          end_time: string;
+          organizer_id: string;
+          organizer_name: string;
+          banner_image_url: string | null;
+          location: string | null;
+          is_online: boolean;
+          participant_limit: number | null;
+          tags: string[] | null;
+          custom_fields: unknown[] | null;
+          registration_deadline: string | null;
+          website_url: string | null;
+          discord_url: string | null;
+          twitter_url: string | null;
+          requirements: string | null;
+          short_code: string;
+          is_multi_day: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description: string;
+          start_time: string;
+          end_time: string;
+          organizer_id: string;
+          organizer_name: string;
+          banner_image_url?: string | null;
+          location?: string | null;
+          is_online?: boolean;
+          participant_limit?: number | null;
+          tags?: string[] | null;
+          custom_fields?: unknown[] | null;
+          registration_deadline?: string | null;
+          website_url?: string | null;
+          discord_url?: string | null;
+          twitter_url?: string | null;
+          requirements?: string | null;
+          short_code: string;
+          is_multi_day?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          start_time?: string;
+          end_time?: string;
+          organizer_id?: string;
+          organizer_name?: string;
+          banner_image_url?: string | null;
+          location?: string | null;
+          is_online?: boolean;
+          participant_limit?: number | null;
+          tags?: string[] | null;
+          custom_fields?: unknown[] | null;
+          registration_deadline?: string | null;
+          website_url?: string | null;
+          discord_url?: string | null;
+          twitter_url?: string | null;
+          requirements?: string | null;
+          short_code?: string;
+          is_multi_day?: boolean;
+          created_at?: string;
+        };
+      };
+      event_days: {
+        Row: {
+          id: string;
+          event_id: string;
+          day_number: number;
+          day_name: string | null;
+          start_time: string;
+          end_time: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          day_number: number;
+          day_name?: string | null;
+          start_time: string;
+          end_time: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          day_number?: number;
+          day_name?: string | null;
+          start_time?: string;
+          end_time?: string;
+          created_at?: string;
+        };
+      };
+      event_participants: {
+        Row: {
+          id: string;
+          event_id: string;
+          user_id: string;
+          status: string;
+          registered_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          user_id: string;
+          status?: string;
+          registered_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          user_id?: string;
+          status?: string;
+          registered_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

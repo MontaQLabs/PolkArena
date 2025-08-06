@@ -56,7 +56,7 @@ import {
   createCalendarUrls, 
   downloadICSFile 
 } from "@/lib/timezone-utils";
-import { useEventCache } from "@/lib/cache";
+import { useEventCache, EventDay } from "@/lib/cache";
 
 interface CustomField {
   id: string;
@@ -130,6 +130,22 @@ export default function EventDetailPage() {
         console.error("Error fetching event:", error);
         toast.error("Failed to load event");
         throw error;
+      }
+
+      // If it's a multi-day event, fetch the event days
+      if (data && data.is_multi_day) {
+        const { data: eventDays, error: daysError } = await supabase
+          .from("event_days")
+          .select("*")
+          .eq("event_id", eventId)
+          .order("day_number", { ascending: true });
+
+        if (daysError) {
+          console.error("Error fetching event days:", daysError);
+          // Don't throw error, just log it
+        } else {
+          data.event_days = eventDays || [];
+        }
       }
 
       return data;
@@ -760,33 +776,80 @@ export default function EventDetailPage() {
                   <CardTitle>Event Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Start Time</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(event.start_time)}
-                      </p>
+                  {/* Multi-day Schedule */}
+                  {event.is_multi_day && event.event_days && event.event_days.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Multi-day Event Schedule</p>
+                          <p className="text-sm text-muted-foreground">
+                            {event.event_days.length} {event.event_days.length === 1 ? "day" : "days"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3 pl-6">
+                        {event.event_days.map((day: EventDay) => (
+                          <div key={day.id} className="border-l-2 border-polkadot-pink/30 pl-3">
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">
+                                Day {day.day_number}
+                                {day.day_name && `: ${day.day_name}`}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(day.start_time)} - {formatDate(day.end_time)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Duration: {formatEventDuration(day.start_time, day.end_time)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 pt-2 border-t">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Overall Duration</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDate(event.start_time)} - {formatDate(event.end_time)}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">End Time</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(event.end_time)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Duration</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatEventDuration(event.start_time, event.end_time)}
-                      </p>
-                    </div>
-                  </div>
+                  ) : (
+                    /* Single Day Event */
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Start Time</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDate(event.start_time)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">End Time</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDate(event.end_time)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Duration</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatEventDuration(event.start_time, event.end_time)}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4 text-muted-foreground" />
                     <div>

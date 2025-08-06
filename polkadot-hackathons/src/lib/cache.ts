@@ -7,6 +7,16 @@ interface CacheItem<T> {
 
 // Cache data structure for internal use
 
+export interface EventDay {
+  id: string;
+  event_id: string;
+  day_number: number;
+  day_name: string | null;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+}
+
 export interface Event {
   id: string;
   name: string;
@@ -27,10 +37,12 @@ export interface Event {
   requirements: string | null;
   banner_image_url: string | null;
   short_code: string;
+  is_multi_day: boolean;
   organizer?: {
     name: string;
     email: string;
   };
+  event_days?: EventDay[];
 }
 
 class EventCache {

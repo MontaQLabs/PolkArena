@@ -27,6 +27,7 @@ import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2, Upload, X } from "lu
 import Link from "next/link";
 import { generateUniqueShortCode } from "@/lib/utils";
 import { cacheUtils } from "@/lib/cache";
+import { Switch } from "@/components/ui/switch";
 
 interface CustomField {
   id: string;
@@ -34,6 +35,14 @@ interface CustomField {
   type: string;
   required: boolean;
   options?: string[];
+}
+
+interface EventDay {
+  id: string;
+  day_number: number;
+  day_name: string;
+  start_time: string;
+  end_time: string;
 }
 
 // Image Upload Component
@@ -238,7 +247,18 @@ export default function CreateEventPage() {
     twitter_url: "",
     requirements: "",
     banner_image_url: "",
+    is_multi_day: false,
   });
+
+  const [eventDays, setEventDays] = useState<EventDay[]>([
+    {
+      id: "1",
+      day_number: 1,
+      day_name: "",
+      start_time: "",
+      end_time: "",
+    },
+  ]);
 
   // Check authentication status
   useEffect(() => {
@@ -275,6 +295,30 @@ export default function CreateEventPage() {
     setCustomFields([...customFields, newField]);
   };
 
+  const addEventDay = () => {
+    const newDay: EventDay = {
+      id: Date.now().toString(),
+      day_number: eventDays.length + 1,
+      day_name: "",
+      start_time: "",
+      end_time: "",
+    };
+    setEventDays([...eventDays, newDay]);
+  };
+
+  const removeEventDay = (id: string) => {
+    if (eventDays.length <= 1) return; // Keep at least one day
+    setEventDays(days => days.filter(day => day.id !== id));
+  };
+
+  const updateEventDay = (id: string, updates: Partial<EventDay>) => {
+    setEventDays(days =>
+      days.map(day =>
+        day.id === id ? { ...day, ...updates } : day
+      )
+    );
+  };
+
   const updateCustomField = (id: string, updates: Partial<CustomField>) => {
     setCustomFields(fields =>
       fields.map(field =>
@@ -296,47 +340,85 @@ export default function CreateEventPage() {
       if (
         !formData.name ||
         !formData.description ||
-        !formData.start_time ||
-        !formData.end_time
+        (!formData.is_multi_day && (!formData.start_time || !formData.end_time))
       ) {
         toast.error("Please fill in all required fields");
         setSaving(false);
         return;
       }
 
-      // Enhanced date validation
-      console.log("Create form data dates:", {
-        start_time: formData.start_time,
-        end_time: formData.end_time,
-        registration_deadline: formData.registration_deadline
-      });
+      // Validate multi-day events
+      if (formData.is_multi_day) {
+        const hasIncompleteDay = eventDays.some(day => !day.start_time || !day.end_time);
+        if (hasIncompleteDay) {
+          toast.error("Please fill in start and end times for all event days");
+          setSaving(false);
+          return;
+        }
 
-      const startTime = new Date(formData.start_time);
-      const endTime = new Date(formData.end_time);
+        // Validate that each day's times are valid
+        for (const day of eventDays) {
+          const dayStart = new Date(day.start_time);
+          const dayEnd = new Date(day.end_time);
+          
+          if (isNaN(dayStart.getTime()) || isNaN(dayEnd.getTime())) {
+            toast.error(`Please enter valid times for Day ${day.day_number}`);
+            setSaving(false);
+            return;
+          }
+
+          if (dayEnd.getTime() <= dayStart.getTime()) {
+            toast.error(`End time must be after start time for Day ${day.day_number}`);
+            setSaving(false);
+            return;
+          }
+        }
+      }
+
+      // Enhanced date validation
+      let startTime: Date;
+      let endTime: Date;
       const now = new Date();
 
-      console.log("Create parsed dates:", {
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-        now: now.toISOString()
-      });
+      if (formData.is_multi_day) {
+        // For multi-day events, use the first day's start and last day's end
+        const sortedDays = [...eventDays].sort((a, b) => a.day_number - b.day_number);
+        startTime = new Date(sortedDays[0].start_time);
+        endTime = new Date(sortedDays[sortedDays.length - 1].end_time);
+        
+        console.log("Create multi-day dates:", {
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          days: sortedDays.length
+        });
+      } else {
+        // Single day event
+        startTime = new Date(formData.start_time);
+        endTime = new Date(formData.end_time);
+        
+        console.log("Create single day dates:", {
+          start_time: formData.start_time,
+          end_time: formData.end_time,
+          registration_deadline: formData.registration_deadline
+        });
 
-      // Check for invalid dates
-      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-        toast.error("Please enter valid start and end times");
-        setSaving(false);
-        return;
+        // Check for invalid dates
+        if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+          toast.error("Please enter valid start and end times");
+          setSaving(false);
+          return;
+        }
+
+        if (endTime.getTime() <= startTime.getTime()) {
+          toast.error("End time must be after start time");
+          setSaving(false);
+          return;
+        }
       }
 
       // Check if start time is in the past
       if (startTime.getTime() < now.getTime()) {
         toast.error("Start time cannot be in the past");
-        setSaving(false);
-        return;
-      }
-
-      if (endTime.getTime() <= startTime.getTime()) {
-        toast.error("End time must be after start time");
         setSaving(false);
         return;
       }
@@ -407,6 +489,7 @@ export default function CreateEventPage() {
         requirements: formData.requirements || null,
         banner_image_url: formData.banner_image_url || null,
         short_code: shortCode,
+        is_multi_day: formData.is_multi_day,
       };
 
       const { data, error } = await supabase
@@ -420,6 +503,27 @@ export default function CreateEventPage() {
         toast.error(`Failed to create event: ${error.message}`);
         setSaving(false);
         return;
+      }
+
+      // If multi-day event, save the individual days
+      if (formData.is_multi_day && eventDays.length > 0) {
+        const eventDaysData = eventDays.map(day => ({
+          event_id: data.id,
+          day_number: day.day_number,
+          day_name: day.day_name || null,
+          start_time: new Date(day.start_time).toISOString(),
+          end_time: new Date(day.end_time).toISOString(),
+        }));
+
+        const { error: daysError } = await supabase
+          .from("event_days")
+          .insert(eventDaysData);
+
+        if (daysError) {
+          console.error("Error creating event days:", daysError);
+          // Don't fail the whole creation, just log the error
+          toast.error("Event created but failed to save some day details");
+        }
       }
 
       toast.success("Event created successfully!");
@@ -572,48 +676,172 @@ export default function CreateEventPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="start_time">Start Time *</Label>
-                    <Input
-                      id="start_time"
-                      type="datetime-local"
-                      value={formData.start_time}
-                      onChange={(e) =>
-                        setFormData({ ...formData, start_time: e.target.value })
-                      }
-                      required
-                    />
+                {/* Multi-day Event Toggle */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium">Multi-day Event</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enable for events spanning multiple non-continuous days
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="end_time">End Time *</Label>
-                    <Input
-                      id="end_time"
-                      type="datetime-local"
-                      value={formData.end_time}
-                      onChange={(e) =>
-                        setFormData({ ...formData, end_time: e.target.value })
+                  <Switch
+                    checked={formData.is_multi_day}
+                    onCheckedChange={(checked) => {
+                      setFormData({ ...formData, is_multi_day: checked });
+                      // Reset single day times when switching to multi-day
+                      if (checked) {
+                        setFormData(prev => ({
+                          ...prev,
+                          start_time: "",
+                          end_time: "",
+                        }));
                       }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="registration_deadline">
-                      Registration Deadline
-                    </Label>
-                    <Input
-                      id="registration_deadline"
-                      type="datetime-local"
-                      value={formData.registration_deadline}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          registration_deadline: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+                    }}
+                  />
                 </div>
+
+                {/* Single Day Event */}
+                {!formData.is_multi_day && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="start_time">Start Time *</Label>
+                      <Input
+                        id="start_time"
+                        type="datetime-local"
+                        value={formData.start_time}
+                        onChange={(e) =>
+                          setFormData({ ...formData, start_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="end_time">End Time *</Label>
+                      <Input
+                        id="end_time"
+                        type="datetime-local"
+                        value={formData.end_time}
+                        onChange={(e) =>
+                          setFormData({ ...formData, end_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="registration_deadline">
+                        Registration Deadline
+                      </Label>
+                      <Input
+                        id="registration_deadline"
+                        type="datetime-local"
+                        value={formData.registration_deadline}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            registration_deadline: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Multi-day Event Days */}
+                {formData.is_multi_day && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Event Schedule</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addEventDay}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Day
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {eventDays.map((day) => (
+                        <div key={day.id} className="border rounded-lg p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h5 className="font-medium">Day {day.day_number}</h5>
+                            {eventDays.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeEventDay(day.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`day_name_${day.id}`}>Day Name (Optional)</Label>
+                              <Input
+                                id={`day_name_${day.id}`}
+                                value={day.day_name}
+                                onChange={(e) =>
+                                  updateEventDay(day.id, { day_name: e.target.value })
+                                }
+                                placeholder="e.g., Opening Day, Workshop Day"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`start_time_${day.id}`}>Start Time *</Label>
+                              <Input
+                                id={`start_time_${day.id}`}
+                                type="datetime-local"
+                                value={day.start_time}
+                                onChange={(e) =>
+                                  updateEventDay(day.id, { start_time: e.target.value })
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`end_time_${day.id}`}>End Time *</Label>
+                              <Input
+                                id={`end_time_${day.id}`}
+                                type="datetime-local"
+                                value={day.end_time}
+                                onChange={(e) =>
+                                  updateEventDay(day.id, { end_time: e.target.value })
+                                }
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Registration Deadline for Multi-day */}
+                    <div className="space-y-2">
+                      <Label htmlFor="registration_deadline">
+                        Registration Deadline
+                      </Label>
+                      <Input
+                        id="registration_deadline"
+                        type="datetime-local"
+                        value={formData.registration_deadline}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            registration_deadline: e.target.value,
+                          })
+                        }
+                        className="max-w-md"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="participant_limit">Maximum Participants</Label>
