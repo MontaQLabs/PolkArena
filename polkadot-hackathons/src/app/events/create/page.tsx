@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { ensureUserProfile } from "@/lib/auth-utils";
+import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,9 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, Globe, Plus, Trash2, Upload, X } from "lucide-react";
 import Link from "next/link";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { generateUniqueShortCode } from "@/lib/utils";
 import { cacheUtils } from "@/lib/cache";
 
@@ -50,42 +49,34 @@ function ImageUpload({
   maxSize?: number;
 }) {
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(value || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Get public URL for display
-  const getImageUrl = (path: string) => {
-    if (!path) return null;
-    try {
-      const { data } = supabase.storage
-        .from('event-banners')
-        .getPublicUrl(path);
-      
-      // Log for debugging
-      console.log('Generated public URL for path:', path, '→', data.publicUrl);
-      
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error generating public URL:', error);
-      return null;
-    }
-  };
-
-  // Load existing image if value exists
+  // Load existing image when value changes
   useEffect(() => {
-    if (value) {
-      const url = getImageUrl(value);
-      if (url) {
-        setPreview(url);
-      }
-    } else {
-      setPreview(null);
+    if (value && !previewUrl) {
+      const loadExistingImage = async () => {
+        try {
+          const { data } = supabase.storage
+            .from("event-banners")
+            .getPublicUrl(value);
+          
+          console.log("Loading existing image URL:", data.publicUrl);
+          setPreviewUrl(data.publicUrl);
+        } catch (error) {
+          console.error("Error loading existing image:", error);
+        }
+      };
+      
+      loadExistingImage();
     }
-  }, [value]);
+  }, [value, previewUrl]);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const { user } = useAuth();
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
 
     // Validate file size
     if (file.size > maxSize * 1024 * 1024) {
@@ -94,195 +85,154 @@ function ImageUpload({
     }
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
       return;
     }
 
     setUploading(true);
+
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Create unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      // Set preview immediately for better UX
+      // Create immediate preview using FileReader
       const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
       reader.readAsDataURL(file);
 
-      // Upload file
+      // Generate unique filename
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      // Upload to Supabase Storage
       const { data, error } = await supabase.storage
-        .from('event-banners')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .from("event-banners")
+        .upload(filePath, file);
 
       if (error) {
-        // Enhanced error handling
-        if (error.message.includes('Bucket not found')) {
-          throw new Error('Storage bucket not configured. Please contact support.');
-        }
+        console.error("Upload error:", error);
         throw error;
       }
 
-      // Update preview to use the uploaded image URL
-      const uploadedImageUrl = getImageUrl(data.path);
-      if (uploadedImageUrl) {
-        setPreview(uploadedImageUrl);
-      }
+      console.log("Upload successful:", data);
 
-      onChange(data.path);
-      toast.success('Image uploaded successfully!');
+      // Get the public URL
+      try {
+        const { data: urlData } = supabase.storage
+          .from("event-banners")
+          .getPublicUrl(filePath);
+
+        console.log("Public URL:", urlData.publicUrl);
+
+        // Update preview to the actual uploaded URL
+        setPreviewUrl(urlData.publicUrl);
+        onChange(filePath);
+        toast.success("Image uploaded successfully!");
+      } catch (urlError) {
+        console.error("Error getting public URL:", urlError);
+        onChange(filePath);
+        toast.success("Image uploaded successfully!");
+      }
     } catch (error: unknown) {
-      console.error('Upload error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to upload image');
-      // Reset preview on error
-      setPreview(null);
+      console.error("Error uploading image:", error);
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setPreviewUrl(null);
     } finally {
       setUploading(false);
-      // Clear the input to allow re-uploading the same file
-      if (event.target) {
-        event.target.value = '';
-      }
     }
   };
 
-  const handleRemove = async () => {
-    if (!value) return;
-
-    try {
-      // Delete from storage
-      const { error } = await supabase.storage
-        .from('event-banners')
-        .remove([value]);
-
-      if (error) {
-        console.error('Delete error:', error);
-      }
-
-      onChange(null);
-      setPreview(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      toast.success('Image removed');
-    } catch (error) {
-      console.error('Remove error:', error);
-      toast.error('Failed to remove image');
+  const handleRemove = () => {
+    setPreviewUrl(null);
+    onChange(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
   return (
     <div className="space-y-4">
-      <Label>Event Banner Image</Label>
-      
-      {preview ? (
-        <div className="relative">
-          <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
-            <img
-              src={preview}
-              alt="Event banner preview"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                console.error('Image failed to load:', preview);
-                console.error('Error details:', e);
-              }}
-              onLoad={() => {
-                console.log('Image loaded successfully:', preview);
-              }}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            className="absolute top-2 right-2"
-            onClick={handleRemove}
-            disabled={disabled || uploading}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      ) : (
-        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-          <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">
-            Upload an image for your event banner
-          </p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Maximum file size: {maxSize}MB
-          </p>
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <Input
-          ref={fileInputRef} // Fixed: Use direct ref assignment instead of callback
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          disabled={disabled || uploading}
-          className="hidden"
-          id="image-upload"
-        />
+      <div className="flex items-center gap-4">
         <Button
           type="button"
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || uploading}
-          className="flex-1"
+          className="flex items-center gap-2"
         >
           {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Uploading...
-            </>
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              {preview ? 'Change Image' : 'Upload Image'}
-            </>
+            <Upload className="h-4 w-4" />
           )}
+          {uploading ? "Uploading..." : "Choose Image"}
         </Button>
-        
-        {preview && (
+
+        {previewUrl && (
           <Button
             type="button"
             variant="outline"
+            size="sm"
             onClick={handleRemove}
             disabled={disabled || uploading}
+            className="flex items-center gap-2 text-red-600 hover:text-red-700"
           >
             <X className="h-4 w-4" />
+            Remove
           </Button>
         )}
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={disabled || uploading}
+      />
+
+      {previewUrl && (
+        <div className="relative">
+          <img
+            src={previewUrl}
+            alt="Event banner preview"
+            className="w-full h-48 object-cover rounded-lg border"
+            onError={(e) => {
+              console.error("Image failed to load:", previewUrl);
+              console.error("Error event:", e);
+            }}
+            onLoad={() => {
+              console.log("Image loaded successfully:", previewUrl);
+            }}
+          />
+        </div>
+      )}
+
+      <p className="text-sm text-muted-foreground">
+        Maximum file size: {maxSize}MB. Supported formats: JPG, PNG, WebP
+      </p>
     </div>
   );
 }
 
 export default function CreateEventPage() {
   const router = useRouter();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
   const [saving, setSaving] = useState(false);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     start_time: "",
     end_time: "",
+    registration_deadline: "",
     location: "",
     is_online: false,
     participant_limit: "",
     tags: "",
-    registration_deadline: "",
     website_url: "",
     discord_url: "",
     twitter_url: "",
@@ -290,32 +240,29 @@ export default function CreateEventPage() {
     banner_image_url: "",
   });
 
+  // Check authentication status
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth/login");
-        return;
-      }
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
 
-      // Ensure user profile exists
-      try {
-        await ensureUserProfile(user.id);
-      } catch (error) {
-        console.error("Error ensuring user profile:", error);
-        toast.error("Failed to load user profile");
-        router.push("/auth/login");
-        return;
-      }
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-  }, [router]);
+  // Don't render if no user (will redirect)
+  if (!user) {
+    return null;
+  }
 
   const addCustomField = () => {
     const newField: CustomField = {
@@ -489,13 +436,7 @@ export default function CreateEventPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink" />
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-background">

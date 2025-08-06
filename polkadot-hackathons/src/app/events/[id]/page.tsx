@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +48,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+
 import { createShareableEventURL, formatEventDuration } from "@/lib/utils";
 import { 
   formatDateWithTimezone, 
@@ -98,7 +99,7 @@ const getEventBannerUrl = (imagePath: string | null) => {
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const { user, loading: authLoading } = useAuth();
   const [registering, setRegistering] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -153,17 +154,11 @@ export default function EventDetailPage() {
     2 * 60 * 1000 // 2 minutes cache
   );
 
-  const loading = eventLoading || participantLoading;
+  const loading = eventLoading || participantLoading || authLoading;
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Get current user
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user);
-
         if (user && event) {
           // Check user registration status
           const { data: registration } = await supabase
@@ -196,10 +191,10 @@ export default function EventDetailPage() {
       }
     };
 
-    if (event) {
+    if (event && user) {
       fetchUserData();
     }
-  }, [event, eventId]);
+  }, [event, eventId, user]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
