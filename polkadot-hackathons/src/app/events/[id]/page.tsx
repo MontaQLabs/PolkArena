@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, useAuthReady } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,7 +99,8 @@ const getEventBannerUrl = (imagePath: string | null) => {
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
+  const { authReady, isAuthenticated } = useAuthReady();
   const [registering, setRegistering] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -108,7 +109,7 @@ export default function EventDetailPage() {
   const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   const eventId = params.id as string;
-
+  console.log(isAuthenticated);
   // Use cache for event details
   const {
     data: event,
@@ -154,7 +155,7 @@ export default function EventDetailPage() {
     2 * 60 * 1000 // 2 minutes cache
   );
 
-  const loading = eventLoading || participantLoading || authLoading;
+  const loading = eventLoading || participantLoading || !authReady;
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -191,10 +192,11 @@ export default function EventDetailPage() {
       }
     };
 
-    if (event && user) {
+    // Only fetch user data when auth is ready and we have an event
+    if (event && authReady) {
       fetchUserData();
     }
-  }, [event, eventId, user]);
+  }, [event, eventId, authReady, user]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

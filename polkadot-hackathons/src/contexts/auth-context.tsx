@@ -35,14 +35,66 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const profileCache = new Map<string, { data: UserProfile; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+// Session persistence keys
+const SESSION_USER_KEY = 'polka_arena_user';
+const SESSION_PROFILE_KEY = 'polka_arena_profile';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  // Initialize with cached data if available
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(SESSION_USER_KEY);
+        return cached ? JSON.parse(cached) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [profile, setProfile] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(SESSION_PROFILE_KEY);
+        return cached ? JSON.parse(cached) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [loading, setLoading] = useState(true);
   
   // Track ongoing profile fetches to prevent race conditions
   const profileFetchingRef = useRef<Set<string>>(new Set());
   const initializationRef = useRef<boolean>(false);
+
+  // Persist user and profile to localStorage
+  const persistUser = useCallback((userData: User | null) => {
+    try {
+      if (userData) {
+        localStorage.setItem(SESSION_USER_KEY, JSON.stringify(userData));
+      } else {
+        localStorage.removeItem(SESSION_USER_KEY);
+      }
+    } catch (error) {
+      console.warn('Failed to persist user session:', error);
+    }
+  }, []);
+
+  const persistProfile = useCallback((profileData: UserProfile | null) => {
+    try {
+      if (profileData) {
+        localStorage.setItem(SESSION_PROFILE_KEY, JSON.stringify(profileData));
+      } else {
+        localStorage.removeItem(SESSION_PROFILE_KEY);
+      }
+    } catch (error) {
+      console.warn('Failed to persist profile session:', error);
+    }
+  }, []);
 
   const getCachedProfile = useCallback((userId: string): UserProfile | null => {
     const cached = profileCache.get(userId);
@@ -56,6 +108,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profileCache.set(userId, { data: profileData, timestamp: Date.now() });
   }, []);
 
+  const updateUserState = useCallback((newUser: User | null) => {
+    setUser(newUser);
+    persistUser(newUser);
+  }, [persistUser]);
+
+  const updateProfileState = useCallback((newProfile: UserProfile | null) => {
+    setProfile(newProfile);
+    persistProfile(newProfile);
+  }, [persistProfile]);
+
   const ensureProfileExists = useCallback(async (userId: string) => {
     // Prevent multiple simultaneous calls for the same user
     if (profileFetchingRef.current.has(userId)) {
@@ -68,14 +130,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check cache first
       const cachedProfile = getCachedProfile(userId);
       if (cachedProfile) {
-        setProfile(cachedProfile);
+        updateProfileState(cachedProfile);
         return;
       }
 
       console.log("Fetching profile for user:", userId);
       const result = await ensureUserProfile(userId);
       if (result.success && result.profile) {
-        setProfile(result.profile);
+        updateProfileState(result.profile);
         setCachedProfile(userId, result.profile);
         console.log("Profile loaded successfully");
       }
@@ -84,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       profileFetchingRef.current.delete(userId);
     }
-  }, [getCachedProfile, setCachedProfile]);
+  }, [getCachedProfile, setCachedProfile, updateProfileState]);
 
   useEffect(() => {
     let mounted = true;
@@ -98,26 +160,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         console.log("Initializing auth...");
+        
+        // Get session from Supabase
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Session error:", error);
-          if (mounted) setLoading(false);
+          if (mounted) {
+            updateUserState(null);
+            updateProfileState(null);
+            setLoading(false);
+          }
           return;
         }
 
         if (mounted) {
-          setUser(session?.user ?? null);
-          if (session?.user) {
+          const sessionUser = session?.user ?? null;
+          
+          // Update user state
+          updateUserState(sessionUser);
+          
+          if (sessionUser) {
             console.log("Found existing session, loading profile...");
-            await ensureProfileExists(session.user.id);
+            
+            // If we have a cached profile and it matches the user, use it immediately
+            const cachedProfile = getCachedProfile(sessionUser.id);
+            if (cachedProfile) {
+              updateProfileState(cachedProfile);
+            } else {
+              // Only fetch if no cached profile
+              await ensureProfileExists(sessionUser.id);
+            }
+          } else {
+            // Clear profile if no user
+            updateProfileState(null);
           }
+          
           setLoading(false);
           console.log("Auth initialization complete");
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
-        if (mounted) setLoading(false);
+        if (mounted) {
+          updateUserState(null);
+          updateProfileState(null);
+          setLoading(false);
+        }
       }
     };
 
@@ -131,20 +219,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("Auth state change:", event, !!session?.user);
       
-      // Only handle specific events to avoid unnecessary processing
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        setUser(session?.user ?? null);
-        
-        if (session?.user && event === 'SIGNED_IN') {
-          // Only fetch profile on sign in, not on token refresh
-          await ensureProfileExists(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          profileCache.clear();
+      // Handle all auth events but be smart about when to fetch profile
+      const sessionUser = session?.user ?? null;
+      updateUserState(sessionUser);
+      
+      if (event === 'SIGNED_IN' && sessionUser) {
+        // Fetch profile on sign in
+        await ensureProfileExists(sessionUser.id);
+      } else if (event === 'SIGNED_OUT') {
+        // Clear everything on sign out
+        updateProfileState(null);
+        profileCache.clear();
+      } else if (event === 'TOKEN_REFRESHED' && sessionUser) {
+        // Don't fetch profile on token refresh, just ensure user state is correct
+        // Profile should already be available from cache or localStorage
+        if (!profile) {
+          const cachedProfile = getCachedProfile(sessionUser.id);
+          if (cachedProfile) {
+            updateProfileState(cachedProfile);
+          }
         }
-        
-        setLoading(false);
       }
+      
+      setLoading(false);
     });
 
     return () => {
@@ -202,11 +299,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (!error) {
-      setProfile(null);
+      updateUserState(null);
+      updateProfileState(null);
       profileCache.clear();
     }
     return { error };
-  }, []);
+  }, [updateUserState, updateProfileState]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!user) {
@@ -226,7 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        setProfile(data);
+        updateProfileState(data);
         setCachedProfile(user.id, data);
       }
 
@@ -234,7 +332,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       return { error: error as Error };
     }
-  }, [user, setCachedProfile]);
+  }, [user, setCachedProfile, updateProfileState]);
 
   const refreshProfile = useCallback(async () => {
     if (user) {
@@ -264,4 +362,18 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
+}
+
+// Hook to wait for auth to be ready before making API calls
+export function useAuthReady() {
+  const { user, loading } = useAuth();
+  const authReady = !loading;
+  const isAuthenticated = authReady && !!user;
+  
+  return {
+    authReady,      // True when auth initialization is complete
+    isAuthenticated, // True when user is logged in and auth is ready
+    user,           // Current user or null
+    loading         // True during auth initialization
+  };
 }

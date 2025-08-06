@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth, useAuthReady } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,16 +26,17 @@ import {
   X,
   Mail,
   MapPin,
-  Calendar,
-  ExternalLink,
+  Github,
+  Twitter,
+  Linkedin,
+  Globe,
+  Briefcase,
 } from "lucide-react";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface UserProfile {
   id: string;
   email: string;
   name: string | null;
-  avatar_url: string | null;
   bio: string | null;
   location: string | null;
   github_url: string | null;
@@ -42,13 +44,16 @@ interface UserProfile {
   linkedin_url: string | null;
   website_url: string | null;
   skills: string[] | null;
+  avatar_url: string | null;
+  wallet_address: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const { user, profile: contextProfile, updateProfile } = useAuth();
+  const { authReady, isAuthenticated } = useAuthReady();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -63,90 +68,88 @@ export default function ProfilePage() {
     website_url: "",
     skills: "",
   });
-
+  console.log(contextProfile);
+  // Redirect if not authenticated
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth/login");
-        return;
+    if (authReady && !isAuthenticated) {
+      router.push("/auth/login");
+    }
+  }, [authReady, isAuthenticated, router]);
+
+  // Load profile data when auth is ready
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!authReady || !user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          toast.error("Failed to load profile");
+          return;
+        }
+
+        setProfile(data);
+        setFormData({
+          name: data.name || "",
+          bio: data.bio || "",
+          location: data.location || "",
+          github_url: data.github_url || "",
+          twitter_url: data.twitter_url || "",
+          linkedin_url: data.linkedin_url || "",
+          website_url: data.website_url || "",
+          skills: data.skills ? data.skills.join(", ") : "",
+        });
+      } catch (error) {
+        console.error("Error:", error);
+        toast.error("Failed to load profile");
+      } finally {
+        setLoading(false);
       }
-      setUser(user);
-      await fetchProfile(user.id);
     };
 
-    getUser();
-  }, [router]);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Failed to load profile");
-        return;
-      }
-
-      setProfile(data);
-      setFormData({
-        name: data.name || "",
-        bio: data.bio || "",
-        location: data.location || "",
-        github_url: data.github_url || "",
-        twitter_url: data.twitter_url || "",
-        linkedin_url: data.linkedin_url || "",
-        website_url: data.website_url || "",
-        skills: data.skills ? data.skills.join(", ") : "",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Failed to load profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchProfile();
+  }, [user, authReady]);
 
   const handleSave = async () => {
     if (!user) return;
 
     setSaving(true);
     try {
-      const skillsArray = formData.skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter((skill) => skill.length > 0);
+      const updates = {
+        name: formData.name || null,
+        bio: formData.bio || null,
+        location: formData.location || null,
+        github_url: formData.github_url || null,
+        twitter_url: formData.twitter_url || null,
+        linkedin_url: formData.linkedin_url || null,
+        website_url: formData.website_url || null,
+        skills: formData.skills
+          ? formData.skills.split(",").map((skill) => skill.trim()).filter(Boolean)
+          : null,
+      };
 
-      const { error } = await supabase
-        .from("users")
-        .update({
-          name: formData.name || null,
-          bio: formData.bio || null,
-          location: formData.location || null,
-          github_url: formData.github_url || null,
-          twitter_url: formData.twitter_url || null,
-          linkedin_url: formData.linkedin_url || null,
-          website_url: formData.website_url || null,
-          skills: skillsArray.length > 0 ? skillsArray : null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+      // Use the context's updateProfile method which handles caching
+      const { error } = await updateProfile(updates);
 
       if (error) {
-        console.error("Error updating profile:", error);
-        toast.error("Failed to update profile");
+        toast.error(`Failed to update profile: ${error.message}`);
         return;
       }
 
-      await fetchProfile(user.id);
-      setEditing(false);
+      // Update local state
+      if (profile) {
+        const updatedProfile = { ...profile, ...updates };
+        setProfile(updatedProfile);
+      }
+
       toast.success("Profile updated successfully!");
+      setEditing(false);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Failed to update profile");
@@ -177,12 +180,21 @@ export default function ProfilePage() {
     toast.success("Signed out successfully");
   };
 
-  if (loading) {
+  // Show loading while auth is being checked
+  if (!authReady || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink" />
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
       </div>
     );
+  }
+
+  // Don't render if no user (will redirect)
+  if (!user || !profile) {
+    return null;
   }
 
   return (
@@ -240,7 +252,7 @@ export default function ProfilePage() {
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4 flex-shrink-0" />
+                    <Briefcase className="h-4 w-4 flex-shrink-0" />
                     <span>
                       Member since{" "}
                       {new Date(profile?.created_at || "").toLocaleDateString()}
@@ -279,7 +291,7 @@ export default function ProfilePage() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <ExternalLink className="h-3 w-3" />
+                            <Github className="h-3 w-3" />
                             <span className="truncate">GitHub</span>
                           </a>
                         )}
@@ -290,7 +302,7 @@ export default function ProfilePage() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <ExternalLink className="h-3 w-3" />
+                            <Twitter className="h-3 w-3" />
                             <span className="truncate">Twitter</span>
                           </a>
                         )}
@@ -301,7 +313,7 @@ export default function ProfilePage() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <ExternalLink className="h-3 w-3" />
+                            <Linkedin className="h-3 w-3" />
                             <span className="truncate">LinkedIn</span>
                           </a>
                         )}
@@ -312,7 +324,7 @@ export default function ProfilePage() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <ExternalLink className="h-3 w-3" />
+                            <Globe className="h-3 w-3" />
                             <span className="truncate">Website</span>
                           </a>
                         )}
