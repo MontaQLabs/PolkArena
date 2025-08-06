@@ -279,7 +279,13 @@ export function useEventCache<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const retryCount = useRef(0);
+  const fetchFunctionRef = useRef(fetchFunction);
   const circuitBreaker = CircuitBreaker.getInstance();
+
+  // Update the ref when fetchFunction changes
+  useEffect(() => {
+    fetchFunctionRef.current = fetchFunction;
+  }, [fetchFunction]);
 
   const cache = EventCache.getInstance();
 
@@ -290,7 +296,7 @@ export function useEventCache<T>(
     }
 
     try {
-      const result = await fetchFunction();
+      const result = await fetchFunctionRef.current();
       circuitBreaker.recordSuccess(key);
       return result;
     } catch (error) {
@@ -309,7 +315,7 @@ export function useEventCache<T>(
 
       throw apiError;
     }
-  }, [fetchFunction, key, circuitBreaker]);
+  }, [key, circuitBreaker]);
 
   const fetchData = useCallback(async (forceRefresh: boolean = false) => {
     try {
@@ -365,7 +371,7 @@ export function useEventCache<T>(
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [key]); // Only depend on key, not fetchData
 
   const refetch = useCallback(() => fetchData(true), [fetchData]);
 

@@ -14,7 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
-import { toast } from "sonner";
 import { formatEventDuration } from "@/lib/utils";
 import { useEventCache } from "@/lib/cache";
 import { ErrorDisplay, LoadingWithTimeout } from "@/components/ui/error-boundary";
@@ -219,6 +218,7 @@ export default function EventsPage() {
   } = useEventCache(
     "events_list",
     async () => {
+      try {
         const { data, error } = await supabase
           .from("events")
           .select(`
@@ -229,12 +229,15 @@ export default function EventsPage() {
           .order("start_time", { ascending: true });
 
         if (error) {
-        console.error("Error fetching upcoming events:", error);
-        toast.error("Failed to load upcoming events");
-        throw error;
-      }
+          console.error("Error fetching upcoming events:", error);
+          throw new Error(`Database error: ${error.message}`);
+        }
 
-      return data || [];
+        return data || [];
+      } catch (err) {
+        console.error("Critical error in events fetch:", err);
+        throw err;
+      }
     },
     2 * 60 * 1000 // 2 minutes cache
   );
@@ -248,23 +251,27 @@ export default function EventsPage() {
   } = useEventCache(
     "past_events_list",
     async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(`
-          *,
-          organizer:organizer_id(name, email)
-        `)
-        .lt("start_time", new Date().toISOString())
-        .order("start_time", { ascending: false })
-        .limit(20); // Limit past events to avoid overwhelming the page
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .select(`
+            *,
+            organizer:organizer_id(name, email)
+          `)
+          .lt("start_time", new Date().toISOString())
+          .order("start_time", { ascending: false })
+          .limit(20); // Limit past events to avoid overwhelming the page
 
-      if (error) {
-        console.error("Error fetching past events:", error);
-        toast.error("Failed to load past events");
-        throw error;
+        if (error) {
+          console.error("Error fetching past events:", error);
+          throw new Error(`Database error: ${error.message}`);
+        }
+
+        return data || [];
+      } catch (err) {
+        console.error("Critical error in past events fetch:", err);
+        throw err;
       }
-
-      return data || [];
     },
     10 * 60 * 1000 // 10 minutes cache
   );
