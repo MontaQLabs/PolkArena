@@ -59,14 +59,14 @@ interface CustomField {
 const getEventBannerUrl = (imagePath: string | null) => {
   if (!imagePath) return null;
   try {
-    const { data } = supabase.storage
-      .from('event-banners')
-      .getPublicUrl(imagePath);
+  const { data } = supabase.storage
+    .from('event-banners')
+    .getPublicUrl(imagePath);
     
     // Log for debugging
     console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
     
-    return data.publicUrl;
+  return data.publicUrl;
   } catch (error) {
     console.error('Error generating event banner URL:', error);
     return null;
@@ -239,16 +239,16 @@ export default function EventsPage() {
   } = useEventCache(
     "events_list",
     async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(`
-          *,
-          organizer:organizer_id(name, email)
-        `)
-        .gte("start_time", new Date().toISOString())
-        .order("start_time", { ascending: true });
+        const { data, error } = await supabase
+          .from("events")
+          .select(`
+            *,
+            organizer:organizer_id(name, email)
+          `)
+          .gte("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true });
 
-      if (error) {
+        if (error) {
         console.error("Error fetching upcoming events:", error);
         toast.error("Failed to load upcoming events");
         throw error;

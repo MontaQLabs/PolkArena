@@ -79,14 +79,14 @@ function ImageUpload({
   const getImageUrl = (path: string) => {
     if (!path) return null;
     try {
-      const { data } = supabase.storage
-        .from('event-banners')
-        .getPublicUrl(path);
+    const { data } = supabase.storage
+      .from('event-banners')
+      .getPublicUrl(path);
       
       // Log for debugging
       console.log('Generated public URL for path:', path, '→', data.publicUrl);
       
-      return data.publicUrl;
+    return data.publicUrl;
     } catch (error) {
       console.error('Error generating public URL:', error);
       return null;
@@ -122,7 +122,7 @@ function ImageUpload({
       return;
     }
   
-        setUploading(true);
+    setUploading(true);
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -134,18 +134,18 @@ function ImageUpload({
       const reader = new FileReader();
       reader.onload = (e) => setPreview(e.target?.result as string);
       reader.readAsDataURL(file);
-
+  
       // Delete old image if exists
       if (value) {
         await supabase.storage
           .from('event-banners')
           .remove([value]);
       }
-
+  
       // Create unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
+  
       // Upload file
       const { data, error } = await supabase.storage
         .from('event-banners')
@@ -153,7 +153,7 @@ function ImageUpload({
           cacheControl: '3600',
           upsert: false
         });
-
+  
       if (error) {
         if (error.message.includes('Bucket not found')) {
           throw new Error('Storage bucket not configured. Please contact support.');
@@ -166,7 +166,7 @@ function ImageUpload({
       if (uploadedImageUrl) {
         setPreview(uploadedImageUrl);
       }
-
+  
       onChange(data.path);
       toast.success('Image uploaded successfully!');
     } catch (error: unknown) {
@@ -493,10 +493,10 @@ export default function EditEventPage() {
         }
 
         if (registrationDeadline.getTime() >= startTime.getTime()) {
-          toast.error("Registration deadline must be before start time");
+        toast.error("Registration deadline must be before start time");
           setSaving(false);
-          return;
-        }
+        return;
+      }
 
         // For editing existing events, allow past deadlines with warning
         if (registrationDeadline.getTime() < now.getTime()) {
@@ -511,7 +511,7 @@ export default function EditEventPage() {
         if (isNaN(parsedLimit) || parsedLimit < 1) {
           toast.error("Participant limit must be a positive number");
           setSaving(false);
-          return;
+        return;
         }
         participantLimit = parsedLimit;
       }
@@ -528,21 +528,21 @@ export default function EditEventPage() {
       });
 
       const updateData = {
-        name: formData.name,
-        description: formData.description,
+          name: formData.name,
+          description: formData.description,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        location: formData.location || null,
-        is_online: formData.is_online,
+          location: formData.location || null,
+          is_online: formData.is_online,
         participant_limit: participantLimit,
-        tags: tagsArray.length > 0 ? tagsArray : null,
-        custom_fields: customFields.length > 0 ? customFields : null,
+          tags: tagsArray.length > 0 ? tagsArray : null,
+          custom_fields: customFields.length > 0 ? customFields : null,
         registration_deadline: registrationDeadline?.toISOString() || null,
-        website_url: formData.website_url || null,
-        discord_url: formData.discord_url || null,
-        twitter_url: formData.twitter_url || null,
-        requirements: formData.requirements || null,
-        banner_image_url: formData.banner_image_url || null,
+          website_url: formData.website_url || null,
+          discord_url: formData.discord_url || null,
+          twitter_url: formData.twitter_url || null,
+          requirements: formData.requirements || null,
+          banner_image_url: formData.banner_image_url || null,
       };
 
       console.log("About to update event with:", updateData);
@@ -556,12 +556,12 @@ export default function EditEventPage() {
 
         console.log("Supabase update result:", { data, error });
 
-        if (error) {
-          console.error("Error updating event:", error);
+      if (error) {
+        console.error("Error updating event:", error);
           toast.error(`Failed to update event: ${error.message}`);
           setSaving(false);
-          return;
-        }
+        return;
+      }
 
         if (!data || data.length === 0) {
           console.error("No data returned from update");
@@ -574,9 +574,9 @@ export default function EditEventPage() {
         
         // Invalidate cache for this event
         cacheUtils.invalidateEvent(event.id);
-        
-        toast.success("Event updated successfully!");
-        router.push(`/events/${event.id}`);
+
+      toast.success("Event updated successfully!");
+      router.push(`/events/${event.id}`);
       } catch (supabaseError) {
         console.error("Supabase operation failed:", supabaseError);
         const errorMessage = supabaseError instanceof Error ? supabaseError.message : 'Unknown error';
@@ -625,12 +625,12 @@ export default function EditEventPage() {
           {/* Header */}
           <div className="mb-6 lg:mb-8">
             <div className="flex items-center gap-4 mb-4">
-              <Button asChild variant="outline" size="sm">
-                <Link href={`/events/${event.id}`}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Event
-                </Link>
-              </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/events/${event.id}`}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Event
+              </Link>
+            </Button>
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">

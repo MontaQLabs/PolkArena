@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { User, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { ensureUserProfile } from "@/lib/auth-utils";
@@ -39,6 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Track ongoing profile fetches to prevent race conditions
+  const profileFetchingRef = useRef<Set<string>>(new Set());
+  const initializationRef = useRef<boolean>(false);
 
   const getCachedProfile = useCallback((userId: string): UserProfile | null => {
     const cached = profileCache.get(userId);
@@ -53,7 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const ensureProfileExists = useCallback(async (userId: string) => {
+    // Prevent multiple simultaneous calls for the same user
+    if (profileFetchingRef.current.has(userId)) {
+      return;
+    }
+
     try {
+      profileFetchingRef.current.add(userId);
+
       // Check cache first
       const cachedProfile = getCachedProfile(userId);
       if (cachedProfile) {
@@ -61,22 +72,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      console.log("Fetching profile for user:", userId);
       const result = await ensureUserProfile(userId);
       if (result.success && result.profile) {
         setProfile(result.profile);
         setCachedProfile(userId, result.profile);
+        console.log("Profile loaded successfully");
       }
     } catch (error) {
       console.error("Error ensuring profile exists:", error);
+    } finally {
+      profileFetchingRef.current.delete(userId);
     }
   }, [getCachedProfile, setCachedProfile]);
 
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
+    // Prevent multiple initializations
+    if (initializationRef.current) {
+      return;
+    }
+    initializationRef.current = true;
+
     const initializeAuth = async () => {
       try {
+        console.log("Initializing auth...");
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -88,9 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setUser(session?.user ?? null);
           if (session?.user) {
+            console.log("Found existing session, loading profile...");
             await ensureProfileExists(session.user.id);
           }
           setLoading(false);
+          console.log("Auth initialization complete");
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
@@ -108,23 +131,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("Auth state change:", event, !!session?.user);
       
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Ensure profile exists (especially important for OAuth users)
-        await ensureProfileExists(session.user.id);
-      } else {
-        setProfile(null);
-        // Clear cache when user signs out
-        profileCache.clear();
+      // Only handle specific events to avoid unnecessary processing
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        setUser(session?.user ?? null);
+        
+        if (session?.user && event === 'SIGNED_IN') {
+          // Only fetch profile on sign in, not on token refresh
+          await ensureProfileExists(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          profileCache.clear();
+        }
+        
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      initializationRef.current = false;
     };
-  }, [ensureProfileExists]);
+  }, []); // Empty dependency array to prevent re-runs
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -139,26 +167,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     name: string
   ) => {
-    // Include name in user metadata for consistency
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           name: name,
-          full_name: name, // Some systems use full_name
+          full_name: name,
         }
       }
     });
 
-    // If you have a database trigger, it will handle profile creation
-    // If not, create profile manually
     if (!error && data.user) {
       try {
         await ensureUserProfile(data.user.id);
       } catch (profileError) {
         console.error("Error creating profile:", profileError);
-        // Don't return this as an error since auth succeeded
       }
     }
 
@@ -179,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (!error) {
       setProfile(null);
-      profileCache.clear(); // Clear cache on sign out
+      profileCache.clear();
     }
     return { error };
   }, []);
@@ -203,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data) {
         setProfile(data);
-        setCachedProfile(user.id, data); // Update cache
+        setCachedProfile(user.id, data);
       }
 
       return { error: null };
@@ -214,7 +238,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (user) {
-      // Clear cache for this user to force refresh
       profileCache.delete(user.id);
       await ensureProfileExists(user.id);
     }

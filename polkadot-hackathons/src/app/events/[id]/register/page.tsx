@@ -340,27 +340,27 @@ export default function RegisterEventPage() {
                   
                   {/* Legacy statuses */}
                   {(registrationStatus === "going" || registrationStatus === "invited") && (
-                    <Card className="border-green-200 bg-green-50">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-green-800">
-                          <CheckCircle className="h-5 w-5" />
+                <Card className="border-green-200 bg-green-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-800">
+                      <CheckCircle className="h-5 w-5" />
                           Registration Confirmed (Legacy)
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-green-700 mb-4">
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-green-700 mb-4">
                           Your registration is confirmed. You&apos;ll receive event details and updates via email.
-                        </p>
-                        <Button
-                          asChild
-                          className="bg-polkadot-pink hover:bg-polkadot-pink/90"
-                        >
-                          <Link href={`/events/${event.id}`}>
-                            View Event Details
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
+                    </p>
+                    <Button
+                      asChild
+                      className="bg-polkadot-pink hover:bg-polkadot-pink/90"
+                    >
+                      <Link href={`/events/${event.id}`}>
+                        View Event Details
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
                   )}
                 </>
               ) : !canRegister || isPastDeadline ? (

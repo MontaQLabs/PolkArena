@@ -301,16 +301,16 @@ export function Header() {
 
               {/* Authentication actions */}
               {user ? (
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setIsMenuOpen(false);
-                  }}
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
                   className="flex items-center space-x-3 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors py-3 px-2 rounded-md text-left"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>🚪 Leave Arena</span>
-                </button>
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>🚪 Leave Arena</span>
+                  </button>
               ) : (
                 <div className="border-t border-border/40 my-2 pt-2 space-y-1">
                   <Link
@@ -321,14 +321,14 @@ export function Header() {
                     <User className="h-4 w-4" />
                     <span>⚔️ Enter Arena</span>
                   </Link>
-                  <Link
-                    href="/auth/signup"
+                <Link
+                  href="/auth/signup"
                     className="flex items-center space-x-3 text-polkadot-pink hover:text-polkadot-pink/80 hover:bg-polkadot-pink/10 transition-colors py-3 px-2 rounded-md font-medium"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>🛡️ Join Warriors</span>
-                  </Link>
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>🛡️ Join Warriors</span>
+                </Link>
                 </div>
               )}
             </nav>
