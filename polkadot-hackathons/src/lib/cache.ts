@@ -178,7 +178,97 @@ class EventCache {
 }
 
 // Hook for using cache in React components
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+// Error handling configuration
+const ERROR_CONFIG = {
+  MAX_RETRIES: 3,
+  RETRY_DELAYS: [1000, 2000, 4000], // Progressive backoff: 1s, 2s, 4s
+  STALE_DATA_TTL: 24 * 60 * 60 * 1000, // Keep stale data for 24 hours
+  CIRCUIT_BREAKER_THRESHOLD: 5, // Stop retrying after 5 consecutive failures
+  CIRCUIT_BREAKER_TIMEOUT: 60 * 1000, // Wait 1 minute before trying again
+};
+
+// Global circuit breaker state
+class CircuitBreaker {
+  private static instance: CircuitBreaker;
+  private failures: Map<string, { count: number; lastFailure: number }> = new Map();
+
+  static getInstance(): CircuitBreaker {
+    if (!CircuitBreaker.instance) {
+      CircuitBreaker.instance = new CircuitBreaker();
+    }
+    return CircuitBreaker.instance;
+  }
+
+  shouldAttempt(key: string): boolean {
+    const failure = this.failures.get(key);
+    if (!failure) return true;
+
+    const now = Date.now();
+    if (failure.count >= ERROR_CONFIG.CIRCUIT_BREAKER_THRESHOLD) {
+      // Check if timeout has passed
+      if (now - failure.lastFailure > ERROR_CONFIG.CIRCUIT_BREAKER_TIMEOUT) {
+        this.failures.delete(key);
+        return true;
+      }
+      return false; // Circuit is open
+    }
+    return true;
+  }
+
+  recordFailure(key: string): void {
+    const failure = this.failures.get(key) || { count: 0, lastFailure: 0 };
+    failure.count++;
+    failure.lastFailure = Date.now();
+    this.failures.set(key, failure);
+  }
+
+  recordSuccess(key: string): void {
+    this.failures.delete(key);
+  }
+}
+
+// Enhanced error types
+interface APIError extends Error {
+  status?: number;
+  code?: string;
+  retryable?: boolean;
+}
+
+function createAPIError(error: unknown): APIError {
+  let apiError: APIError;
+  
+  if (error instanceof Error) {
+    apiError = error as APIError;
+  } else {
+    apiError = new Error('Unknown error') as APIError;
+  }
+
+  // Determine if error is retryable based on the error message/type
+  if (error && typeof error === 'object') {
+    const errorObj = error as { message?: string; code?: string; status?: number };
+    
+    // Network errors are retryable
+    if (errorObj.message?.includes('Failed to fetch') || 
+        errorObj.message?.includes('TypeError: Failed to fetch') ||
+        errorObj.code === 'ECONNREFUSED' ||
+        errorObj.status === 503 ||
+        errorObj.status === 502 ||
+        errorObj.status === 504 ||
+        errorObj.status === 429) {
+      apiError.retryable = true;
+      apiError.status = errorObj.status;
+    } else {
+      apiError.retryable = false;
+    }
+  }
+
+  return apiError;
+}
+
+// Sleep utility for delays
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export function useEventCache<T>(
   key: string,
@@ -188,40 +278,98 @@ export function useEventCache<T>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const retryCount = useRef(0);
+  const circuitBreaker = CircuitBreaker.getInstance();
 
   const cache = EventCache.getInstance();
 
-  const fetchData = useCallback(async () => {
+  const fetchWithRetry = useCallback(async (attempt: number = 0): Promise<T> => {
+    // Check circuit breaker
+    if (!circuitBreaker.shouldAttempt(key)) {
+      throw new Error('Service temporarily unavailable. Please try again later.');
+    }
+
+    try {
+      const result = await fetchFunction();
+      circuitBreaker.recordSuccess(key);
+      return result;
+    } catch (error) {
+      const apiError = createAPIError(error);
+      
+      // Record failure in circuit breaker
+      circuitBreaker.recordFailure(key);
+
+      // Only retry if error is retryable and we haven't exceeded max retries
+      if (apiError.retryable && attempt < ERROR_CONFIG.MAX_RETRIES) {
+        console.warn(`API call failed (attempt ${attempt + 1}/${ERROR_CONFIG.MAX_RETRIES + 1}), retrying in ${ERROR_CONFIG.RETRY_DELAYS[attempt]}ms...`, apiError.message);
+        
+        await sleep(ERROR_CONFIG.RETRY_DELAYS[attempt]);
+        return fetchWithRetry(attempt + 1);
+      }
+
+      throw apiError;
+    }
+  }, [fetchFunction, key, circuitBreaker]);
+
+  const fetchData = useCallback(async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Check cache first
-      const cachedData = cache.get<T>(key);
-      if (cachedData) {
-        setData(cachedData);
-        setLoading(false);
-        return;
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        const cachedData = cache.get<T>(key);
+        if (cachedData) {
+          setData(cachedData);
+          setLoading(false);
+          return;
+        }
       }
 
-      // Fetch fresh data
-      const freshData = await fetchFunction();
-      
-      // Cache the data
-      cache.set(key, freshData, ttl);
-      setData(freshData);
+      // Check for stale data we can use as fallback
+      const staleKey = `${key}_stale`;
+      const staleData = cache.get<T>(staleKey);
+
+      try {
+        // Attempt to fetch fresh data
+        const freshData = await fetchWithRetry();
+        
+        // Cache both fresh and stale versions
+        cache.set(key, freshData, ttl);
+        cache.set(staleKey, freshData, ERROR_CONFIG.STALE_DATA_TTL);
+        
+        setData(freshData);
+        retryCount.current = 0;
+      } catch (err) {
+        const apiError = createAPIError(err);
+        
+        // If we have stale data, use it
+        if (staleData) {
+          console.warn('Using stale data due to API failure:', apiError.message);
+          setData(staleData);
+          // Set a non-blocking error to indicate stale data
+          setError(new Error('Using cached data - some information may be outdated'));
+        } else {
+          // No fallback data available
+          console.error('API call failed with no fallback data:', apiError.message);
+          setError(apiError);
+        }
+      }
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
+      const apiError = createAPIError(err);
+      setError(apiError);
     } finally {
       setLoading(false);
     }
-  }, [key, fetchFunction, ttl, cache]);
+  }, [key, fetchWithRetry, ttl, cache]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  return { data, loading, error, refetch: fetchData };
+  const refetch = useCallback(() => fetchData(true), [fetchData]);
+
+  return { data, loading, error, refetch };
 }
 
 // Utility functions for common cache operations

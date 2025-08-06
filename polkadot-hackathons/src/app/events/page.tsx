@@ -17,6 +17,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { formatEventDuration } from "@/lib/utils";
 import { useEventCache } from "@/lib/cache";
+import { ErrorDisplay, LoadingWithTimeout } from "@/components/ui/error-boundary";
 
 interface Event {
   id: string;
@@ -202,30 +203,7 @@ function EventCard({ event }: { event: Event }) {
   );
 }
 
-function EventsLoading() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse bg-white dark:bg-gray-900">
-          <div className="w-full h-48 bg-muted dark:bg-gray-800 rounded-t-lg"></div>
-          <CardHeader>
-            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-20 mb-2"></div>
-            <div className="h-6 bg-muted dark:bg-gray-800 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-full mb-1"></div>
-            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-2/3"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-20 bg-muted dark:bg-gray-800 rounded mb-4"></div>
-            <div className="flex gap-2">
-              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
-              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
+
 
 export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -235,7 +213,9 @@ export default function EventsPage() {
   // Use cache for upcoming events
   const {
     data: events,
-    loading: upcomingLoading
+    loading: upcomingLoading,
+    error: upcomingError,
+    refetch: refetchUpcoming
   } = useEventCache(
     "events_list",
     async () => {
@@ -262,7 +242,9 @@ export default function EventsPage() {
   // Use cache for past events
   const {
     data: pastEvents,
-    loading: pastLoading
+    loading: pastLoading,
+    error: pastError,
+    refetch: refetchPast
   } = useEventCache(
     "past_events_list",
     async () => {
@@ -370,9 +352,21 @@ export default function EventsPage() {
         </button>
       </div>
 
+      {/* Error Handling */}
+      {(upcomingError || pastError) && (
+        <ErrorDisplay
+          error={activeTab === "upcoming" ? upcomingError : pastError}
+          onRetry={activeTab === "upcoming" ? refetchUpcoming : refetchPast}
+          title={`Failed to load ${activeTab} events`}
+        />
+      )}
+
       {/* Events Grid */}
       {loading ? (
-        <EventsLoading />
+        <LoadingWithTimeout
+          isLoading={loading}
+          message="Server is experiencing high load. Please wait..."
+        />
       ) : filteredEvents.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-muted-foreground mb-4">
