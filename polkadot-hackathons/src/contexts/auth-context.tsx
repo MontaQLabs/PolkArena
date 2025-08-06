@@ -135,14 +135,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("Fetching profile for user:", userId);
-      const result = await ensureUserProfile(userId);
+      
+      // Add timeout to prevent infinite hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000); // 10 second timeout
+      });
+
+      const profilePromise = ensureUserProfile(userId);
+      
+      const result = await Promise.race([profilePromise, timeoutPromise]) as { success: boolean; profile?: UserProfile };
+      
       if (result.success && result.profile) {
         updateProfileState(result.profile);
         setCachedProfile(userId, result.profile);
         console.log("Profile loaded successfully");
+      } else {
+        console.warn("Profile fetch returned no data, but continuing...");
+        // Don't throw error, just continue without profile
       }
     } catch (error) {
       console.error("Error ensuring profile exists:", error);
+      // Don't throw the error, just log it and continue
+      // The app should still work without profile data
     } finally {
       profileFetchingRef.current.delete(userId);
     }
@@ -187,16 +201,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const cachedProfile = getCachedProfile(sessionUser.id);
             if (cachedProfile) {
               updateProfileState(cachedProfile);
+              setLoading(false);
             } else {
-              // Only fetch if no cached profile
-              await ensureProfileExists(sessionUser.id);
+              // Fetch profile but don't let it block loading state
+              ensureProfileExists(sessionUser.id).finally(() => {
+                if (mounted) setLoading(false);
+              });
             }
           } else {
             // Clear profile if no user
             updateProfileState(null);
+            setLoading(false);
           }
           
-          setLoading(false);
           console.log("Auth initialization complete");
         }
       } catch (error) {
@@ -223,25 +240,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const sessionUser = session?.user ?? null;
       updateUserState(sessionUser);
       
-      if (event === 'SIGNED_IN' && sessionUser) {
-        // Fetch profile on sign in
-        await ensureProfileExists(sessionUser.id);
-      } else if (event === 'SIGNED_OUT') {
-        // Clear everything on sign out
-        updateProfileState(null);
-        profileCache.clear();
-      } else if (event === 'TOKEN_REFRESHED' && sessionUser) {
-        // Don't fetch profile on token refresh, just ensure user state is correct
-        // Profile should already be available from cache or localStorage
-        if (!profile) {
-          const cachedProfile = getCachedProfile(sessionUser.id);
-          if (cachedProfile) {
-            updateProfileState(cachedProfile);
-          }
-        }
-      }
-      
-      setLoading(false);
+             if (event === 'SIGNED_IN' && sessionUser) {
+         // Fetch profile on sign in but don't block loading
+         ensureProfileExists(sessionUser.id);
+         setLoading(false);
+       } else if (event === 'SIGNED_OUT') {
+         // Clear everything on sign out
+         updateProfileState(null);
+         profileCache.clear();
+         setLoading(false);
+       } else if (event === 'TOKEN_REFRESHED' && sessionUser) {
+         // Don't fetch profile on token refresh, just ensure user state is correct
+         // Profile should already be available from cache or localStorage
+         if (!profile) {
+           const cachedProfile = getCachedProfile(sessionUser.id);
+           if (cachedProfile) {
+             updateProfileState(cachedProfile);
+           }
+         }
+         setLoading(false);
+       } else {
+         // Fallback: always clear loading for any other events
+         setLoading(false);
+       }
     });
 
     return () => {
