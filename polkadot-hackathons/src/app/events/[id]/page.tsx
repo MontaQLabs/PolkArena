@@ -87,7 +87,7 @@ const getEventBannerUrl = (imagePath: string | null) => {
       .getPublicUrl(imagePath);
     
     // Log for debugging
-    console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
+    // console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
     
     return data.publicUrl;
   } catch (error) {
@@ -109,7 +109,7 @@ export default function EventDetailPage() {
   const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   const eventId = params.id as string;
-  console.log(isAuthenticated);
+  // console.log(isAuthenticated);
   // Use cache for event details
   const {
     data: event,
@@ -551,7 +551,7 @@ export default function EventDetailPage() {
                       console.error('Error details:', e);
                     }}
                     onLoad={() => {
-                      console.log('Event banner loaded successfully:', bannerUrl);
+                      // console.log('Event banner loaded successfully:', bannerUrl);
                     }}
                   />
                 </div>

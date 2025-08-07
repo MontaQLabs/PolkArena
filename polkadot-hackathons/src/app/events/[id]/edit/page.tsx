@@ -95,7 +95,7 @@ function ImageUpload({
       .getPublicUrl(path);
       
       // Log for debugging
-      console.log('Generated public URL for path:', path, '→', data.publicUrl);
+      // console.log('Generated public URL for path:', path, '→', data.publicUrl);
       
     return data.publicUrl;
     } catch (error) {
@@ -235,7 +235,7 @@ function ImageUpload({
                 console.error('Error details:', e);
               }}
               onLoad={() => {
-                console.log('Image loaded successfully:', preview);
+                // console.log('Image loaded successfully:', preview);
               }}
             />
           </div>
@@ -537,11 +537,11 @@ export default function EditEventPage() {
         startTime = new Date(sortedDays[0].start_time);
         endTime = new Date(sortedDays[sortedDays.length - 1].end_time);
         
-        console.log("Edit multi-day dates:", {
-          start_time: startTime.toISOString(),
-          end_time: endTime.toISOString(),
-          days: sortedDays.length
-        });
+        // console.log("Edit multi-day dates:", {
+        //   start_time: startTime.toISOString(),
+        //   end_time: endTime.toISOString(),
+        //   days: sortedDays.length
+        // });
       } else {
         // Single day event
         if (!formData.start_time || !formData.end_time) {
@@ -553,11 +553,11 @@ export default function EditEventPage() {
         startTime = new Date(formData.start_time);
         endTime = new Date(formData.end_time);
         
-        console.log("Edit single day dates:", {
-          start_time: formData.start_time,
-          end_time: formData.end_time,
-          registration_deadline: formData.registration_deadline
-        });
+        // console.log("Edit single day dates:", {
+        //   start_time: formData.start_time,
+        //   end_time: formData.end_time,
+        //   registration_deadline: formData.registration_deadline
+        // });
 
         // Check for invalid dates
         if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
@@ -613,11 +613,11 @@ export default function EditEventPage() {
         .map((tag) => tag.trim())
         .filter((tag) => tag.length > 0);
 
-      console.log("Updating event with data:", {
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        registration_deadline: registrationDeadline?.toISOString() || null
-      });
+      // console.log("Updating event with data:", {
+      //   start_time: startTime.toISOString(),
+      //   end_time: endTime.toISOString(),
+      //   registration_deadline: registrationDeadline?.toISOString() || null
+      // });
 
             const updateData = {
           name: formData.name,
@@ -638,7 +638,7 @@ export default function EditEventPage() {
           is_multi_day: formData.is_multi_day,
       };
 
-      console.log("About to update event with:", updateData);
+      // console.log("About to update event with:", updateData);
 
       try {
         const { data, error } = await supabase
@@ -647,7 +647,7 @@ export default function EditEventPage() {
           .eq("id", event.id)
           .select();
 
-        console.log("Supabase update result:", { data, error });
+        // console.log("Supabase update result:", { data, error });
 
       if (error) {
         console.error("Error updating event:", error);
@@ -663,7 +663,7 @@ export default function EditEventPage() {
           return;
         }
 
-        console.log("Event updated successfully, handling event days...");
+        // console.log("Event updated successfully, handling event days...");
         
         // Handle event days for multi-day events
         if (formData.is_multi_day && eventDays.length > 0) {
