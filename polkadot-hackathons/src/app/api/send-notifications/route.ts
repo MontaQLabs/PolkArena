@@ -62,7 +62,7 @@ const createApprovalEmailHtml = (participant: EmailData) => `
   </div>
   
   <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
-    <p>This email was sent from PolkaRena Event Platform</p>
+    <p>This email was sent from PolkArena Event Platform</p>
     <p>If you have any questions, please contact the event organizer.</p>
   </div>
 </body>
@@ -111,7 +111,7 @@ const createRejectionEmailHtml = (participant: EmailData, reason: string) => `
   </div>
   
   <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
-    <p>This email was sent from PolkaRena Event Platform</p>
+    <p>This email was sent from PolkArena Event Platform</p>
     <p>If you have any questions, please contact the event organizer.</p>
   </div>
 </body>
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
           : createRejectionEmailHtml(participant, rejectionReason || 'No specific reason provided');
 
         const result = await resend.emails.send({
-          from: 'PolkaRena Events <onboarding@resend.dev>',
+          from: 'PolkArena Events <onboarding@resend.dev>',
           to: [participant.participantEmail],
           subject,
           html,

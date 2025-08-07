@@ -379,7 +379,7 @@ export default function EventParticipantsPage() {
 
         if (emailResponse.ok) {
           const emailResult = await emailResponse.json();
-          console.log('Email notifications sent:', emailResult);
+          // console.log('Email notifications sent:', emailResult);
           toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} approved! Email notifications sent.`);
         } else {
           console.error('Failed to send email notifications');
@@ -467,7 +467,7 @@ export default function EventParticipantsPage() {
 
         if (emailResponse.ok) {
           const emailResult = await emailResponse.json();
-          console.log('Email notifications sent:', emailResult);
+          // console.log('Email notifications sent:', emailResult);
           toast.success(`${participantIds.length} participant${participantIds.length > 1 ? 's' : ''} rejected. Email notifications sent.`);
         } else {
           console.error('Failed to send email notifications');

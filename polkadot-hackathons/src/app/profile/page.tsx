@@ -68,7 +68,7 @@ export default function ProfilePage() {
     website_url: "",
     skills: "",
   });
-  console.log(contextProfile);
+  // console.log(contextProfile);
   // Redirect if not authenticated
   useEffect(() => {
     if (authReady && !isAuthenticated) {

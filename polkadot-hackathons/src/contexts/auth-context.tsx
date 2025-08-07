@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      console.log("Fetching profile for user:", userId);
+      // console.log("Fetching profile for user:", userId);
       
       // Add timeout to prevent infinite hanging
       const timeoutPromise = new Promise((_, reject) => {
@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (result.success && result.profile) {
         updateProfileState(result.profile);
         setCachedProfile(userId, result.profile);
-        console.log("Profile loaded successfully");
+        // console.log("Profile loaded successfully");
       } else {
         console.warn("Profile fetch returned no data, but continuing...");
         // Don't throw error, just continue without profile
@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        console.log("Initializing auth...");
+        // console.log("Initializing auth...");
         
         // Get session from Supabase
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           updateUserState(sessionUser);
           
           if (sessionUser) {
-            console.log("Found existing session, loading profile...");
+            // console.log("Found existing session, loading profile...");
             
             // If we have a cached profile and it matches the user, use it immediately
             const cachedProfile = getCachedProfile(sessionUser.id);
@@ -214,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
           }
           
-          console.log("Auth initialization complete");
+          // console.log("Auth initialization complete");
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
@@ -234,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      console.log("Auth state change:", event, !!session?.user);
+      // console.log("Auth state change:", event, !!session?.user);
       
       // Handle all auth events but be smart about when to fetch profile
       const sessionUser = session?.user ?? null;

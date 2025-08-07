@@ -70,7 +70,7 @@ function ImageUpload({
             .from("event-banners")
             .getPublicUrl(value);
           
-          console.log("Loading existing image URL:", data.publicUrl);
+          // console.log("Loading existing image URL:", data.publicUrl);
           setPreviewUrl(data.publicUrl);
         } catch (error) {
           console.error("Error loading existing image:", error);
@@ -124,7 +124,7 @@ function ImageUpload({
         throw error;
       }
 
-      console.log("Upload successful:", data);
+      // console.log("Upload successful:", data);
 
       // Get the public URL
       try {
@@ -132,7 +132,7 @@ function ImageUpload({
           .from("event-banners")
           .getPublicUrl(filePath);
 
-        console.log("Public URL:", urlData.publicUrl);
+        // console.log("Public URL:", urlData.publicUrl);
 
         // Update preview to the actual uploaded URL
         setPreviewUrl(urlData.publicUrl);
@@ -213,7 +213,7 @@ function ImageUpload({
               console.error("Error event:", e);
             }}
             onLoad={() => {
-              console.log("Image loaded successfully:", previewUrl);
+              // console.log("Image loaded successfully:", previewUrl);
             }}
           />
         </div>
@@ -386,21 +386,21 @@ export default function CreateEventPage() {
         startTime = new Date(sortedDays[0].start_time);
         endTime = new Date(sortedDays[sortedDays.length - 1].end_time);
         
-        console.log("Create multi-day dates:", {
-          start_time: startTime.toISOString(),
-          end_time: endTime.toISOString(),
-          days: sortedDays.length
-        });
+        // console.log("Create multi-day dates:", {
+        //   start_time: startTime.toISOString(),
+        //   end_time: endTime.toISOString(),
+        //   days: sortedDays.length
+        // });
       } else {
         // Single day event
         startTime = new Date(formData.start_time);
         endTime = new Date(formData.end_time);
         
-        console.log("Create single day dates:", {
-          start_time: formData.start_time,
-          end_time: formData.end_time,
-          registration_deadline: formData.registration_deadline
-        });
+        // console.log("Create single day dates:", {
+        //   start_time: formData.start_time,
+        //   end_time: formData.end_time,
+        //   registration_deadline: formData.registration_deadline
+        // });
 
         // Check for invalid dates
         if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
@@ -462,11 +462,11 @@ export default function CreateEventPage() {
       // Generate unique short code for shareable URL
       const shortCode = await generateUniqueShortCode(formData.name);
 
-      console.log("Creating event with data:", {
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        registration_deadline: registrationDeadline?.toISOString() || null
-      });
+      // console.log("Creating event with data:", {
+      //   start_time: startTime.toISOString(),
+      //   end_time: endTime.toISOString(),
+      //   registration_deadline: registrationDeadline?.toISOString() || null
+      // });
 
       const eventData = {
         name: formData.name,

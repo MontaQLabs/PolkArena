@@ -64,7 +64,7 @@ const getEventBannerUrl = (imagePath: string | null) => {
     .getPublicUrl(imagePath);
     
     // Log for debugging
-    console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
+    // console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
     
   return data.publicUrl;
   } catch (error) {

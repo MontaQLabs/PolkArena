@@ -110,7 +110,7 @@ export default function TeamsPage() {
           return;
         }
 
-        console.log("Fetched teams:", teamsData);
+        // console.log("Fetched teams:", teamsData);
         setTeams(teamsData || []);
       } catch (error) {
         console.error("Error:", error);
@@ -133,16 +133,16 @@ export default function TeamsPage() {
     const isLeader = team.members.some(
       (member) => member.user_id === user.id && member.role === "leader"
     );
-    console.log(
-      "Team:",
-      team.name,
-      "User ID:",
-      user.id,
-      "Is Leader:",
-      isLeader,
-      "Members:",
-      team.members
-    );
+    // console.log(
+    //   "Team:",
+    //   team.name,
+    //   "User ID:",
+    //   user.id,
+    //   "Is Leader:",
+    //   isLeader,
+    //   "Members:",
+    //   team.members
+    // );
     return isLeader;
   };
 
@@ -248,9 +248,9 @@ export default function TeamsPage() {
               {filteredTeams.map((team) => {
                 const userInTeam = isUserInTeam(team);
                 const userIsLeader = isUserTeamLeader(team);
-                console.log(
-                  `Team ${team.name}: User in team: ${userInTeam}, User is leader: ${userIsLeader}`
-                );
+                // console.log(
+                //   `Team ${team.name}: User in team: ${userInTeam}, User is leader: ${userIsLeader}`
+                // );
 
                 return (
                   <Card
