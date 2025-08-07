@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [loading, setLoading] = useState(true);
-  
+
   // Track ongoing profile fetches to prevent race conditions
   const profileFetchingRef = useRef<Set<string>>(new Set());
   const initializationRef = useRef<boolean>(false);

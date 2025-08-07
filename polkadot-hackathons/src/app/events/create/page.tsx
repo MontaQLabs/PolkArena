@@ -66,7 +66,7 @@ function ImageUpload({
     if (value && !previewUrl) {
       const loadExistingImage = async () => {
         try {
-          const { data } = supabase.storage
+    const { data } = supabase.storage
             .from("event-banners")
             .getPublicUrl(value);
           
@@ -154,8 +154,8 @@ function ImageUpload({
 
   const handleRemove = () => {
     setPreviewUrl(null);
-    onChange(null);
-    if (fileInputRef.current) {
+      onChange(null);
+      if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
@@ -177,7 +177,7 @@ function ImageUpload({
           )}
           {uploading ? "Uploading..." : "Choose Image"}
         </Button>
-
+        
         {previewUrl && (
           <Button
             type="button"
@@ -263,7 +263,7 @@ export default function CreateEventPage() {
   // Check authentication status
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/auth/login");
+        router.push("/auth/login");
     }
   }, [user, authLoading, router]);
 
@@ -431,19 +431,19 @@ export default function CreateEventPage() {
         if (isNaN(registrationDeadline.getTime())) {
           toast.error("Please enter a valid registration deadline");
           setSaving(false);
-          return;
-        }
+        return;
+      }
 
         if (registrationDeadline.getTime() >= startTime.getTime()) {
-          toast.error("Registration deadline must be before start time");
+        toast.error("Registration deadline must be before start time");
           setSaving(false);
-          return;
-        }
+        return;
+      }
 
         if (registrationDeadline.getTime() < now.getTime()) {
-          toast.error("Registration deadline cannot be in the past");
+        toast.error("Registration deadline cannot be in the past");
           setSaving(false);
-          return;
+        return;
         }
       }
 
@@ -549,12 +549,12 @@ export default function CreateEventPage() {
           {/* Header */}
           <div className="mb-6 lg:mb-8">
             <div className="flex items-center gap-4 mb-4">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/events">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Events
-                </Link>
-              </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/events">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Events
+              </Link>
+            </Button>
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
@@ -702,48 +702,48 @@ export default function CreateEventPage() {
 
                 {/* Single Day Event */}
                 {!formData.is_multi_day && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="start_time">Start Time *</Label>
-                      <Input
-                        id="start_time"
-                        type="datetime-local"
-                        value={formData.start_time}
-                        onChange={(e) =>
-                          setFormData({ ...formData, start_time: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="end_time">End Time *</Label>
-                      <Input
-                        id="end_time"
-                        type="datetime-local"
-                        value={formData.end_time}
-                        onChange={(e) =>
-                          setFormData({ ...formData, end_time: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="registration_deadline">
-                        Registration Deadline
-                      </Label>
-                      <Input
-                        id="registration_deadline"
-                        type="datetime-local"
-                        value={formData.registration_deadline}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            registration_deadline: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start_time">Start Time *</Label>
+                    <Input
+                      id="start_time"
+                      type="datetime-local"
+                      value={formData.start_time}
+                      onChange={(e) =>
+                        setFormData({ ...formData, start_time: e.target.value })
+                      }
+                      required
+                    />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end_time">End Time *</Label>
+                    <Input
+                      id="end_time"
+                      type="datetime-local"
+                      value={formData.end_time}
+                      onChange={(e) =>
+                        setFormData({ ...formData, end_time: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="registration_deadline">
+                      Registration Deadline
+                    </Label>
+                    <Input
+                      id="registration_deadline"
+                      type="datetime-local"
+                      value={formData.registration_deadline}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          registration_deadline: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
                 )}
 
                 {/* Multi-day Event Days */}

@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { createShareableEventURL, formatEventDuration } from "@/lib/utils";
+import { createShareableEventURL, formatEventDuration, formatMultiDayEventDuration } from "@/lib/utils";
 import { 
   formatDateWithTimezone, 
   getUserTimezone, 
@@ -811,9 +811,9 @@ export default function EventDetailPage() {
                       <div className="flex items-center gap-2 pt-2 border-t">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="text-sm font-medium">Overall Duration</p>
+                          <p className="text-sm font-medium">Total Duration</p>
                           <p className="text-sm text-muted-foreground">
-                            {formatDate(event.start_time)} - {formatDate(event.end_time)}
+                            {formatMultiDayEventDuration(event.event_days)}
                           </p>
                         </div>
                       </div>

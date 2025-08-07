@@ -14,7 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
-import { formatEventDuration } from "@/lib/utils";
+import { formatEventDuration, formatMultiDayEventDuration } from "@/lib/utils";
 import { useEventCache } from "@/lib/cache";
 import { ErrorDisplay, LoadingWithTimeout } from "@/components/ui/error-boundary";
 
@@ -37,6 +37,14 @@ interface Event {
   discord_url: string | null;
   twitter_url: string | null;
   requirements: string | null;
+  is_multi_day: boolean;
+  event_days?: Array<{
+    id: string;
+    day_number: number;
+    day_name: string | null;
+    start_time: string;
+    end_time: string;
+  }>;
   created_at: string;
   organizer: {
     name: string;
@@ -165,7 +173,10 @@ function EventCard({ event }: { event: Event }) {
           <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <Clock className="h-4 w-4" />
             <span>
-              Duration: {formatEventDuration(event.start_time, event.end_time)}
+              Duration: {event.is_multi_day && event.event_days && event.event_days.length > 0 
+                ? formatMultiDayEventDuration(event.event_days)
+                : formatEventDuration(event.start_time, event.end_time)
+              }
             </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
@@ -233,7 +244,27 @@ export default function EventsPage() {
           throw new Error(`Database error: ${error.message}`);
         }
 
-        return data || [];
+        // Fetch event days for multi-day events
+        const eventsWithDays = await Promise.all(
+          (data || []).map(async (event) => {
+            if (event.is_multi_day) {
+              const { data: eventDays, error: daysError } = await supabase
+                .from("event_days")
+                .select("*")
+                .eq("event_id", event.id)
+                .order("day_number", { ascending: true });
+
+              if (daysError) {
+                console.error("Error fetching event days:", daysError);
+              } else {
+                event.event_days = eventDays || [];
+              }
+            }
+            return event;
+          })
+        );
+
+        return eventsWithDays;
       } catch (err) {
         console.error("Critical error in events fetch:", err);
         throw err;
@@ -267,7 +298,27 @@ export default function EventsPage() {
           throw new Error(`Database error: ${error.message}`);
         }
 
-        return data || [];
+        // Fetch event days for multi-day events
+        const eventsWithDays = await Promise.all(
+          (data || []).map(async (event) => {
+            if (event.is_multi_day) {
+              const { data: eventDays, error: daysError } = await supabase
+                .from("event_days")
+                .select("*")
+                .eq("event_id", event.id)
+                .order("day_number", { ascending: true });
+
+              if (daysError) {
+                console.error("Error fetching event days:", daysError);
+              } else {
+                event.event_days = eventDays || [];
+              }
+            }
+            return event;
+          })
+        );
+
+        return eventsWithDays;
       } catch (err) {
         console.error("Critical error in past events fetch:", err);
         throw err;
