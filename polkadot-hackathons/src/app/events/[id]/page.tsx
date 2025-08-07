@@ -100,7 +100,7 @@ export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const { authReady, isAuthenticated } = useAuthReady();
+  const { authReady } = useAuthReady();
   const [registering, setRegistering] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -293,7 +293,7 @@ export default function EventDetailPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
     return formatDateWithTimezone(dateString, getUserTimezone(), {
       year: "numeric",
       month: "long", 
@@ -739,7 +739,7 @@ export default function EventDetailPage() {
                               {registration.user?.name || "Anonymous"}
                             </h4>
                             <span className="text-sm text-muted-foreground">
-                              {new Date(registration.created_at).toLocaleDateString()}
+                              {formatDate(registration.created_at)}
                             </span>
                           </div>
                           <p className="text-sm text-muted-foreground mb-2">

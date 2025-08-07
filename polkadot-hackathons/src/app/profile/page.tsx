@@ -52,7 +52,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, profile: contextProfile, updateProfile } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { authReady, isAuthenticated } = useAuthReady();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);

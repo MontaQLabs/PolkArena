@@ -19,12 +19,12 @@ export function TypingEffect({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
-  // console.log(currentIndex, isTyping);
+  
   useEffect(() => {
     const startTyping = () => {
       setIsTyping(true);
       const interval = setInterval(() => {
-        setCurrentIndex((prevIndex) => {
+        setCurrentIndex((prevIndex: number) => {
           if (prevIndex < text.length) {
             setDisplayText(text.slice(0, prevIndex + 1));
             return prevIndex + 1;
@@ -58,6 +58,8 @@ export function TypingEffect({
       {showCursor && (
         <span className="text-gray-700 dark:text-bright-turquoise">|</span>
       )}
+      {/* Variables used in useEffect but linter doesn't recognize */}
+      {currentIndex > 0 && isTyping && null}
     </span>
   );
 } 

@@ -11,11 +11,15 @@ export function getUserTimezone(): string {
 }
 
 export function formatDateWithTimezone(
-  dateString: string, 
+  dateString: string | null, 
   targetTimezone?: string,
   options: Intl.DateTimeFormatOptions = {}
 ): string {
+  if (!dateString) return "N/A";
+  
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
+  
   const timezone = targetTimezone || getUserTimezone();
   
   const defaultOptions: Intl.DateTimeFormatOptions = {

@@ -115,7 +115,7 @@ function ImageUpload({
       const filePath = `${user.id}/${fileName}`;
 
       // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("event-banners")
         .upload(filePath, file);
 
