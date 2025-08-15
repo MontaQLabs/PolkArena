@@ -152,10 +152,21 @@ export default function EditQuizPage() {
         <div>
           <h1 className="text-3xl font-bold">{quiz.title}</h1>
           <p className="text-gray-600">{quiz.description}</p>
+          <div className="flex items-center gap-4 mt-2 text-sm">
+            <span className="text-gray-500">Questions: {questions.length}</span>
+            <span className="text-gray-500">Total Points: {questions.reduce((sum, q) => sum + q.points, 0)}</span>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => router.push("/quiz")}>
             Back to Quizzes
+          </Button>
+          <Button 
+            onClick={() => router.push(`/quiz/${quizId}/host`)}
+            disabled={questions.length === 0}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            {questions.length === 0 ? 'Add Questions First' : 'Host Quiz'}
           </Button>
           <Dialog open={addQuestionDialog} onOpenChange={setAddQuestionDialog}>
             <DialogTrigger asChild>
@@ -228,13 +239,13 @@ export default function EditQuizPage() {
                       <SelectTrigger>
                         <SelectValue placeholder="Select correct answer" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {newQuestion.options.map((option, index) => (
-                          <SelectItem key={index} value={option}>
-                            {option || `Option ${index + 1}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                                             <SelectContent>
+                         {newQuestion.options.map((option, index) => (
+                           <SelectItem key={index} value={option || `Option ${index + 1}`}>
+                             {option || `Option ${index + 1}`}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
                     </Select>
                   ) : (
                     <Select

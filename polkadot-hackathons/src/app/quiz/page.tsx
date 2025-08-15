@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/lib/database.types";
 import Link from "next/link";
@@ -16,6 +18,7 @@ type Quiz = Database["public"]["Tables"]["quizzes"]["Row"];
 
 export default function QuizPage() {
   const { user, profile } = useAuth();
+  const router = useRouter();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [myQuizzes, setMyQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +80,8 @@ export default function QuizPage() {
         setQuizzes(prev => [data, ...prev]);
         setNewQuiz({ title: "", description: "" });
         setCreateDialogOpen(false);
+        // Redirect to edit page to add questions
+        router.push(`/quiz/${data.id}/edit`);
       }
     } catch (error) {
       console.error("Error creating quiz:", error);
@@ -149,10 +154,16 @@ export default function QuizPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Quiz Hub</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Quiz Hub</h1>
+          <p className="text-gray-600 mt-1">Create and host interactive quizzes with real-time scoring</p>
+        </div>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Create Quiz</Button>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Quiz
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
