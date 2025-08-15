@@ -147,27 +147,32 @@ export default function EditQuizPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">{quiz.title}</h1>
-          <p className="text-gray-600">{quiz.description}</p>
-          <div className="flex items-center gap-4 mt-2 text-sm">
-            <span className="text-gray-500">Questions: {questions.length}</span>
-            <span className="text-gray-500">Total Points: {questions.reduce((sum, q) => sum + q.points, 0)}</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-polkadot-pink mb-2">{quiz.title}</h1>
+            <p className="text-lg text-muted-foreground mb-3">{quiz.description}</p>
+            <div className="flex items-center gap-6 text-sm">
+              <span className="bg-bright-turquoise text-white px-3 py-1 rounded-full font-semibold">
+                {questions.length} Questions
+              </span>
+              <span className="bg-polkadot-pink text-white px-3 py-1 rounded-full font-semibold">
+                {questions.reduce((sum, q) => sum + q.points, 0)} Points
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push("/quiz")}>
-            Back to Quizzes
-          </Button>
-          <Button 
-            onClick={() => router.push(`/quiz/${quizId}/host`)}
-            disabled={questions.length === 0}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            {questions.length === 0 ? 'Add Questions First' : 'Host Quiz'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.push("/quiz")} className="border-storm-400 text-storm-700 hover:bg-storm-200">
+              ← Back to Quizzes
+            </Button>
+            <Button 
+              onClick={() => router.push(`/quiz/${quizId}/host`)}
+              disabled={questions.length === 0}
+              className="bg-gradient-to-r from-polkadot-pink to-bright-turquoise hover:from-polkadot-pink/90 hover:to-bright-turquoise/90 text-white font-semibold shadow-lg"
+            >
+              {questions.length === 0 ? 'Add Questions First' : '🚀 Host Quiz'}
+            </Button>
           <Dialog open={addQuestionDialog} onOpenChange={setAddQuestionDialog}>
             <DialogTrigger asChild>
               <Button>Add Question</Button>
@@ -297,25 +302,30 @@ export default function EditQuizPage() {
       </div>
 
       {/* Questions List */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Questions ({questions.length})</h2>
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-polkadot-pink mb-2">Questions ({questions.length})</h2>
+          <p className="text-muted-foreground">Build your quiz by adding questions below</p>
+        </div>
         
         {questions.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-gray-500">No questions added yet. Add your first question!</p>
+          <Card className="border-2 border-dashed border-storm-400 bg-storm-200/50">
+            <CardContent className="text-center py-12">
+              <div className="text-6xl mb-4">🧠</div>
+              <p className="text-xl text-muted-foreground mb-2">No questions added yet</p>
+              <p className="text-muted-foreground">Add your first question to get started!</p>
             </CardContent>
           </Card>
         ) : (
           questions.map((question, index) => (
-            <Card key={question.id}>
+            <Card key={question.id} className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 bg-white shadow-lg hover:shadow-xl">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <CardTitle className="text-lg">
+                    <CardTitle className="text-xl text-polkadot-pink">
                       Question {index + 1}
                     </CardTitle>
-                    <CardDescription className="mt-2">
+                    <CardDescription className="mt-2 text-base">
                       {question.question_text}
                     </CardDescription>
                   </div>
@@ -323,34 +333,39 @@ export default function EditQuizPage() {
                     variant="destructive"
                     size="sm"
                     onClick={() => deleteQuestion(question.id)}
+                    className="bg-red-500 hover:bg-red-600"
                   >
                     Delete
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Type:</span> {question.question_type === "multiple_choice" ? "Multiple Choice" : "True/False"}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                  <div className="bg-storm-200 p-3 rounded-lg">
+                    <span className="font-semibold text-polkadot-pink">Type:</span>
+                    <p>{question.question_type === "multiple_choice" ? "Multiple Choice" : "True/False"}</p>
                   </div>
-                  <div>
-                    <span className="font-medium">Points:</span> {question.points}
+                  <div className="bg-storm-200 p-3 rounded-lg">
+                    <span className="font-semibold text-polkadot-pink">Points:</span>
+                    <p>{question.points}</p>
                   </div>
-                  <div>
-                    <span className="font-medium">Time Limit:</span> {question.time_limit}s
+                  <div className="bg-storm-200 p-3 rounded-lg">
+                    <span className="font-semibold text-polkadot-pink">Time Limit:</span>
+                    <p>{question.time_limit}s</p>
                   </div>
-                  <div>
-                    <span className="font-medium">Correct Answer:</span> {question.correct_answer}
+                  <div className="bg-storm-200 p-3 rounded-lg">
+                    <span className="font-semibold text-polkadot-pink">Answer:</span>
+                    <p>{question.correct_answer}</p>
                   </div>
                 </div>
                 
                 {question.question_type === "multiple_choice" && question.options && (
                   <div className="mt-4">
-                    <span className="font-medium text-sm">Options:</span>
+                    <span className="font-semibold text-polkadot-pink text-sm">Options:</span>
                     <div className="mt-2 space-y-1">
                       {question.options.map((option, optIndex) => (
-                        <div key={optIndex} className="text-sm text-gray-600">
-                          {String.fromCharCode(65 + optIndex)}. {option}
+                        <div key={optIndex} className="text-sm bg-storm-200 p-2 rounded">
+                          <span className="font-semibold text-bright-turquoise">{String.fromCharCode(65 + optIndex)}.</span> {option}
                         </div>
                       ))}
                     </div>
@@ -362,5 +377,6 @@ export default function EditQuizPage() {
         )}
       </div>
     </div>
+  </div>
   );
 }
