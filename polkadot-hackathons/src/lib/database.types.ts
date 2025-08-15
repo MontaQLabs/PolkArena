@@ -356,6 +356,176 @@ export type Database = {
           updated_at?: string;
         };
       };
+      // Quiz tables
+      quizzes: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          host_id: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          host_id: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          host_id?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      quiz_rooms: {
+        Row: {
+          id: string;
+          quiz_id: string;
+          host_id: string;
+          room_name: string;
+          pin: string;
+          status: 'waiting' | 'active' | 'finished';
+          current_question_index: number;
+          started_at: string | null;
+          ended_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          quiz_id: string;
+          host_id: string;
+          room_name: string;
+          pin: string;
+          status?: 'waiting' | 'active' | 'finished';
+          current_question_index?: number;
+          started_at?: string | null;
+          ended_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          quiz_id?: string;
+          host_id?: string;
+          room_name?: string;
+          pin?: string;
+          status?: 'waiting' | 'active' | 'finished';
+          current_question_index?: number;
+          started_at?: string | null;
+          ended_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      quiz_questions: {
+        Row: {
+          id: string;
+          quiz_id: string;
+          question_text: string;
+          question_type: 'multiple_choice' | 'true_false';
+          options: string[] | null;
+          correct_answer: string;
+          points: number;
+          time_limit: number;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          quiz_id: string;
+          question_text: string;
+          question_type?: 'multiple_choice' | 'true_false';
+          options?: string[] | null;
+          correct_answer: string;
+          points?: number;
+          time_limit?: number;
+          order_index: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          quiz_id?: string;
+          question_text?: string;
+          question_type?: 'multiple_choice' | 'true_false';
+          options?: string[] | null;
+          correct_answer?: string;
+          points?: number;
+          time_limit?: number;
+          order_index?: number;
+          created_at?: string;
+        };
+      };
+      quiz_participants: {
+        Row: {
+          id: string;
+          room_id: string;
+          user_id: string;
+          display_name: string;
+          score: number;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          room_id: string;
+          user_id: string;
+          display_name: string;
+          score?: number;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          room_id?: string;
+          user_id?: string;
+          display_name?: string;
+          score?: number;
+          joined_at?: string;
+        };
+      };
+      quiz_answers: {
+        Row: {
+          id: string;
+          room_id: string;
+          question_id: string;
+          participant_id: string;
+          answer: string;
+          is_correct: boolean;
+          points_earned: number;
+          time_taken: number | null;
+          answered_at: string;
+        };
+        Insert: {
+          id?: string;
+          room_id: string;
+          question_id: string;
+          participant_id: string;
+          answer: string;
+          is_correct: boolean;
+          points_earned?: number;
+          time_taken?: number | null;
+          answered_at?: string;
+        };
+        Update: {
+          id?: string;
+          room_id?: string;
+          question_id?: string;
+          participant_id?: string;
+          answer?: string;
+          is_correct?: boolean;
+          points_earned?: number;
+          time_taken?: number | null;
+          answered_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

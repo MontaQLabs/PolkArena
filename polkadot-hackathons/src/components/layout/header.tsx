@@ -75,6 +75,12 @@ export function Header() {
             >
               📅 Events
             </Link>
+            <Link
+              href="/quiz"
+              className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium whitespace-nowrap"
+            >
+              🧠 Quizzes
+            </Link>
 
             {/* {user && (
               <Link
@@ -231,6 +237,14 @@ export function Header() {
               >
                 <Calendar className="h-4 w-4" />
                 <span>📅 Events</span>
+              </Link>
+              <Link
+                href="/quiz"
+                className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>🧠 Quizzes</span>
               </Link>
 
               {/* User-specific actions */}
