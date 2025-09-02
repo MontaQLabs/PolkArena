@@ -383,7 +383,7 @@ export function useEventCache<T>(
 
   useEffect(() => {
     fetchData();
-  }, [key]); // Only depend on key, not fetchData
+  }, [key, fetchData]); // Include fetchData in dependencies
 
   const refetch = useCallback(() => fetchData(true), [fetchData]);
 

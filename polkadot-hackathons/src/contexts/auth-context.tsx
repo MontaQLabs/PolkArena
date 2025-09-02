@@ -270,7 +270,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
       initializationRef.current = false;
     };
-  }, []); // Empty dependency array to prevent re-runs
+  }, [ensureProfileExists, getCachedProfile, profile, updateProfileState, updateUserState]); // Include all dependencies
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

@@ -526,6 +526,253 @@ export type Database = {
           answered_at?: string;
         };
       };
+
+      // Social Quest tables
+      social_quests: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          context: string;
+          hashtags: string | null;
+          social_platforms: string[];
+          ai_prompt: string | null;
+          organizer_id: string;
+          organizer_name: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          context: string;
+          hashtags?: string | null;
+          social_platforms: string[];
+          ai_prompt?: string | null;
+          organizer_id: string;
+          organizer_name: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          context?: string;
+          hashtags?: string | null;
+          social_platforms?: string[];
+          ai_prompt?: string | null;
+          organizer_id?: string;
+          organizer_name?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      social_quest_participants: {
+        Row: {
+          id: string;
+          quest_id: string;
+          user_id: string;
+          display_name: string;
+          shared_on: string[];
+          shared_at: string;
+        };
+        Insert: {
+          id?: string;
+          quest_id: string;
+          user_id: string;
+          display_name: string;
+          shared_on?: string[];
+          shared_at?: string;
+        };
+        Update: {
+          id?: string;
+          quest_id?: string;
+          user_id?: string;
+          display_name?: string;
+          shared_on?: string[];
+          shared_at?: string;
+        };
+      };
+      social_quest_shares: {
+        Row: {
+          id: string;
+          quest_id: string;
+          participant_id: string;
+          platform: string;
+          share_url: string | null;
+          message_text: string | null;
+          shared_at: string;
+        };
+        Insert: {
+          id?: string;
+          quest_id: string;
+          participant_id: string;
+          platform: string;
+          share_url?: string | null;
+          message_text?: string | null;
+          shared_at?: string;
+        };
+        Update: {
+          id?: string;
+          quest_id?: string;
+          participant_id?: string;
+          platform?: string;
+          share_url?: string | null;
+          message_text?: string | null;
+          shared_at?: string;
+        };
+      };
+      bounty_awards: {
+        Row: {
+          id: string;
+          bounty_id: string;
+          recipient_id: string;
+          recipient_name: string;
+          award_amount: number;
+          award_currency: string;
+          note: string | null;
+          awarded_at: string;
+        };
+        Insert: {
+          id?: string;
+          bounty_id: string;
+          recipient_id: string;
+          recipient_name: string;
+          award_amount: number;
+          award_currency?: string;
+          note?: string | null;
+          awarded_at?: string;
+        };
+        Update: {
+          id?: string;
+          bounty_id?: string;
+          recipient_id?: string;
+          recipient_name?: string;
+          award_amount?: number;
+          award_currency?: string;
+          note?: string | null;
+          awarded_at?: string;
+        };
+      };
+      bounty_contributions: {
+        Row: {
+          id: string;
+          bounty_id: string;
+          contributor_id: string;
+          description: string | null;
+          pr_url: string | null;
+          commit_hash: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          bounty_id: string;
+          contributor_id: string;
+          description?: string | null;
+          pr_url?: string | null;
+          commit_hash?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          bounty_id?: string;
+          contributor_id?: string;
+          description?: string | null;
+          pr_url?: string | null;
+          commit_hash?: string | null;
+          created_at?: string;
+        };
+      };
+      bounty_applications: {
+        Row: {
+          id: string;
+          bounty_id: string;
+          applicant_id: string;
+          applicant_name: string;
+          pitch: string;
+          portfolio_url: string | null;
+          status: 'pending' | 'accepted' | 'rejected';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          bounty_id: string;
+          applicant_id: string;
+          applicant_name: string;
+          pitch: string;
+          portfolio_url?: string | null;
+          status?: 'pending' | 'accepted' | 'rejected';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          bounty_id?: string;
+          applicant_id?: string;
+          applicant_name?: string;
+          pitch?: string;
+          portfolio_url?: string | null;
+          status?: 'pending' | 'accepted' | 'rejected';
+          created_at?: string;
+        };
+      };
+      bounties: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          tags: string[] | null;
+          reward_amount: number;
+          reward_currency: string;
+          repo_url: string | null;
+          issue_url: string | null;
+          attachment_url: string | null;
+          poster_id: string;
+          poster_name: string;
+          status: 'open' | 'in_review' | 'awarded' | 'closed';
+          deadline: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description: string;
+          tags?: string[] | null;
+          reward_amount: number;
+          reward_currency?: string;
+          repo_url?: string | null;
+          issue_url?: string | null;
+          attachment_url?: string | null;
+          poster_id: string;
+          poster_name: string;
+          status?: 'open' | 'in_review' | 'awarded' | 'closed';
+          deadline?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string;
+          tags?: string[] | null;
+          reward_amount?: number;
+          reward_currency?: string;
+          repo_url?: string | null;
+          issue_url?: string | null;
+          attachment_url?: string | null;
+          poster_id?: string;
+          poster_name?: string;
+          status?: 'open' | 'in_review' | 'awarded' | 'closed';
+          deadline?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

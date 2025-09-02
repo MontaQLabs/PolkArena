@@ -25,15 +25,47 @@ export default function HostQuizPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [room, setRoom] = useState<QuizRoom | null>(null);
   const [participants, setParticipants] = useState<QuizParticipant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(true);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [roomName, setRoomName] = useState("");
 
   useEffect(() => {
     if (user && quizId) {
-      fetchQuizData();
+      const loadQuizData = async () => {
+        try {
+          // Fetch quiz
+          const { data: quizData, error: quizError } = await supabase
+            .from("quizzes")
+            .select("*")
+            .eq("id", quizId)
+            .eq("host_id", user?.id)
+            .single();
+
+          if (quizError || !quizData) {
+            router.push("/quiz");
+            return;
+          }
+
+          setQuiz(quizData);
+
+          // Fetch questions
+          const { data: questionsData } = await supabase
+            .from("quiz_questions")
+            .select("*")
+            .eq("quiz_id", quizId)
+            .order("order_index", { ascending: true });
+
+          if (questionsData) {
+            setQuestions(questionsData);
+          }
+        } catch (error) {
+          console.error("Error fetching quiz:", error);
+        }
+      };
+      
+      loadQuizData();
     }
-  }, [user, quizId]);
+  }, [user, quizId, router]);
 
   useEffect(() => {
     if (room) {
@@ -62,7 +94,22 @@ export default function HostQuizPage() {
           filter: `room_id=eq.${room.id}`
         }, (payload) => {
           console.log("participantSubscription", payload);
-          fetchParticipants();
+          const loadParticipants = async () => {
+            try {
+              const { data } = await supabase
+                .from("quiz_participants")
+                .select("*")
+                .eq("room_id", room.id)
+                .order("joined_at", { ascending: true });
+
+              if (data) {
+                setParticipants(data);
+              }
+            } catch (error) {
+              console.error("Error fetching participants:", error);
+            }
+          };
+          loadParticipants();
         })
         .subscribe();
 
@@ -73,70 +120,9 @@ export default function HostQuizPage() {
     }
   }, [room]);
 
-  const fetchQuizData = async () => {
-    try {
-      // Fetch quiz
-      const { data: quizData, error: quizError } = await supabase
-        .from("quizzes")
-        .select("*")
-        .eq("id", quizId)
-        .single();
 
-      if (quizError || !quizData) {
-        router.push("/quiz");
-        return;
-      }
 
-      setQuiz(quizData);
 
-      // Fetch questions
-      const { data: questionsData } = await supabase
-        .from("quiz_questions")
-        .select("*")
-        .eq("quiz_id", quizId)
-        .order("order_index", { ascending: true });
-
-      if (questionsData) {
-        setQuestions(questionsData);
-      }
-
-      // Check if there's already an active room for this quiz
-      const { data: existingRoom } = await supabase
-        .from("quiz_rooms")
-        .select("*")
-        .eq("quiz_id", quizId)
-        .eq("host_id", user?.id)
-        .eq("status", "waiting")
-        .single();
-
-      if (existingRoom) {
-        setRoom(existingRoom);
-        fetchParticipants();
-      }
-    } catch (error) {
-      console.error("Error fetching quiz data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchParticipants = async () => {
-    if (!room) return;
-
-    try {
-      const { data } = await supabase
-        .from("quiz_participants")
-        .select("*")
-        .eq("room_id", room.id)
-        .order("joined_at", { ascending: true });
-
-      if (data) {
-        setParticipants(data);
-      }
-    } catch (error) {
-      console.error("Error fetching participants:", error);
-    }
-  };
 
   const createRoom = async () => {
     if (!user || !roomName.trim() || questions.length === 0) return;

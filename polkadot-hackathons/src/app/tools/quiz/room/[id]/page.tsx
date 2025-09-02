@@ -11,7 +11,7 @@ import { Database } from "@/lib/database.types";
 type QuizRoom = Database["public"]["Tables"]["quiz_rooms"]["Row"];
 type QuizQuestion = Database["public"]["Tables"]["quiz_questions"]["Row"];
 type QuizParticipant = Database["public"]["Tables"]["quiz_participants"]["Row"];
-type QuizAnswer = Database["public"]["Tables"]["quiz_answers"]["Row"];
+
 
 export default function QuizRoomPage() {
   const { user } = useAuth();
@@ -25,18 +25,99 @@ export default function QuizRoomPage() {
   const [currentParticipant, setCurrentParticipant] = useState<QuizParticipant | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
+  const [hasAnswered, setHasAnswered] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isHost, setIsHost] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [answers, setAnswers] = useState<QuizAnswer[]>([]);
+
 
   useEffect(() => {
     if (user && roomId) {
-      fetchRoomData();
+      const loadRoomData = async () => {
+        try {
+          // Fetch room
+          const { data: roomData, error: roomError } = await supabase
+            .from("quiz_rooms")
+            .select("*")
+            .eq("id", roomId)
+            .single();
+
+          if (roomError || !roomData) {
+            router.push("/quiz");
+            return;
+          }
+
+          setRoom(roomData);
+          setCurrentQuestionIndex(roomData.current_question_index);
+
+          // Check if user is host
+          setIsHost(roomData.host_id === user?.id);
+
+          // Fetch questions
+          const { data: questionsData } = await supabase
+            .from("quiz_questions")
+            .select("*")
+            .eq("quiz_id", roomData.quiz_id)
+            .order("order_index", { ascending: true });
+
+          if (questionsData) {
+            setQuestions(questionsData);
+          }
+
+          // Fetch participants
+          const { data: participantsData } = await supabase
+            .from("quiz_participants")
+            .select("*")
+            .eq("room_id", roomId)
+            .order("score", { ascending: false });
+
+          if (participantsData) {
+            setParticipants(participantsData);
+          }
+
+          // Check if user is already a participant
+          const { data: participantData } = await supabase
+            .from("quiz_participants")
+            .select("*")
+            .eq("room_id", roomId)
+            .eq("user_id", user?.id)
+            .single();
+
+          if (participantData) {
+            setCurrentParticipant(participantData);
+          }
+
+          // Check if user has already answered the current question
+          if (participantData && questionsData) {
+            const currentQuestion = questionsData[roomData.current_question_index];
+            if (currentQuestion) {
+              const { data: existingAnswer } = await supabase
+                .from("quiz_answers")
+                .select("*")
+                .eq("room_id", roomId)
+                .eq("participant_id", participantData.id)
+                .eq("question_id", currentQuestion.id)
+                .single();
+              
+              setHasAnswered(!!existingAnswer);
+            }
+          }
+
+          if (roomData.status === 'finished') {
+            setShowResults(true);
+          }
+        } catch (error) {
+          console.error("Error fetching room data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      loadRoomData();
     }
-  }, [user, roomId]);
+  }, [user, roomId, router]);
 
   useEffect(() => {
     if (room) {
@@ -71,7 +152,22 @@ export default function QuizRoomPage() {
           filter: `room_id=eq.${room.id}`
         }, (payload) => {
           console.log("participantSubscription", payload);
-          fetchParticipants();
+          const loadParticipants = async () => {
+            try {
+              const { data } = await supabase
+                .from("quiz_participants")
+                .select("*")
+                .eq("room_id", roomId)
+                .order("score", { ascending: false });
+
+              if (data) {
+                setParticipants(data);
+              }
+            } catch (error) {
+              console.error("Error fetching participants:", error);
+            }
+          };
+          loadParticipants();
         })
         .subscribe();
 
@@ -80,7 +176,7 @@ export default function QuizRoomPage() {
         participantSubscription.unsubscribe();
       };
     }
-  }, [room]);
+  }, [room, roomId]);
 
   useEffect(() => {
     if (room?.status === 'active' && questions.length > 0) {
@@ -89,6 +185,7 @@ export default function QuizRoomPage() {
         setTimeLeft(currentQuestion.time_limit);
         setQuestionStartTime(Date.now());
         setSelectedAnswer("");
+        setHasAnswered(false);
       }
     }
   }, [room?.status, currentQuestionIndex, questions]);
@@ -99,7 +196,45 @@ export default function QuizRoomPage() {
         setTimeLeft(prev => {
           if (prev <= 1) {
             // Time's up, submit answer
-            submitAnswer();
+            const submitAnswerNow = async () => {
+              if (!currentParticipant || !questions[currentQuestionIndex] || selectedAnswer === "") return;
+
+              const currentQuestion = questions[currentQuestionIndex];
+              const timeTaken = Math.floor((Date.now() - questionStartTime) / 1000);
+              const isCorrect = selectedAnswer === currentQuestion.correct_answer;
+              const pointsEarned = isCorrect ? currentQuestion.points : 0;
+
+              try {
+                // Save answer
+                const { error: answerError } = await supabase
+                  .from("quiz_answers")
+                  .insert({
+                    room_id: roomId,
+                    question_id: currentQuestion.id,
+                    participant_id: currentParticipant.id,
+                    answer: selectedAnswer,
+                    is_correct: isCorrect,
+                    points_earned: pointsEarned,
+                    time_taken: timeTaken
+                  });
+
+                if (answerError) throw answerError;
+
+                // Update participant score
+                const newScore = (currentParticipant.score || 0) + pointsEarned;
+                await supabase
+                  .from("quiz_participants")
+                  .update({ score: newScore })
+                  .eq("id", currentParticipant.id);
+
+                setCurrentParticipant(prev => prev ? { ...prev, score: newScore } : null);
+                setSelectedAnswer("");
+                setHasAnswered(true);
+              } catch (error) {
+                console.error("Error submitting answer:", error);
+              }
+            };
+            submitAnswerNow();
             return 0;
           }
           return prev - 1;
@@ -108,92 +243,13 @@ export default function QuizRoomPage() {
 
       return () => clearTimeout(timer);
     }
-  }, [timeLeft, room?.status]);
+  }, [timeLeft, room?.status, currentParticipant, questions, currentQuestionIndex, selectedAnswer, questionStartTime, roomId]);
 
-  const fetchRoomData = async () => {
-    try {
-      // Fetch room
-      const { data: roomData, error: roomError } = await supabase
-        .from("quiz_rooms")
-        .select("*")
-        .eq("id", roomId)
-        .single();
 
-      if (roomError || !roomData) {
-        router.push("/quiz");
-        return;
-      }
 
-      setRoom(roomData);
-      setCurrentQuestionIndex(roomData.current_question_index);
 
-      // Check if user is host
-      setIsHost(roomData.host_id === user?.id);
 
-      // Fetch questions
-      const { data: questionsData } = await supabase
-        .from("quiz_questions")
-        .select("*")
-        .eq("quiz_id", roomData.quiz_id)
-        .order("order_index", { ascending: true });
 
-      if (questionsData) {
-        setQuestions(questionsData);
-      }
-
-      // Fetch participants
-      await fetchParticipants();
-
-      // Check if user is already a participant
-      const { data: participantData } = await supabase
-        .from("quiz_participants")
-        .select("*")
-        .eq("room_id", roomId)
-        .eq("user_id", user?.id)
-        .single();
-
-      if (participantData) {
-        setCurrentParticipant(participantData);
-      }
-
-      // Fetch answers for this participant
-      if (participantData) {
-        const { data: answersData } = await supabase
-          .from("quiz_answers")
-          .select("*")
-          .eq("room_id", roomId)
-          .eq("participant_id", participantData.id);
-
-        if (answersData) {
-          setAnswers(answersData);
-        }
-      }
-
-      if (roomData.status === 'finished') {
-        setShowResults(true);
-      }
-    } catch (error) {
-      console.error("Error fetching room data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchParticipants = async () => {
-    try {
-      const { data } = await supabase
-        .from("quiz_participants")
-        .select("*")
-        .eq("room_id", roomId)
-        .order("score", { ascending: false });
-
-      if (data) {
-        setParticipants(data);
-      }
-    } catch (error) {
-      console.error("Error fetching participants:", error);
-    }
-  };
 
   const submitAnswer = async () => {
     if (!currentParticipant || !questions[currentQuestionIndex] || selectedAnswer === "") return;
@@ -205,7 +261,7 @@ export default function QuizRoomPage() {
 
     try {
       // Save answer
-      const { data: answerData, error: answerError } = await supabase
+      const { error: answerError } = await supabase
         .from("quiz_answers")
         .insert({
           room_id: roomId,
@@ -215,24 +271,22 @@ export default function QuizRoomPage() {
           is_correct: isCorrect,
           points_earned: pointsEarned,
           time_taken: timeTaken
-        })
-        .select()
-        .single();
+        });
 
       if (answerError) throw answerError;
 
+
+
       // Update participant score
-      const { error: scoreError } = await supabase
+      const newScore = (currentParticipant.score || 0) + pointsEarned;
+      await supabase
         .from("quiz_participants")
-        .update({ score: currentParticipant.score + pointsEarned })
+        .update({ score: newScore })
         .eq("id", currentParticipant.id);
 
-      if (scoreError) throw scoreError;
-
-      // Update local state
-      setAnswers(prev => [...prev, answerData]);
-      setCurrentParticipant(prev => prev ? { ...prev, score: prev.score + pointsEarned } : null);
+      setCurrentParticipant(prev => prev ? { ...prev, score: newScore } : null);
       setSelectedAnswer("");
+      setHasAnswered(true);
     } catch (error) {
       console.error("Error submitting answer:", error);
     }
@@ -263,6 +317,8 @@ export default function QuizRoomPage() {
 
     if (!error) {
       setCurrentQuestionIndex(prev => prev + 1);
+      setHasAnswered(false);
+      setSelectedAnswer("");
     }
   };
 
@@ -323,7 +379,6 @@ export default function QuizRoomPage() {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const hasAnswered = answers.some(a => a.question_id === currentQuestion?.id);
 
   return (
     <div className="container mx-auto px-4 py-8">

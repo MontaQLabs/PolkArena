@@ -81,75 +81,69 @@ export function extractShortCodeFromURL(url: string): string | null {
 }
 
 /**
- * Format event duration with accurate hours and minutes
+ * Format event duration for display
  */
 export function formatEventDuration(startTime: string, endTime: string): string {
   const start = new Date(startTime);
   const end = new Date(endTime);
   
-  const durationMs = end.getTime() - start.getTime();
-  const totalMinutes = Math.floor(durationMs / (1000 * 60));
+  const startDate = start.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    year: start.getFullYear() !== end.getFullYear() ? 'numeric' : undefined
+  });
   
-  const days = Math.floor(totalMinutes / (24 * 60));
-  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
-  const minutes = totalMinutes % 60;
+  const endDate = end.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    year: 'numeric'
+  });
   
-  const parts = [];
+  const startTimeStr = start.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
   
-  if (days > 0) {
-    parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+  const endTimeStr = end.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  
+  if (startDate === endDate) {
+    // Same day
+    return `${startDate} • ${startTimeStr} - ${endTimeStr}`;
+  } else {
+    // Different days
+    return `${startDate} ${startTimeStr} - ${endDate} ${endTimeStr}`;
   }
-  
-  if (hours > 0) {
-    parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-  }
-  
-  if (minutes > 0) {
-    parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-  }
-  
-  if (parts.length === 0) {
-    return '0 minutes';
-  }
-  
-  return parts.join(' ');
 }
 
 /**
- * Calculate total duration for multi-day events by aggregating individual day durations
+ * Format multi-day event duration
  */
-export function formatMultiDayEventDuration(eventDays: Array<{ start_time: string; end_time: string }>): string {
-  let totalMinutes = 0;
+export function formatMultiDayEventDuration(eventDays: Array<{ day_number: number; start_time: string; end_time: string }>): string {
+  if (!eventDays || eventDays.length === 0) return '';
   
-  for (const day of eventDays) {
-    const start = new Date(day.start_time);
-    const end = new Date(day.end_time);
-    const durationMs = end.getTime() - start.getTime();
-    const dayMinutes = Math.floor(durationMs / (1000 * 60));
-    totalMinutes += dayMinutes;
+  const firstDay = new Date(eventDays[0].start_time);
+  const lastDay = new Date(eventDays[eventDays.length - 1].end_time);
+  
+  const firstDayStr = firstDay.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    year: firstDay.getFullYear() !== lastDay.getFullYear() ? 'numeric' : undefined
+  });
+  
+  const lastDayStr = lastDay.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    year: 'numeric'
+  });
+  
+  if (firstDayStr === lastDayStr) {
+    return firstDayStr;
+  } else {
+    return `${firstDayStr} - ${lastDayStr}`;
   }
-  
-  const days = Math.floor(totalMinutes / (24 * 60));
-  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
-  const minutes = totalMinutes % 60;
-  
-  const parts = [];
-  
-  if (days > 0) {
-    parts.push(`${days} day${days !== 1 ? 's' : ''}`);
-  }
-  
-  if (hours > 0) {
-    parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-  }
-  
-  if (minutes > 0) {
-    parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-  }
-  
-  if (parts.length === 0) {
-    return '0 minutes';
-  }
-  
-  return parts.join(' ');
 }

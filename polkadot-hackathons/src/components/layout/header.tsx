@@ -76,11 +76,35 @@ export function Header() {
               📅 Events
             </Link>
             <Link
-              href="/quiz"
+              href="/bounties"
               className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium whitespace-nowrap"
             >
-              🧠 Quizzes
+              💰 Bounties
             </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium">
+                  🛠️ Tools
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link href="/tools/quiz">
+                    🧠 Quiz
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/tools/buzzer">
+                    ⚡ Buzzer
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/tools/social-quest">
+                    📱 Social Quest
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* {user && (
               <Link
@@ -238,14 +262,43 @@ export function Header() {
                 <Calendar className="h-4 w-4" />
                 <span>📅 Events</span>
               </Link>
-              <Link
-                href="/quiz"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Calendar className="h-4 w-4" />
-                <span>🧠 Quizzes</span>
-              </Link>
+              <div className="border-t border-border/40 my-2 pt-2">
+                <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Tools
+                </div>
+                <Link
+                  href="/tools/quiz"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>🧠 Quiz</span>
+                </Link>
+                <Link
+                  href="/tools/buzzer"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>⚡ Buzzer</span>
+                </Link>
+                <Link
+                  href="/tools/social-quest"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>📱 Social Quest</span>
+                </Link>
+                <Link
+                  href="/bounties"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>💰 Bounties</span>
+                </Link>
+              </div>
 
               {/* User-specific actions */}
               {user && (

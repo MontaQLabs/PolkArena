@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +14,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
-import { formatEventDuration, formatMultiDayEventDuration } from "@/lib/utils";
-import { useEventCache } from "@/lib/cache";
-import { ErrorDisplay, LoadingWithTimeout } from "@/components/ui/error-boundary";
+import { toast } from "sonner";
+
 
 interface Event {
   id: string;
@@ -37,14 +36,6 @@ interface Event {
   discord_url: string | null;
   twitter_url: string | null;
   requirements: string | null;
-  is_multi_day: boolean;
-  event_days?: Array<{
-    id: string;
-    day_number: number;
-    day_name: string | null;
-    start_time: string;
-    end_time: string;
-  }>;
   created_at: string;
   organizer: {
     name: string;
@@ -66,19 +57,10 @@ interface CustomField {
 // Helper function to get image URL from storage path
 const getEventBannerUrl = (imagePath: string | null) => {
   if (!imagePath) return null;
-  try {
   const { data } = supabase.storage
     .from('event-banners')
     .getPublicUrl(imagePath);
-    
-    // Log for debugging
-    // console.log('Event banner URL for path:', imagePath, '→', data.publicUrl);
-    
   return data.publicUrl;
-  } catch (error) {
-    console.error('Error generating event banner URL:', error);
-    return null;
-  }
 };
 
 function EventCard({ event }: { event: Event }) {
@@ -173,10 +155,7 @@ function EventCard({ event }: { event: Event }) {
           <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
             <Clock className="h-4 w-4" />
             <span>
-              Duration: {event.is_multi_day && event.event_days && event.event_days.length > 0 
-                ? formatMultiDayEventDuration(event.event_days)
-                : formatEventDuration(event.start_time, event.end_time)
-              }
+              Duration: {Math.ceil((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / (1000 * 60 * 60))} hours
             </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
@@ -213,23 +192,43 @@ function EventCard({ event }: { event: Event }) {
   );
 }
 
-
+function EventsLoading() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, i) => (
+        <Card key={i} className="animate-pulse bg-white dark:bg-gray-900">
+          <div className="w-full h-48 bg-muted dark:bg-gray-800 rounded-t-lg"></div>
+          <CardHeader>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-20 mb-2"></div>
+            <div className="h-6 bg-muted dark:bg-gray-800 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-full mb-1"></div>
+            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-2/3"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-20 bg-muted dark:bg-gray-800 rounded mb-4"></div>
+            <div className="flex gap-2">
+              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
+              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
 export default function EventsPage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
 
-  // Use cache for upcoming events
-  const {
-    data: events,
-    loading: upcomingLoading,
-    error: upcomingError,
-    refetch: refetchUpcoming
-  } = useEventCache(
-    "events_list",
-    async () => {
+  useEffect(() => {
+    const fetchEvents = async () => {
       try {
+        setLoading(true);
+
+        // Updated query to use the correct foreign key relationship
         const { data, error } = await supabase
           .from("events")
           .select(`
@@ -240,98 +239,24 @@ export default function EventsPage() {
           .order("start_time", { ascending: true });
 
         if (error) {
-          console.error("Error fetching upcoming events:", error);
-          throw new Error(`Database error: ${error.message}`);
+          console.error("Error fetching events:", error);
+          toast.error("Failed to load events");
+          return;
         }
 
-        // Fetch event days for multi-day events
-        const eventsWithDays = await Promise.all(
-          (data || []).map(async (event) => {
-            if (event.is_multi_day) {
-              const { data: eventDays, error: daysError } = await supabase
-                .from("event_days")
-                .select("*")
-                .eq("event_id", event.id)
-                .order("day_number", { ascending: true });
-
-              if (daysError) {
-                console.error("Error fetching event days:", daysError);
-              } else {
-                event.event_days = eventDays || [];
-              }
-            }
-            return event;
-          })
-        );
-
-        return eventsWithDays;
-      } catch (err) {
-        console.error("Critical error in events fetch:", err);
-        throw err;
+        setEvents(data || []);
+      } catch (error) {
+        console.error("Error:", error);
+        toast.error("Failed to load events");
+      } finally {
+        setLoading(false);
       }
-    },
-    2 * 60 * 1000 // 2 minutes cache
-  );
+    };
 
-  // Use cache for past events
-  const {
-    data: pastEvents,
-    loading: pastLoading,
-    error: pastError,
-    refetch: refetchPast
-  } = useEventCache(
-    "past_events_list",
-    async () => {
-      try {
-        const { data, error } = await supabase
-          .from("events")
-          .select(`
-            *,
-            organizer:organizer_id(name, email)
-          `)
-          .lt("start_time", new Date().toISOString())
-          .order("start_time", { ascending: false })
-          .limit(20); // Limit past events to avoid overwhelming the page
+    fetchEvents();
+  }, []);
 
-        if (error) {
-          console.error("Error fetching past events:", error);
-          throw new Error(`Database error: ${error.message}`);
-        }
-
-        // Fetch event days for multi-day events
-        const eventsWithDays = await Promise.all(
-          (data || []).map(async (event) => {
-            if (event.is_multi_day) {
-              const { data: eventDays, error: daysError } = await supabase
-                .from("event_days")
-                .select("*")
-                .eq("event_id", event.id)
-                .order("day_number", { ascending: true });
-
-              if (daysError) {
-                console.error("Error fetching event days:", daysError);
-              } else {
-                event.event_days = eventDays || [];
-              }
-            }
-            return event;
-          })
-        );
-
-        return eventsWithDays;
-      } catch (err) {
-        console.error("Critical error in past events fetch:", err);
-        throw err;
-      }
-    },
-    10 * 60 * 1000 // 10 minutes cache
-  );
-
-  const loading = upcomingLoading || pastLoading;
-  const eventsData = events || [];
-  const pastEventsData = pastEvents || [];
-
-  const filteredEvents = (activeTab === "upcoming" ? eventsData : pastEventsData).filter((event) => {
+  const filteredEvents = events.filter((event) => {
     const matchesSearch =
       event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -386,53 +311,15 @@ export default function EventsPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b mb-6">
-        <button
-          onClick={() => setActiveTab("upcoming")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === "upcoming"
-              ? "border-polkadot-pink text-polkadot-pink"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Upcoming Events ({eventsData.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("past")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-            activeTab === "past"
-              ? "border-polkadot-pink text-polkadot-pink"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Past Events ({pastEventsData.length})
-        </button>
-      </div>
-
-      {/* Error Handling */}
-      {(upcomingError || pastError) && (
-        <ErrorDisplay
-          error={activeTab === "upcoming" ? upcomingError : pastError}
-          onRetry={activeTab === "upcoming" ? refetchUpcoming : refetchPast}
-          title={`Failed to load ${activeTab} events`}
-        />
-      )}
-
       {/* Events Grid */}
       {loading ? (
-        <LoadingWithTimeout
-          isLoading={loading}
-          message="Server is experiencing high load. Please wait..."
-        />
+        <EventsLoading />
       ) : filteredEvents.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-muted-foreground mb-4">
             {searchTerm || typeFilter !== "all"
               ? "No events found matching your criteria."
-              : activeTab === "upcoming" 
-                ? "No upcoming events found."
-                : "No past events found."}
+              : "No upcoming events found."}
           </div>
           {searchTerm || typeFilter !== "all" ? (
             <Button
@@ -444,14 +331,10 @@ export default function EventsPage() {
             >
               Clear Filters
             </Button>
-          ) : activeTab === "upcoming" ? (
+          ) : (
             <Button asChild>
               <Link href="/events/create">Create the First Event</Link>
             </Button>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              Past events will appear here once they are completed.
-            </div>
           )}
         </div>
       ) : (
