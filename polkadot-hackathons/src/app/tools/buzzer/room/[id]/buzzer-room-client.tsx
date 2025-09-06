@@ -1,14 +1,47 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, Users, Crown, Play, Square, RotateCcw, LogOut } from "lucide-react";
+import { useBuzzerWebSocket } from "@/hooks/use-buzzer-websocket";
 
-import { buzzerStorage } from "@/lib/buzzer-storage";
+interface BuzzerParticipant {
+  name: string;
+  buzzed: boolean;
+  order?: number;
+}
+
+interface BuzzerRoom {
+  id: string;
+  room_name: string;
+  host_id: string;
+  host_name: string;
+  pin: string;
+  status: 'waiting' | 'active' | 'finished';
+  participants: Record<string, BuzzerParticipant>;
+  created_at: string;
+}
+
+interface WebSocketData {
+  room?: {
+    id: string;
+    room_name: string;
+    host_id: string;
+    host_name: string;
+    pin: string;
+    status: 'waiting' | 'active' | 'finished';
+    participants: Record<string, BuzzerParticipant>;
+    created_at: string;
+  };
+  participantCount?: number;
+  status?: string;
+  participantName?: string;
+  order?: number;
+}
 
 interface BuzzerRoomClientProps {
   roomId: string;
@@ -17,313 +50,355 @@ interface BuzzerRoomClientProps {
 export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const [room, setRoom] = useState<{
-    id: string;
-    room_name: string;
-    host_id: string;
-    host_name: string;
-    pin: string;
-    status: 'waiting' | 'active' | 'finished';
-    created_at: Date;
-  } | null>(null);
-  const [participants, setParticipants] = useState<Array<{
-    user_id: string;
-    name: string;
-    buzzed: boolean;
-    order?: number;
-  }>>([]);
+  const [room, setRoom] = useState<BuzzerRoom | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isHost, setIsHost] = useState(false);
-  const [isParticipant, setIsParticipant] = useState(false);
-  const [buzzed, setBuzzed] = useState(false);
-  const [buzzedOrder, setBuzzedOrder] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [participantsArray, setParticipantsArray] = useState<Array<[string, BuzzerParticipant]>>([]);
 
-  useEffect(() => {
-    if (user && roomId) {
-      const loadRoomData = () => {
-        const roomData = buzzerStorage.getRoom(roomId);
-
-        if (!roomData) {
-          router.push("/tools/buzzer");
-          return;
-        }
-
-        const formattedRoom = {
-          id: roomData.id,
-          room_name: roomData.room_name,
-          host_id: roomData.host_id,
-          host_name: roomData.host_name,
-          pin: roomData.pin,
-          status: roomData.status,
-          created_at: roomData.created_at
-        };
-
-        setRoom(formattedRoom);
-        setIsHost(roomData.host_id === user?.id);
-
-        // Format participants
-        const participantsArray = Array.from(roomData.participants.entries()).map(([userId, data]) => ({
-          user_id: userId,
-          name: data.name,
-          buzzed: data.buzzed,
-          order: data.order
-        }));
-
-        setParticipants(participantsArray);
-        
-        const currentParticipant = participantsArray.find(p => p.user_id === user?.id);
-        setIsParticipant(!!currentParticipant);
-        
-        if (currentParticipant) {
-          setBuzzed(currentParticipant.buzzed);
-          setBuzzedOrder(currentParticipant.order || null);
-        }
-
-        setLoading(false);
-      };
-      
-      loadRoomData();
+  // WebSocket handlers
+  const handleRoomUpdate = useCallback((data: WebSocketData) => {
+    if (data.room) {
+      setRoom(data.room);
+      // Convert Record to array for rendering via Map
+      const participantsMap = new Map(Object.entries(data.room.participants)) as Map<string, BuzzerParticipant>;
+      setParticipantsArray(Array.from(participantsMap.entries()));
     }
-  }, [user, roomId, router]);
+  }, []);
 
-  const updateRoomStatus = (status: 'waiting' | 'active' | 'finished') => {
-    buzzerStorage.updateRoomStatus(roomId, status);
-    setRoom(prev => prev ? { ...prev, status } : null);
-  };
-
-  const startRoom = () => {
-    if (!isHost) return;
-    updateRoomStatus("active");
-  };
-
-  const stopRoom = () => {
-    if (!isHost) return;
-    updateRoomStatus("finished");
-  };
-
-  const resetRoom = () => {
-    if (!isHost) return;
-    
-    const roomData = buzzerStorage.getRoom(roomId);
-    
-    if (roomData) {
-      // Reset all participants' buzzer state
-      roomData.participants.forEach((participant) => {
-        participant.buzzed = false;
-        participant.order = undefined;
+  const handleBuzz = useCallback((data: WebSocketData) => {
+    // Update the participant who buzzed
+    if (room && data.participantName && data.order !== undefined) {
+      setRoom(prevRoom => {
+        if (!prevRoom) return prevRoom;
+        const updatedRoom = { ...prevRoom };
+        const participantsMap = new Map(Object.entries(updatedRoom.participants));
+        
+        // Find and update the participant who buzzed
+        for (const [userId, participant] of participantsMap.entries()) {
+          if (participant.name === data.participantName) {
+            participantsMap.set(userId, { ...participant, buzzed: true, order: data.order });
+            break;
+          }
+        }
+        
+        updatedRoom.participants = Object.fromEntries(participantsMap.entries());
+        setParticipantsArray(Array.from(participantsMap.entries()));
+        return updatedRoom;
       });
+    }
+  }, [room]);
+
+  const handleStatusChange = useCallback((data: WebSocketData) => {
+    if (data.status) {
+      setRoom(prevRoom => prevRoom ? { ...prevRoom, status: data.status as 'waiting' | 'active' | 'finished' } : null);
+    }
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setRoom(prevRoom => {
+      if (!prevRoom) return prevRoom;
+      const updatedRoom = { ...prevRoom, status: 'waiting' as const };
+      const participantsMap = new Map(Object.entries(updatedRoom.participants));
       
-      roomData.status = "waiting";
+      // Reset all participants
+      for (const [userId, participant] of participantsMap.entries()) {
+        participantsMap.set(userId, { ...participant, buzzed: false, order: undefined });
+      }
       
-      // Update local state
-      setRoom(prev => prev ? { ...prev, status: "waiting" } : null);
-      setParticipants(prev => prev.map(p => ({ ...p, buzzed: false, order: undefined })));
-      setBuzzed(false);
-      setBuzzedOrder(null);
+      updatedRoom.participants = Object.fromEntries(participantsMap.entries());
+      setParticipantsArray(Array.from(participantsMap.entries()));
+      return updatedRoom;
+    });
+  }, []);
+
+  // Initialize WebSocket connection
+  const { isConnected } = useBuzzerWebSocket({
+    roomId,
+    userId: user?.id || '',
+    onRoomUpdate: handleRoomUpdate,
+    onBuzz: handleBuzz,
+    onStatusChange: handleStatusChange,
+    onReset: handleReset
+  });
+
+  // Load initial room data
+  useEffect(() => {
+    const loadRoomData = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/tools/buzzer/rooms/${roomId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setRoom(data.room);
+          // Convert Record to array for rendering via Map
+          const participantsMap = new Map(Object.entries(data.room.participants)) as Map<string, BuzzerParticipant>;
+          setParticipantsArray(Array.from(participantsMap.entries()));
+        } else {
+          const errorData = await response.json();
+          setError(errorData.error || 'Failed to load room');
+        }
+      } catch (error) {
+        console.error('Error loading room:', error);
+        setError('Failed to load room');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRoomData();
+  }, [user, roomId]);
+
+  const startRoom = async () => {
+    if (!room || room.host_id !== user?.id) return;
+    
+    try {
+      const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'active' })
+      });
+
+      if (response.ok) {
+        setRoom(prevRoom => prevRoom ? { ...prevRoom, status: 'active' as const } : null);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to start room');
+      }
+    } catch (error) {
+      console.error('Error starting room:', error);
+      alert('Failed to start room');
     }
   };
 
-  const buzz = () => {
-    if (!isParticipant || buzzed || room?.status !== "active") return;
+  const stopRoom = async () => {
+    if (!room || room.host_id !== user?.id) return;
     
-    const roomData = buzzerStorage.getRoom(roomId);
-    
-    if (roomData && user) {
-      const participant = roomData.participants.get(user.id);
-      if (participant) {
-        const buzzedOrder = Array.from(roomData.participants.values()).filter(p => p.buzzed).length + 1;
-        
-        participant.buzzed = true;
-        participant.order = buzzedOrder;
-        
-        // Update local state
-        setBuzzed(true);
-        setBuzzedOrder(buzzedOrder);
-        
-        // Update participants list
-        setParticipants(prev => prev.map(p => 
-          p.user_id === user.id 
-            ? { ...p, buzzed: true, order: buzzedOrder }
-            : p
-        ));
+    try {
+      const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'finished' })
+      });
+
+      if (response.ok) {
+        setRoom(prevRoom => prevRoom ? { ...prevRoom, status: 'finished' as const } : null);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to stop room');
       }
+    } catch (error) {
+      console.error('Error stopping room:', error);
+      alert('Failed to stop room');
+    }
+  };
+
+  const resetRoom = async () => {
+    if (!room || room.host_id !== user?.id) return;
+    
+    try {
+      const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/reset`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        setRoom(prevRoom => {
+          if (!prevRoom) return prevRoom;
+          const updatedRoom = { ...prevRoom, status: 'waiting' as const };
+          const participantsMap = new Map(Object.entries(updatedRoom.participants));
+          
+          // Reset all participants
+          for (const [userId, participant] of participantsMap.entries()) {
+            participantsMap.set(userId, { ...participant, buzzed: false, order: undefined });
+          }
+          
+          updatedRoom.participants = Object.fromEntries(participantsMap.entries());
+          setParticipantsArray(Array.from(participantsMap.entries()));
+          return updatedRoom;
+        });
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to reset room');
+      }
+    } catch (error) {
+      console.error('Error resetting room:', error);
+      alert('Failed to reset room');
+    }
+  };
+
+  const buzz = async () => {
+    if (!room || room.status !== 'active') return;
+    
+    try {
+      const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/buzz`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buzzed: true })
+      });
+
+      if (response.ok) {
+        // The WebSocket will handle the update
+        console.log('Buzzed in successfully');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to buzz in');
+      }
+    } catch (error) {
+      console.error('Error buzzing in:', error);
+      alert('Failed to buzz in');
     }
   };
 
   const leaveRoom = () => {
-    const roomData = buzzerStorage.getRoom(roomId);
-    
-    if (roomData && user) {
-      roomData.participants.delete(user.id);
-      
-      // If no participants left, delete the room
-      if (roomData.participants.size === 0) {
-        buzzerStorage.deleteRoom(roomId);
-      }
-    }
-    
-    router.push("/tools/buzzer");
+    router.push('/tools/buzzer');
   };
 
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-polkadot-pink mx-auto mb-4"></div>
+          <p>Loading room...</p>
+        </div>
       </div>
     );
   }
 
-  if (!room) {
+  if (error || !room) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Room not found</div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            {error || 'Room not found'}
+          </p>
+          <Button onClick={leaveRoom} variant="outline">
+            Back to Buzzer
+          </Button>
+        </div>
       </div>
     );
   }
+
+  const isHost = room.host_id === user?.id;
+  const currentParticipant = room.participants[user?.id || ''];
+  const hasBuzzed = currentParticipant?.buzzed || false;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-polkadot-pink">⚡ {room.room_name}</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Hosted by {room.host_name} • PIN: {room.pin}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={leaveRoom}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Leave Room
-          </Button>
-          {isHost && (
-            <>
-              {room.status === "waiting" && (
-                <Button onClick={startRoom} className="bg-green-600 hover:bg-green-700">
-                  <Play className="w-4 h-4 mr-2" />
-                  Start Room
-                </Button>
-              )}
-              {room.status === "active" && (
-                <>
-                  <Button onClick={stopRoom} className="bg-red-600 hover:bg-red-700">
-                    <Square className="w-4 h-4 mr-2" />
-                    End Room
-                  </Button>
-                  <Button onClick={resetRoom} variant="outline">
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset
-                  </Button>
-                </>
-              )}
-              {room.status === "finished" && (
-                <Button onClick={resetRoom} className="bg-blue-600 hover:bg-blue-700">
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  New Round
-                </Button>
-              )}
-            </>
-          )}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-polkadot-pink mb-2">⚡ {room.room_name}</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          Room PIN: <span className="font-mono font-bold">{room.pin}</span>
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          <Badge variant={room.status === 'waiting' ? 'secondary' : room.status === 'active' ? 'default' : 'destructive'}>
+            {room.status.toUpperCase()}
+          </Badge>
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span>{Object.keys(room.participants).length} participants</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            <span>WebSocket: {isConnected ? 'Connected' : 'Disconnected'}</span>
+          </div>
         </div>
       </div>
 
-      <Card className="mb-8 border-2 border-storm-200">
+      {/* Host Controls */}
+      {isHost && (
+        <Card className="mb-6 border-2 border-storm-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-500" />
+              Host Controls
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              {room.status === 'waiting' && (
+                <Button onClick={startRoom} className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+                  <Play className="h-4 w-4 mr-2" />
+                  Start Room
+                </Button>
+              )}
+              {room.status === 'active' && (
+                <Button onClick={stopRoom} variant="destructive">
+                  <Square className="h-4 w-4 mr-2" />
+                  Stop Room
+                </Button>
+              )}
+              <Button onClick={resetRoom} variant="outline">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset Room
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Participant Controls */}
+      {!isHost && room.status === 'active' && (
+        <Card className="mb-6 border-2 border-storm-200">
+          <CardHeader>
+            <CardTitle>Your Buzzer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={buzz} 
+              disabled={hasBuzzed}
+              className={`w-full h-20 text-xl font-bold ${
+                hasBuzzed 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-polkadot-pink hover:bg-polkadot-pink/90 hover:scale-105 transition-transform'
+              }`}
+            >
+              {hasBuzzed ? `BUZZED! (${currentParticipant?.order})` : 'BUZZ IN!'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Participants List */}
+      <Card className="border-2 border-storm-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-polkadot-pink" />
-            Room Status
-          </CardTitle>
+          <CardTitle>Participants</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <Badge 
-              variant={room.status === "active" ? "default" : room.status === "finished" ? "secondary" : "outline"}
-              className={room.status === "active" ? "bg-green-600" : ""}
-            >
-              {room.status === "waiting" && "⏳ Waiting for Players"}
-              {room.status === "active" && "🎯 Active - Buzzing Enabled"}
-              {room.status === "finished" && "🏁 Round Finished"}
-            </Badge>
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <Users className="h-4 w-4" />
-              {participants.length} participants
-            </div>
+          <div className="space-y-3">
+            {participantsArray.map(([userId, participant]) => (
+              <div key={userId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-center gap-3">
+                  {room.host_id === userId && <Crown className="h-4 w-4 text-yellow-500" />}
+                  <span className="font-medium">{participant.name}</span>
+                  {participant.buzzed && (
+                    <Badge variant="default" className="bg-polkadot-pink">
+                      #{participant.order}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {participant.buzzed ? (
+                    <Zap className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {isParticipant && room.status === "active" && !buzzed && (
-        <Card className="mb-8 border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300">
-          <CardContent className="p-8 text-center">
-            <Button 
-              onClick={buzz}
-              size="lg"
-              className="h-32 w-32 rounded-full bg-polkadot-pink hover:bg-polkadot-pink/90 text-white text-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <Zap className="h-16 w-16 mr-2" />
-              BUZZ!
-            </Button>
-            <p className="text-gray-600 dark:text-gray-300 mt-4">
-              Click to buzz in when you know the answer!
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {isParticipant && buzzed && (
-        <Card className="mb-8 border-2 border-polkadot-pink bg-polkadot-pink/10">
-          <CardContent className="p-8 text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-polkadot-pink mb-2">
-              You buzzed in #{buzzedOrder}!
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300">
-              Wait for the host to call on you or reset for a new round.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-polkadot-pink">Participants</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {participants.map((participant) => (
-            <Card 
-              key={participant.user_id} 
-              className={`border-2 transition-all duration-300 ${
-                participant.buzzed 
-                  ? 'border-polkadot-pink bg-polkadot-pink/10' 
-                  : 'border-storm-200 hover:border-polkadot-pink'
-              }`}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {participant.user_id === room.host_id && (
-                    <Crown className="h-4 w-4 text-yellow-500" />
-                  )}
-                  {participant.name}
-                  {participant.buzzed && (
-                    <Badge className="bg-polkadot-pink text-white">
-                      #{participant.order}
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {participant.buzzed ? (
-                      <span className="text-polkadot-pink font-semibold">
-                        Buzzed in #{participant.order}
-                      </span>
-                    ) : (
-                      "Waiting to buzz..."
-                    )}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* Leave Room Button */}
+      <div className="mt-6 text-center">
+        <Button onClick={leaveRoom} variant="outline">
+          <LogOut className="h-4 w-4 mr-2" />
+          Leave Room
+        </Button>
       </div>
     </div>
   );

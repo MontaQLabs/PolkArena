@@ -4,64 +4,49 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Zap, Users, Clock } from "lucide-react";
-import Link from "next/link";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Zap, Users, Crown, Plus, LogIn } from "lucide-react";
 
-import { buzzerStorage } from "@/lib/buzzer-storage";
+interface BuzzerRoom {
+  id: string;
+  room_name: string;
+  description?: string;
+  host_id: string;
+  host_name: string;
+  pin: string;
+  status: 'waiting' | 'active' | 'finished';
+  participant_count: number;
+  created_at: string;
+}
 
 export default function BuzzerPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
-  const [rooms, setRooms] = useState<Array<{
-    id: string;
-    room_name: string;
-    host_id: string;
-    host_name: string;
-    pin: string;
-    status: 'waiting' | 'active' | 'finished';
-    participant_count: number;
-    created_at: Date;
-  }>>([]);
-  const [myRooms, setMyRooms] = useState<Array<{
-    id: string;
-    room_name: string;
-    host_id: string;
-    host_name: string;
-    pin: string;
-    status: 'waiting' | 'active' | 'finished';
-    participant_count: number;
-    created_at: Date;
-  }>>([]);
-  const [loading] = useState(false);
+  const [rooms, setRooms] = useState<BuzzerRoom[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [newRoomName, setNewRoomName] = useState("");
+  const [newRoomDescription, setNewRoomDescription] = useState("");
   const [joinPin, setJoinPin] = useState("");
-  const [joinError, setJoinError] = useState("");
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newRoom, setNewRoom] = useState({
-    room_name: "",
-    description: ""
-  });
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
 
-  const updateRoomsList = useCallback(() => {
-    const roomsArray = buzzerStorage.getAllRooms().map(room => ({
-      id: room.id,
-      room_name: room.room_name,
-      host_id: room.host_id,
-      host_name: room.host_name,
-      pin: room.pin,
-      status: room.status,
-      participant_count: room.participants.size,
-      created_at: room.created_at
-    }));
-
-    setRooms(roomsArray.filter(room => room.status === 'waiting'));
+  const updateRoomsList = useCallback(async () => {
+    if (!user) return;
     
-    if (user) {
-      const myRoomsArray = roomsArray.filter(room => room.host_id === user.id);
-      setMyRooms(myRoomsArray);
+    try {
+      setLoading(true);
+      const response = await fetch('/api/tools/buzzer/rooms');
+      if (response.ok) {
+        const data = await response.json();
+        setRooms(data.rooms || []);
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    } finally {
+      setLoading(false);
     }
   }, [user]);
 
@@ -72,218 +57,248 @@ export default function BuzzerPage() {
   }, [user, updateRoomsList]);
 
   const createRoom = async () => {
-    if (!user || !newRoom.room_name.trim()) return;
-
-    const hostName = profile?.name || user.email?.split("@")[0] || "Anonymous";
-
-    const newRoomData = buzzerStorage.createRoom({
-      room_name: newRoom.room_name,
-      description: newRoom.description || undefined,
-      host_id: user.id,
-      host_name: hostName,
-      status: 'waiting',
-      participants: new Map([[user.id, { name: hostName, buzzed: false }]])
-    });
+    if (!user || !newRoomName.trim()) return;
     
-    setNewRoom({ room_name: "", description: "" });
-    setCreateDialogOpen(false);
-    updateRoomsList();
-    
-    // Redirect to room
-    router.push(`/tools/buzzer/room/${newRoomData.id}`);
+    try {
+      setLoading(true);
+      const response = await fetch('/api/tools/buzzer/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          room_name: newRoomName.trim(),
+          description: newRoomDescription.trim() || undefined
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNewRoomName("");
+        setNewRoomDescription("");
+        setIsCreateDialogOpen(false);
+        await updateRoomsList();
+        // Navigate to the new room
+        router.push(`/tools/buzzer/room/${data.room.id}`);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to create room');
+      }
+    } catch (error) {
+      console.error('Error creating room:', error);
+      alert('Failed to create room');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const joinRoom = async () => {
     if (!user || !joinPin.trim()) return;
-
+    
     try {
-      setJoinError("");
-      
-      // Find room by PIN
-      const room = buzzerStorage.getRoomByPin(joinPin);
-      
-      if (!room || room.status !== 'waiting') {
-        setJoinError("Invalid PIN or room not found");
-        return;
-      }
+      setLoading(true);
+      const response = await fetch('/api/tools/buzzer/rooms/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: joinPin.trim() })
+      });
 
-      // Check if user is already in the room
-      if (room.participants.has(user.id)) {
-        router.push(`/tools/buzzer/room/${room.id}`);
-        return;
+      if (response.ok) {
+        const data = await response.json();
+        setJoinPin("");
+        setIsJoinDialogOpen(false);
+        // Navigate to the joined room
+        router.push(`/tools/buzzer/room/${data.room.id}`);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to join room');
       }
-
-      // Join the room
-      const displayName = profile?.name || user.email?.split("@")[0] || "Anonymous";
-      buzzerStorage.addParticipant(room.id, user.id, { name: displayName, buzzed: false });
-      
-      updateRoomsList();
-      router.push(`/tools/buzzer/room/${room.id}`);
     } catch (error) {
-      console.error("Error joining buzzer room:", error);
-      setJoinError("Failed to join room");
+      console.error('Error joining room:', error);
+      alert('Failed to join room');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
+  if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-polkadot-pink mb-4">⚡ Buzzer</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Please sign in to access the buzzer tool.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-polkadot-pink">⚡ Buzzer</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Quick-fire buzzer rooms for fast-paced competitions</p>
-        </div>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-polkadot-pink hover:bg-polkadot-pink/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Room
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Buzzer Room</DialogTitle>
-              <DialogDescription>
-                Create a new buzzer room that others can join and compete in.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="room_name">Room Name</Label>
-                <Input
-                  id="room_name"
-                  value={newRoom.room_name}
-                  onChange={(e) => setNewRoom(prev => ({ ...prev, room_name: e.target.value }))}
-                  placeholder="Enter room name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Input
-                  id="description"
-                  value={newRoom.description}
-                  onChange={(e) => setNewRoom(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Enter room description"
-                />
-              </div>
-              <Button onClick={createRoom} className="w-full">
-                Create Room
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-polkadot-pink mb-4">⚡ Buzzer</h1>
+        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          Create or join buzzer rooms for real-time competitions. Hosts can start, stop, and reset rooms while participants buzz in to answer questions.
+        </p>
       </div>
 
-      {/* Join Room Section */}
-      <Card className="mb-8 border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-polkadot-pink" />
-            Join Buzzer Room
-          </CardTitle>
-          <CardDescription>Enter a 6-digit PIN to join an active buzzer room</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                value={joinPin}
-                onChange={(e) => setJoinPin(e.target.value)}
-                placeholder="Enter 6-digit PIN"
-                maxLength={6}
-                className="text-center text-2xl font-mono tracking-widest"
-              />
-              {joinError && <p className="text-red-500 text-sm mt-2">{joinError}</p>}
-            </div>
-            <Button onClick={joinRoom} disabled={joinPin.length !== 6} className="bg-polkadot-pink hover:bg-polkadot-pink/90">
-              Join Room
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Create Room */}
+        <Card className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create New Room
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90">
+                  Create Room
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Buzzer Room</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="roomName">Room Name</Label>
+                    <Input
+                      id="roomName"
+                      value={newRoomName}
+                      onChange={(e) => setNewRoomName(e.target.value)}
+                      placeholder="Enter room name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="roomDescription">Description (Optional)</Label>
+                    <Input
+                      id="roomDescription"
+                      value={newRoomDescription}
+                      onChange={(e) => setNewRoomDescription(e.target.value)}
+                      placeholder="Enter room description"
+                    />
+                  </div>
+                  <Button 
+                    onClick={createRoom} 
+                    disabled={loading || !newRoomName.trim()}
+                    className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                  >
+                    {loading ? 'Creating...' : 'Create Room'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
-      {/* My Rooms Section */}
-      {myRooms.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-polkadot-pink">My Rooms</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {myRooms.map((room) => (
+        {/* Join Room */}
+        <Card className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LogIn className="h-5 w-5" />
+              Join Room
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  Join Room
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Join Buzzer Room</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="joinPin">Room PIN</Label>
+                    <Input
+                      id="joinPin"
+                      value={joinPin}
+                      onChange={(e) => setJoinPin(e.target.value)}
+                      placeholder="Enter 6-digit PIN"
+                      maxLength={6}
+                    />
+                  </div>
+                  <Button 
+                    onClick={joinRoom} 
+                    disabled={loading || !joinPin.trim()}
+                    className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                  >
+                    {loading ? 'Joining...' : 'Join Room'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Available Rooms */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-polkadot-pink">Available Rooms</h2>
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-polkadot-pink mx-auto"></div>
+          </div>
+        ) : rooms.length === 0 ? (
+          <Card className="text-center py-8">
+            <p className="text-gray-500">No rooms available. Create one to get started!</p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {rooms.map((room) => (
               <Card key={room.id} className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 group">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-polkadot-pink" />
-                    {room.room_name}
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="truncate">{room.room_name}</span>
+                    <Crown className={`h-4 w-4 ${room.host_id === user?.id ? 'text-yellow-500' : 'text-gray-400'}`} />
                   </CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    <span className="text-sm">PIN: {room.pin}</span>
-                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                      <Users className="h-4 w-4" />
-                      {room.participant_count} participants
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                      <Clock className="h-4 w-4" />
-                      {room.created_at.toLocaleDateString()}
-                    </div>
+                  {room.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                      {room.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                    <Users className="h-4 w-4" />
+                    <span>{room.participant_count} participants</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                    <Zap className="h-4 w-4" />
+                    <span className={`capitalize ${
+                      room.status === 'waiting' ? 'text-blue-500' :
+                      room.status === 'active' ? 'text-green-500' :
+                      'text-red-500'
+                    }`}>
+                      {room.status}
+                    </span>
                   </div>
                   <div className="flex gap-2">
-                    <Button asChild size="sm" className="bg-polkadot-pink hover:bg-polkadot-pink/90">
-                      <Link href={`/tools/buzzer/room/${room.id}`}>Enter Room</Link>
-                    </Button>
+                    {room.host_id === user?.id ? (
+                      <Button 
+                        onClick={() => router.push(`/tools/buzzer/room/${room.id}`)}
+                        className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                      >
+                        Host Room
+                      </Button>
+                    ) : (
+                      <Button 
+                        onClick={() => router.push(`/tools/buzzer/room/${room.id}`)}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Join Room
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* All Rooms Section */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-polkadot-pink">Available Rooms</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {rooms.map((room) => (
-            <Card key={room.id} className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 group">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-polkadot-pink" />
-                  {room.room_name}
-                </CardTitle>
-                <CardDescription className="flex items-center gap-2">
-                  <span className="text-sm">Hosted by {room.host_name}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <Users className="h-4 w-4" />
-                    {room.participant_count} participants
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <Clock className="h-4 w-4" />
-                    {room.created_at.toLocaleDateString()}
-                  </div>
-                </div>
-                <Button asChild size="sm" variant="outline" className="w-full">
-                  <Link href={`/tools/buzzer/room/${room.id}`}>Join Room</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        {rooms.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            No buzzer rooms available. Create the first one!
           </div>
         )}
       </div>
