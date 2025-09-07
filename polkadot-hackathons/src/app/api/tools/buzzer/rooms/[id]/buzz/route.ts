@@ -24,7 +24,7 @@ export async function POST(
       return NextResponse.json({ error: 'Room is not active' }, { status: 400 });
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
