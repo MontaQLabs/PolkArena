@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { buzzerStorage } from '@/server/buzzer-storage';
 import { wsServer } from '@/server/websocket-server';
 
@@ -20,15 +19,18 @@ export async function POST(
       return NextResponse.json({ error: 'Room not found' }, { status: 404 });
     }
 
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = authHeader.replace('Bearer ', '');
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only the host can change room status
-    if (room.host_id !== user.id) {
+    if (room.host_id !== userId) {
       return NextResponse.json({ error: 'Only host can change room status' }, { status: 403 });
     }
     

@@ -20,27 +20,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Room is not accepting participants' }, { status: 400 });
     }
 
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const userId = authHeader.replace('Bearer ', '');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const supabase = createClient();
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
-    const participantName = profile?.full_name || user.email || 'Anonymous';
+    const participantName = profile?.full_name || 'Anonymous';
     
     // Check if user is already in the room (Record-based participants)
-    if (room.participants[user.id]) {
+    if (room.participants[userId]) {
       return NextResponse.json({ error: 'Already in room' }, { status: 400 });
     }
     
-    const success = buzzerStorage.addParticipant(room.id, user.id, participantName);
+    const success = buzzerStorage.addParticipant(room.id, userId, participantName);
     
     if (success) {
       // Broadcast room update to all connected clients

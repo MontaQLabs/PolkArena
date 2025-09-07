@@ -63,7 +63,10 @@ export default function BuzzerPage() {
       setLoading(true);
       const response = await fetch('/api/tools/buzzer/rooms', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.id}`
+        },
         body: JSON.stringify({
           room_name: newRoomName.trim(),
           description: newRoomDescription.trim() || undefined
@@ -97,7 +100,10 @@ export default function BuzzerPage() {
       setLoading(true);
       const response = await fetch('/api/tools/buzzer/rooms/join', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.id}`
+        },
         body: JSON.stringify({ pin: joinPin.trim() })
       });
 

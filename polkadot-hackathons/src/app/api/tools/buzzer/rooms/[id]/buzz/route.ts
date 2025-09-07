@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { buzzerStorage } from '@/server/buzzer-storage';
 import { wsServer } from '@/server/websocket-server';
 
@@ -24,22 +23,25 @@ export async function POST(
       return NextResponse.json({ error: 'Room is not active' }, { status: 400 });
     }
 
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = authHeader.replace('Bearer ', '');
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user is a participant in the room
-    if (!room.participants[user.id]) {
+    if (!room.participants[userId]) {
       return NextResponse.json({ error: 'Not a participant in this room' }, { status: 403 });
     }
     
-    const success = buzzerStorage.updateParticipantBuzzer(id, user.id, buzzed);
+    const success = buzzerStorage.updateParticipantBuzzer(id, userId, buzzed);
     
     if (success) {
-      const participant = room.participants[user.id];
+      const participant = room.participants[userId];
       if (participant && buzzed) {
         // Broadcast buzz to all connected clients
         wsServer.broadcastBuzz(id, participant.name, participant.order || 0);

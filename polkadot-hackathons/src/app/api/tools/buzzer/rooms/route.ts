@@ -21,27 +21,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Room name is required' }, { status: 400 });
     }
 
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const userId = authHeader.replace('Bearer ', '');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const supabase = createClient();
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
-    const hostName = profile?.full_name || user.email || 'Anonymous';
+    const hostName = profile?.full_name || 'Anonymous';
     
-    const room = buzzerStorage.createRoom(room_name, user.id, hostName, description);
+    const room = buzzerStorage.createRoom(room_name, userId, hostName, description);
     
     // Broadcast room update to all connected clients
     wsServer.broadcastRoomUpdate(room.id);
     
-    return NextResponse.json({ room: { ...room, created_at: room.created_at.toISOString(), participant_count: room.participants.size } });
+    return NextResponse.json({ room: { ...room, created_at: room.created_at.toISOString(), participant_count: Object.keys(room.participants).length } });
   } catch (error) {
     console.error('Error creating room:', error);
     return NextResponse.json({ error: 'Failed to create room' }, { status: 500 });

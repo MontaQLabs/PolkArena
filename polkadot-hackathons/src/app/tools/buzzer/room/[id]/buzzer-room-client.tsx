@@ -157,7 +157,10 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
     try {
       const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/status`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.id}`
+        },
         body: JSON.stringify({ status: 'active' })
       });
 
@@ -179,7 +182,10 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
     try {
       const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/status`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.id}`
+        },
         body: JSON.stringify({ status: 'finished' })
       });
 
@@ -200,7 +206,10 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
     
     try {
       const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/reset`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${user.id}`
+        }
       });
 
       if (response.ok) {
@@ -234,7 +243,10 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
     try {
       const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/buzz`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.id}`
+        },
         body: JSON.stringify({ buzzed: true })
       });
 
