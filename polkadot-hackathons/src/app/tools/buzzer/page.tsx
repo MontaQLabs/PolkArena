@@ -23,7 +23,7 @@ interface BuzzerRoom {
 }
 
 export default function BuzzerPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
   const [rooms, setRooms] = useState<BuzzerRoom[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,7 +65,8 @@ export default function BuzzerPage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.id}`
+          'Authorization': `Bearer ${user.id}`,
+          'X-User-Name': profile?.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Anonymous'
         },
         body: JSON.stringify({
           room_name: newRoomName.trim(),
@@ -102,7 +103,8 @@ export default function BuzzerPage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.id}`
+          'Authorization': `Bearer ${user.id}`,
+          'X-User-Name': profile?.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'Anonymous'
         },
         body: JSON.stringify({ pin: joinPin.trim() })
       });

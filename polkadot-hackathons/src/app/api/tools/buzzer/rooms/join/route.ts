@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { buzzerStorage } from '@/server/buzzer-storage';
 import { wsServer } from '@/server/websocket-server';
 
@@ -16,8 +15,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid PIN' }, { status: 404 });
     }
 
-    if (room.status !== 'waiting') {
-      return NextResponse.json({ error: 'Room is not accepting participants' }, { status: 400 });
+    // Allow joining when room is waiting or active; block only when finished
+    if (room.status === 'finished') {
+      return NextResponse.json({ error: 'Room has finished' }, { status: 400 });
     }
 
     const authHeader = request.headers.get('authorization');
@@ -30,14 +30,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createClient();
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', userId)
-      .single();
-
-    const participantName = profile?.full_name || 'Anonymous';
+    const providedName = request.headers.get('x-user-name');
+    const participantName = providedName && providedName.trim() !== '' ? providedName : 'Anonymous';
     
     // Check if user is already in the room (Record-based participants)
     if (room.participants[userId]) {

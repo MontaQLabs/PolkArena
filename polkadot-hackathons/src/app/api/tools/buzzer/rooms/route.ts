@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { buzzerStorage } from '@/server/buzzer-storage';
 import { wsServer } from '@/server/websocket-server';
 
@@ -31,14 +30,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createClient();
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', userId)
-      .single();
-
-    const hostName = profile?.full_name || 'Anonymous';
+    // Prefer name provided by client header; fallback to 'Anonymous'
+    const providedName = request.headers.get('x-user-name');
+    const hostName = providedName && providedName.trim() !== '' ? providedName : 'Anonymous';
     
     const room = buzzerStorage.createRoom(room_name, userId, hostName, description);
     

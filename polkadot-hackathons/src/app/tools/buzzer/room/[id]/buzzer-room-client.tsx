@@ -48,7 +48,7 @@ interface BuzzerRoomClientProps {
 }
 
 export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
   const [room, setRoom] = useState<BuzzerRoom | null>(null);
   const [loading, setLoading] = useState(true);
@@ -159,7 +159,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.id}`
+          'Authorization': `Bearer ${user.id}`,
+          'X-User-Name': profile?.name || (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || 'Anonymous'
         },
         body: JSON.stringify({ status: 'active' })
       });
@@ -184,7 +185,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.id}`
+          'Authorization': `Bearer ${user.id}`,
+          'X-User-Name': profile?.name || (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || 'Anonymous'
         },
         body: JSON.stringify({ status: 'finished' })
       });
@@ -208,7 +210,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
       const response = await fetch(`/api/tools/buzzer/rooms/${roomId}/reset`, {
         method: 'POST',
         headers: { 
-          'Authorization': `Bearer ${user.id}`
+          'Authorization': `Bearer ${user.id}`,
+          'X-User-Name': profile?.name || (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || 'Anonymous'
         }
       });
 
@@ -245,7 +248,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.id}`
+          'Authorization': `Bearer ${user?.id}`,
+          'X-User-Name': profile?.name || (user?.user_metadata && (user?.user_metadata.full_name || user?.user_metadata.name)) || user?.email || 'Anonymous'
         },
         body: JSON.stringify({ buzzed: true })
       });
