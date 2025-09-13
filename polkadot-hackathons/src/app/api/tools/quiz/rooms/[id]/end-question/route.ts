@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { quizWsServer } from '@/server/quiz-websocket-server';
+import { broadcastToQuizRoom } from '@/lib/quiz-sse';
 
 export async function POST(
   request: NextRequest,
@@ -29,8 +29,11 @@ export async function POST(
       return NextResponse.json({ error: 'Room not found or not authorized' }, { status: 404 });
     }
 
-    // Broadcast question end to all participants
-    quizWsServer.broadcastQuestionEnd(id, questionIndex);
+    // Broadcast question end to all participants via SSE
+    broadcastToQuizRoom(id, {
+      type: 'question_end',
+      questionIndex
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

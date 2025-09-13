@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, Users, Crown, Play, Square, RotateCcw, LogOut } from "lucide-react";
-import { useBuzzerWebSocket } from "@/hooks/use-buzzer-websocket";
+import { useBuzzerSSE } from "@/hooks/use-buzzer-sse";
 
 interface BuzzerParticipant {
   name: string;
@@ -26,7 +26,8 @@ interface BuzzerRoom {
   created_at: string;
 }
 
-interface WebSocketData {
+interface SSEData {
+  type: 'room_update' | 'buzz' | 'status_change' | 'reset_room';
   room?: {
     id: string;
     room_name: string;
@@ -55,40 +56,37 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [participantsArray, setParticipantsArray] = useState<Array<[string, BuzzerParticipant]>>([]);
 
-  // WebSocket handlers
-  const handleRoomUpdate = useCallback((data: WebSocketData) => {
+  // SSE handlers
+  const handleRoomUpdate = useCallback((data: SSEData) => {
     if (data.room) {
       setRoom(data.room);
-      // Convert Record to array for rendering via Map
-      const participantsMap = new Map(Object.entries(data.room.participants)) as Map<string, BuzzerParticipant>;
-      setParticipantsArray(Array.from(participantsMap.entries()));
+      // Convert Record to array for rendering
+      setParticipantsArray(Object.entries(data.room.participants));
     }
   }, []);
 
-  const handleBuzz = useCallback((data: WebSocketData) => {
+  const handleBuzz = useCallback((data: SSEData) => {
     // Update the participant who buzzed
     if (room && data.participantName && data.order !== undefined) {
       setRoom(prevRoom => {
         if (!prevRoom) return prevRoom;
         const updatedRoom = { ...prevRoom };
-        const participantsMap = new Map(Object.entries(updatedRoom.participants));
         
         // Find and update the participant who buzzed
-        for (const [userId, participant] of participantsMap.entries()) {
+        for (const [userId, participant] of Object.entries(updatedRoom.participants)) {
           if (participant.name === data.participantName) {
-            participantsMap.set(userId, { ...participant, buzzed: true, order: data.order });
+            updatedRoom.participants[userId] = { ...participant, buzzed: true, order: data.order };
             break;
           }
         }
         
-        updatedRoom.participants = Object.fromEntries(participantsMap.entries());
-        setParticipantsArray(Array.from(participantsMap.entries()));
+        setParticipantsArray(Object.entries(updatedRoom.participants));
         return updatedRoom;
       });
     }
   }, [room]);
 
-  const handleStatusChange = useCallback((data: WebSocketData) => {
+  const handleStatusChange = useCallback((data: SSEData) => {
     if (data.status) {
       setRoom(prevRoom => prevRoom ? { ...prevRoom, status: data.status as 'waiting' | 'active' | 'finished' } : null);
     }
@@ -98,23 +96,20 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
     setRoom(prevRoom => {
       if (!prevRoom) return prevRoom;
       const updatedRoom = { ...prevRoom, status: 'waiting' as const };
-      const participantsMap = new Map(Object.entries(updatedRoom.participants));
       
       // Reset all participants
-      for (const [userId, participant] of participantsMap.entries()) {
-        participantsMap.set(userId, { ...participant, buzzed: false, order: undefined });
+      for (const [userId, participant] of Object.entries(updatedRoom.participants)) {
+        updatedRoom.participants[userId] = { ...participant, buzzed: false, order: undefined };
       }
       
-      updatedRoom.participants = Object.fromEntries(participantsMap.entries());
-      setParticipantsArray(Array.from(participantsMap.entries()));
+      setParticipantsArray(Object.entries(updatedRoom.participants));
       return updatedRoom;
     });
   }, []);
 
-  // Initialize WebSocket connection
-  const { isConnected } = useBuzzerWebSocket({
+  // Initialize SSE connection
+  const { isConnected } = useBuzzerSSE({
     roomId,
-    userId: user?.id || '',
     onRoomUpdate: handleRoomUpdate,
     onBuzz: handleBuzz,
     onStatusChange: handleStatusChange,

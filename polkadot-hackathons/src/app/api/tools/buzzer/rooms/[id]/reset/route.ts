@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buzzerStorage } from '@/server/buzzer-storage';
-import { wsServer } from '@/server/websocket-server';
+import { buzzerStorage } from '@/lib/buzzer-storage';
+import { broadcastToRoom } from '@/lib/buzzer-sse';
 
 export async function POST(
   request: NextRequest,
@@ -31,8 +31,10 @@ export async function POST(
     const success = buzzerStorage.resetRoom(id);
     
     if (success) {
-      // Broadcast reset to all connected clients
-      wsServer.broadcastReset(id);
+      // Broadcast reset to all connected clients via SSE
+      broadcastToRoom(id, {
+        type: 'reset_room'
+      });
       
       return NextResponse.json({ ok: true });
     } else {

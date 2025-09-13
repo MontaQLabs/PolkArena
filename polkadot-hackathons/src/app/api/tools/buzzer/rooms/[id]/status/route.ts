@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buzzerStorage } from '@/server/buzzer-storage';
-import { wsServer } from '@/server/websocket-server';
+import { buzzerStorage } from '@/lib/buzzer-storage';
+import { broadcastToRoom } from '@/lib/buzzer-sse';
 
 export async function POST(
   request: NextRequest,
@@ -37,8 +37,11 @@ export async function POST(
     const success = buzzerStorage.updateRoomStatus(id, status);
     
     if (success) {
-      // Broadcast status change to all connected clients
-      wsServer.broadcastStatusChange(id, status);
+      // Broadcast status change to all connected clients via SSE
+      broadcastToRoom(id, {
+        type: 'status_change',
+        status
+      });
       
       return NextResponse.json({ ok: true });
     } else {

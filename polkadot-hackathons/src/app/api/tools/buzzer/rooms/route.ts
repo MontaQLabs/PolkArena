@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buzzerStorage } from '@/server/buzzer-storage';
-import { wsServer } from '@/server/websocket-server';
+import { buzzerStorage } from '@/lib/buzzer-storage';
 
 export async function GET() {
   try {
@@ -34,10 +33,14 @@ export async function POST(request: NextRequest) {
     const providedName = request.headers.get('x-user-name');
     const hostName = providedName && providedName.trim() !== '' ? providedName : 'Anonymous';
     
-    const room = buzzerStorage.createRoom(room_name, userId, hostName, description);
-    
-    // Broadcast room update to all connected clients
-    wsServer.broadcastRoomUpdate(room.id);
+    const room = buzzerStorage.createRoom({
+      room_name,
+      host_id: userId,
+      host_name: hostName,
+      description,
+      status: 'waiting',
+      participants: {}
+    });
     
     return NextResponse.json({ room: { ...room, created_at: room.created_at.toISOString(), participant_count: Object.keys(room.participants).length } });
   } catch (error) {

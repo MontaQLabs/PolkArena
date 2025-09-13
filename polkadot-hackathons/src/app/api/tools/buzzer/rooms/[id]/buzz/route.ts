@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buzzerStorage } from '@/server/buzzer-storage';
-import { wsServer } from '@/server/websocket-server';
+import { buzzerStorage } from '@/lib/buzzer-storage';
+import { broadcastToRoom } from '@/lib/buzzer-sse';
 
 export async function POST(
   request: NextRequest,
@@ -44,8 +44,12 @@ export async function POST(
       const updatedRoom = buzzerStorage.getRoom(id);
       const participant = updatedRoom?.participants[userId];
       if (participant && buzzed) {
-        // Broadcast buzz to all connected clients
-        wsServer.broadcastBuzz(id, participant.name, participant.order || 0);
+        // Broadcast buzz to all connected clients via SSE
+        broadcastToRoom(id, {
+          type: 'buzz',
+          participantName: participant.name,
+          order: participant.order || 0
+        });
       }
       
       return NextResponse.json({ 

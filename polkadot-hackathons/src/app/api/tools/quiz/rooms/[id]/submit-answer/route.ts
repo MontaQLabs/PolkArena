@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { quizWsServer } from '@/server/quiz-websocket-server';
+import { broadcastToQuizRoom } from '@/lib/quiz-sse';
 
 export async function POST(
   request: NextRequest,
@@ -96,16 +96,16 @@ export async function POST(
       console.error('Error updating score:', scoreError);
     }
 
-    // Broadcast answer submission to all participants
-    quizWsServer.broadcastAnswerSubmitted(
-      id,
-      user.id,
-      participant.display_name,
+    // Broadcast answer submission to all participants via SSE
+    broadcastToQuizRoom(id, {
+      type: 'answer_submitted',
+      userId: user.id,
+      participantName: participant.display_name,
       answer,
       isCorrect,
       pointsEarned,
       timeTaken
-    );
+    });
 
     return NextResponse.json({ 
       success: true, 

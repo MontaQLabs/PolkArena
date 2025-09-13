@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/lib/database.types";
-import { useQuizWebSocket } from "@/hooks/use-quiz-websocket";
+import { useQuizSSE } from "@/hooks/use-quiz-sse";
 import { Users, Play, Square, Trophy, Clock, CheckCircle } from "lucide-react";
 
 type Quiz = Database["public"]["Tables"]["quizzes"]["Row"];
@@ -57,56 +57,69 @@ export default function QuizHostClient({ quizId }: QuizHostClientProps) {
     }
   }, [room?.id]);
 
-  // WebSocket handlers
-  const handleQuestionStart = useCallback((data: { questionIndex: number; question: QuizQuestion; timeLeft?: number }) => {
-    setCurrentQuestionIndex(data.questionIndex);
-    setQuestionActive(true);
-    setTimeLeft(data.timeLeft || data.question.time_limit || 30);
-    setShowResults(false);
+  // SSE handlers
+  const handleQuestionStart = useCallback((data: { questionIndex?: number; question?: QuizQuestion; timeLeft?: number }) => {
+    if (data.questionIndex !== undefined && data.question) {
+      setCurrentQuestionIndex(data.questionIndex);
+      setQuestionActive(true);
+      setTimeLeft(data.timeLeft || data.question.time_limit || 30);
+      setShowResults(false);
+    }
   }, []);
 
-  const handleQuestionEnd = useCallback(() => {
-    setQuestionActive(false);
-    setShowResults(true);
+  const handleQuestionEnd = useCallback((data: { questionIndex?: number }) => {
+    if (data.questionIndex !== undefined) {
+      setQuestionActive(false);
+      setShowResults(true);
+    }
   }, []);
 
-  const handleAnswerSubmitted = useCallback((_data: { userId: string; participantName: string; answer: string; isCorrect: boolean; pointsEarned: number; timeTaken: number }) => {
-    // Update participants list to reflect new scores
-    setParticipants(prev => prev.map(p => 
-      p.user_id === _data.userId 
-        ? { ...p, score: p.score + _data.pointsEarned }
-        : p
-    ));
+  const handleAnswerSubmitted = useCallback((data: { userId?: string; participantName?: string; answer?: string; isCorrect?: boolean; pointsEarned?: number; timeTaken?: number }) => {
+    if (data.userId && data.pointsEarned !== undefined) {
+      // Update participants list to reflect new scores
+      setParticipants(prev => prev.map(p => 
+        p.user_id === data.userId 
+          ? { ...p, score: p.score + data.pointsEarned! }
+          : p
+      ));
+    }
   }, []);
 
-  const handleParticipantJoined = useCallback(() => {
-    // Refresh participants list
-    loadParticipants();
+  const handleParticipantJoined = useCallback((data: { userId?: string; participantName?: string }) => {
+    if (data.userId) {
+      // Refresh participants list
+      loadParticipants();
+    }
   }, [loadParticipants]);
 
-  const handleParticipantLeft = useCallback(() => {
-    // Refresh participants list
-    loadParticipants();
+  const handleParticipantLeft = useCallback((data: { userId?: string; participantName?: string }) => {
+    if (data.userId) {
+      // Refresh participants list
+      loadParticipants();
+    }
   }, [loadParticipants]);
 
-  const handleScoreUpdate = useCallback((data: { scores: QuizParticipant[] }) => {
-    setParticipants(data.scores);
+  const handleScoreUpdate = useCallback((data: { scores?: QuizParticipant[] }) => {
+    if (data.scores) {
+      setParticipants(data.scores);
+    }
   }, []);
 
-  const handleRoomStatusChange = useCallback((data: { status: string }) => {
-    setRoom(prev => prev ? { ...prev, status: data.status as 'waiting' | 'active' | 'finished' } : null);
+  const handleRoomStatusChange = useCallback((data: { status?: string }) => {
+    if (data.status) {
+      setRoom(prev => prev ? { ...prev, status: data.status as 'waiting' | 'active' | 'finished' } : null);
+    }
   }, []);
 
-  const handleRoomUpdate = useCallback((data: { room: QuizRoom }) => {
-    setRoom(data.room);
+  const handleRoomUpdate = useCallback((data: { room?: QuizRoom }) => {
+    if (data.room) {
+      setRoom(data.room);
+    }
   }, []);
 
-  // Initialize WebSocket connection when room exists
-  const { isConnected } = useQuizWebSocket({
+  // Initialize SSE connection when room exists
+  const { isConnected } = useQuizSSE({
     roomId: room?.id || '',
-    userId: user?.id || '',
-    participantName: profile?.name || user?.user_metadata?.full_name || user?.email || 'Anonymous',
-    isHost: true,
     onQuestionStart: handleQuestionStart,
     onQuestionEnd: handleQuestionEnd,
     onAnswerSubmitted: handleAnswerSubmitted,

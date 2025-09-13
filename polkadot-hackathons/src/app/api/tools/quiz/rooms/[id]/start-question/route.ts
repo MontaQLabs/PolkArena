@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { quizWsServer } from '@/server/quiz-websocket-server';
+import { broadcastToQuizRoom } from '@/lib/quiz-sse';
 
 export async function POST(
   request: NextRequest,
@@ -41,8 +41,13 @@ export async function POST(
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });
     }
 
-    // Broadcast question start to all participants
-    quizWsServer.broadcastQuestionStart(id, questionIndex, question, timeLimit || question.time_limit);
+    // Broadcast question start to all participants via SSE
+    broadcastToQuizRoom(id, {
+      type: 'question_start',
+      questionIndex,
+      question,
+      timeLeft: timeLimit || question.time_limit
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

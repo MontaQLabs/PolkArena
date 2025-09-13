@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { quizWsServer } from '@/server/quiz-websocket-server';
+import { broadcastToQuizRoom } from '@/lib/quiz-sse';
 
 export async function POST(
   request: NextRequest,
@@ -39,8 +39,11 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to fetch scores' }, { status: 500 });
     }
 
-    // Broadcast score update to all participants
-    quizWsServer.broadcastScoreUpdate(id, participants || []);
+    // Broadcast score update to all participants via SSE
+    broadcastToQuizRoom(id, {
+      type: 'score_update',
+      scores: participants || []
+    });
 
     return NextResponse.json({ success: true, scores: participants });
   } catch (error) {

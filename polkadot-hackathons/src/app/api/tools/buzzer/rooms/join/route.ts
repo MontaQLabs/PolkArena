@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buzzerStorage } from '@/server/buzzer-storage';
-import { wsServer } from '@/server/websocket-server';
+import { buzzerStorage } from '@/lib/buzzer-storage';
+import { broadcastToRoom } from '@/lib/buzzer-sse';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,11 +38,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Already in room' }, { status: 400 });
     }
     
-    const success = buzzerStorage.addParticipant(room.id, userId, participantName);
+    const success = buzzerStorage.addParticipant(room.id, userId, {
+      name: participantName,
+      buzzed: false
+    });
     
     if (success) {
-      // Broadcast room update to all connected clients
-      wsServer.broadcastRoomUpdate(room.id);
+      // Broadcast room update to all connected clients via SSE
+      const updatedRoom = buzzerStorage.getRoom(room.id);
+      if (updatedRoom) {
+        broadcastToRoom(room.id, {
+          type: 'room_update',
+          room: {
+            ...updatedRoom,
+            created_at: updatedRoom.created_at.toISOString(),
+            participants: updatedRoom.participants
+          }
+        });
+      }
       
       return NextResponse.json({ room: { id: room.id, pin: room.pin } });
     } else {
