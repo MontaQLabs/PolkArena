@@ -58,6 +58,11 @@ export function useBuzzerSSE({
       return;
     }
 
+    // Don't connect if roomId is empty
+    if (!roomId) {
+      return;
+    }
+
     try {
       const eventSource = new EventSource(`/api/tools/buzzer/rooms/${roomId}/events`);
       

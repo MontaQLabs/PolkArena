@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buzzerStorage } from '@/server/buzzer-storage';
+import { buzzerStorage } from '@/lib/buzzer-storage';
 
 export async function GET(
   request: NextRequest,

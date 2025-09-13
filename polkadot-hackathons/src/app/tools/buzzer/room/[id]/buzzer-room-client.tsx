@@ -107,9 +107,9 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
     });
   }, []);
 
-  // Initialize SSE connection
+  // Initialize SSE connection only when room is loaded
   const { isConnected } = useBuzzerSSE({
-    roomId,
+    roomId: room && !error ? roomId : '', // Only connect if room exists and no error
     onRoomUpdate: handleRoomUpdate,
     onBuzz: handleBuzz,
     onStatusChange: handleStatusChange,
