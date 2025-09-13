@@ -111,7 +111,7 @@ export default function SocialQuestPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-polkadot-pink"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crucible-orange"></div>
           </div>
         </div>
       </div>
@@ -125,13 +125,13 @@ export default function SocialQuestPage() {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-bright-turquoise to-polkadot-pink rounded-full blur-xl opacity-30 animate-pulse"></div>
-              <div className="relative bg-gradient-to-r from-bright-turquoise to-polkadot-pink text-white p-4 rounded-full">
+              <div className="absolute inset-0 bg-gradient-to-r from-bright-turquoise to-crucible-orange rounded-full blur-xl opacity-30 animate-pulse"></div>
+              <div className="relative bg-gradient-to-r from-bright-turquoise to-crucible-orange text-white p-4 rounded-full">
                 <Share2 className="w-8 h-8" />
               </div>
             </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-bright-turquoise to-polkadot-pink bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-bright-turquoise to-crucible-orange bg-clip-text text-transparent mb-4">
             Social Quest
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
@@ -143,7 +143,7 @@ export default function SocialQuestPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-bright-turquoise to-polkadot-pink hover:from-bright-turquoise/90 hover:to-polkadot-pink/90 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                <Button className="bg-gradient-to-r from-bright-turquoise to-crucible-orange hover:from-bright-turquoise/90 hover:to-crucible-orange/90 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
                   <Plus className="w-5 h-5 mr-2" />
                   Create Social Quest
                 </Button>
@@ -220,7 +220,7 @@ export default function SocialQuestPage() {
                       ))}
                     </div>
                   </div>
-                  <Button onClick={createQuest} className="w-full bg-gradient-to-r from-bright-turquoise to-polkadot-pink">
+                  <Button onClick={createQuest} className="w-full bg-gradient-to-r from-bright-turquoise to-crucible-orange">
                     Create Quest
                   </Button>
                 </div>
@@ -284,16 +284,16 @@ export default function SocialQuestPage() {
         <div>
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-2">
-                                <Target className="w-6 h-6 text-polkadot-pink mr-2" />
-              <h2 className="text-3xl font-bold text-polkadot-pink">Available Quests</h2>
+                                <Target className="w-6 h-6 text-crucible-orange mr-2" />
+              <h2 className="text-3xl font-bold text-crucible-orange">Available Quests</h2>
             </div>
             <p className="text-muted-foreground">Join social campaigns and share amazing content</p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {quests.map((quest) => (
-              <Card key={quest.id} className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
+              <Card key={quest.id} className="border-2 border-storm-200 hover:border-crucible-orange transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
                 <CardHeader>
-                  <CardTitle className="text-xl group-hover:text-polkadot-pink transition-colors">{quest.title}</CardTitle>
+                  <CardTitle className="text-xl group-hover:text-crucible-orange transition-colors">{quest.title}</CardTitle>
                   <CardDescription className="text-base">
                     {quest.description || "No description"}
                   </CardDescription>
@@ -314,7 +314,7 @@ export default function SocialQuestPage() {
                     <div className="text-sm text-gray-600">
                       <strong>Context:</strong> {quest.context}
                     </div>
-                    <Button asChild size="sm" variant="outline" className="border-polkadot-pink text-polkadot-pink hover:bg-polkadot-pink hover:text-white w-full">
+                    <Button asChild size="sm" variant="outline" className="border-crucible-orange text-crucible-orange hover:bg-crucible-orange hover:text-white w-full">
                       <Link href={`/tools/social-quest/${quest.id}`}>Join Quest</Link>
                     </Button>
                   </div>

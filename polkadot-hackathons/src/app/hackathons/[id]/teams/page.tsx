@@ -155,7 +155,7 @@ export default function TeamsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink" />
+        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
       </div>
     );
   }
@@ -201,7 +201,7 @@ export default function TeamsPage() {
               </div>
               <Button
                 asChild
-                className="bg-polkadot-pink hover:bg-polkadot-pink/90"
+                className="bg-crucible-orange hover:bg-crucible-orange/90"
               >
                 <Link href={`/hackathons/${hackathon.id}/teams/create`}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -259,7 +259,7 @@ export default function TeamsPage() {
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
-                        <span className="group-hover:text-polkadot-pink transition-colors">
+                        <span className="group-hover:text-crucible-orange transition-colors">
                           {team.name}
                         </span>
                         <span className="text-sm text-muted-foreground">
@@ -286,7 +286,7 @@ export default function TeamsPage() {
                                   member.user?.email ||
                                   "Unknown"}
                                 {member.role === "leader" && (
-                                  <span className="ml-2 text-xs bg-polkadot-pink text-white px-1 rounded">
+                                  <span className="ml-2 text-xs bg-crucible-orange text-white px-1 rounded">
                                     Leader
                                   </span>
                                 )}

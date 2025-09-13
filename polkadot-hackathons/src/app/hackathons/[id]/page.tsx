@@ -195,7 +195,7 @@ export default function HackathonDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink" />
+        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
       </div>
     );
   }
@@ -418,7 +418,7 @@ export default function HackathonDetailPage() {
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-polkadot-pink">
+                          <p className="font-bold text-crucible-orange">
                             {prize.amount} {prize.currency}
                           </p>
                         </div>
@@ -535,7 +535,7 @@ export default function HackathonDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <Button
-                    className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                    className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
                     disabled={
                       hackathon.status === "draft" ||
                       hackathon.status === "completed"

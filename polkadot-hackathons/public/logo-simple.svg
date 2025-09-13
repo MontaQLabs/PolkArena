@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple crucible with clean design -->
+  <path d="M24 50 L22 26 Q22 18 32 18 Q42 18 42 26 L40 50 Z" 
+        fill="#FF6B35" 
+        stroke="#FFD700" 
+        stroke-width="2"/>
+  
+  <!-- Base -->
+  <ellipse cx="32" cy="50" rx="9" ry="2" fill="#FF6B35"/>
+  
+  <!-- Simple flame -->
+  <path d="M28 26 Q32 12 36 26 Q34 22 32 22 Q30 22 28 26 Z" 
+        fill="#FFD700"/>
+  
+  <!-- Center dot -->
+  <circle cx="32" cy="20" r="2" fill="#FFFFFF"/>
+</svg>

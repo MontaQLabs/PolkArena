@@ -105,7 +105,7 @@ This is going to be incredible! Join us and be part of this amazing journey.
 ### **Design System:**
 - 🎨 **Gradient Backgrounds** - Beautiful gradients throughout
 - ✨ **Smooth Animations** - Hover effects and transitions
-- 🎯 **Consistent Branding** - PolkaArena color scheme
+- 🎯 **Consistent Branding** - Crucible color scheme
 - 📱 **Responsive Layout** - Mobile-first design
 - 🌙 **Dark/Light Mode** - Theme support
 
@@ -252,6 +252,7 @@ Database Schemas:
 
 ---
 
-The Tools section transforms PolkaArena into a comprehensive platform for interactive engagement, combining the excitement of live quizzes with the power of viral social campaigns! 🚀
+The Tools section transforms Crucible into a comprehensive platform for interactive engagement, combining the excitement of live quizzes with the power of viral social campaigns! 🚀
+
 
 

@@ -86,18 +86,18 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
             <div className="h-10 w-10 rounded-lg overflow-hidden">
               <img 
-                src="/logo.png" 
-                alt="PolkaArena Logo" 
+                src="/logo.svg" 
+                alt="Crucible Logo" 
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="font-bold text-2xl text-polkadot-pink">
-              PolkaArena
+            <span className="font-bold text-2xl text-crucible-orange">
+              Crucible
             </span>
           </Link>
-          <h1 className="text-3xl font-bold mb-2">Return to Battle</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
           <p className="text-muted-foreground mb-8">
-            Enter your credentials to rejoin the arena
+            Sign in to continue building amazing Web3 projects
           </p>
         </div>
 
@@ -182,7 +182,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign In"}
@@ -195,7 +195,7 @@ export default function LoginPage() {
               </span>
               <Link
                 href="/auth/signup"
-                className="text-polkadot-pink hover:underline font-medium"
+                className="text-crucible-orange hover:underline font-medium"
               >
                 Sign up
               </Link>

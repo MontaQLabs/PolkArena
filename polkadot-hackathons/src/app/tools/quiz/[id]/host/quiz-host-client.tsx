@@ -315,7 +315,7 @@ export default function QuizHostClient({ quizId }: QuizHostClientProps) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-polkadot-pink mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-crucible-orange mx-auto mb-4"></div>
           <p>Loading quiz...</p>
         </div>
       </div>
@@ -343,7 +343,7 @@ export default function QuizHostClient({ quizId }: QuizHostClientProps) {
       <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-polkadot-pink mb-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crucible-orange mb-4">
             🧠 Host: {quiz.title}
           </h1>
           {quiz.description && (
@@ -376,7 +376,7 @@ export default function QuizHostClient({ quizId }: QuizHostClientProps) {
               <Button 
                 onClick={createRoom} 
                 disabled={creatingRoom || !roomName.trim()}
-                className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
               >
                 {creatingRoom ? 'Creating...' : 'Create Room'}
               </Button>
@@ -424,7 +424,7 @@ export default function QuizHostClient({ quizId }: QuizHostClientProps) {
                   <CardTitle className="flex items-center justify-between">
                     <span>Question {currentQuestionIndex + 1}</span>
                     {questionActive && (
-                      <div className="flex items-center gap-2 text-polkadot-pink">
+                      <div className="flex items-center gap-2 text-crucible-orange">
                         <Clock className="h-4 w-4" />
                         <span className="font-mono text-lg">{timeLeft}s</span>
                       </div>
@@ -470,7 +470,7 @@ export default function QuizHostClient({ quizId }: QuizHostClientProps) {
 
                   <div className="flex flex-wrap gap-3">
                     {!questionActive && !showResults && (
-                      <Button onClick={startQuestion} className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+                      <Button onClick={startQuestion} className="bg-crucible-orange hover:bg-crucible-orange/90">
                         <Play className="h-4 w-4 mr-2" />
                         Start Question
                       </Button>

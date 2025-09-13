@@ -288,7 +288,7 @@ export default function JudgePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink" />
+        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
       </div>
     );
   }
@@ -374,8 +374,8 @@ export default function JudgePage() {
                         key={submission.id}
                         className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                           selectedSubmission?.id === submission.id
-                            ? "border-polkadot-pink bg-polkadot-pink/5"
-                            : "border-border hover:border-polkadot-pink/50"
+                            ? "border-crucible-orange bg-crucible-orange/5"
+                            : "border-border hover:border-crucible-orange/50"
                         }`}
                         onClick={() => setSelectedSubmission(submission)}
                       >
@@ -540,7 +540,7 @@ export default function JudgePage() {
                         <Button
                           type="submit"
                           disabled={saving}
-                          className="bg-polkadot-pink hover:bg-polkadot-pink/90"
+                          className="bg-crucible-orange hover:bg-crucible-orange/90"
                         >
                           {saving ? (
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />

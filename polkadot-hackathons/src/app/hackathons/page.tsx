@@ -107,7 +107,7 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-polkadot-pink/50 bg-white dark:bg-gray-900">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-crucible-orange/50 bg-white dark:bg-gray-900">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -120,7 +120,7 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
                 {getStatusText(hackathon.status)}
               </span>
             </div>
-            <CardTitle className="group-hover:text-polkadot-pink transition-colors dark:text-white">
+            <CardTitle className="group-hover:text-crucible-orange transition-colors dark:text-white">
               {hackathon.title}
             </CardTitle>
             <CardDescription className="line-clamp-3 dark:text-gray-300">
@@ -165,7 +165,7 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
         <div className="flex gap-2">
           <Button
             asChild
-            className="flex-1 bg-polkadot-pink hover:bg-polkadot-pink/90"
+            className="flex-1 bg-crucible-orange hover:bg-crucible-orange/90"
           >
             <Link href={`/hackathons/${hackathon.id}`}>View Details</Link>
           </Button>
@@ -264,7 +264,7 @@ export default function HackathonsPage() {
             Discover and join amazing Polkadot hackathons
           </p>
         </div>
-        <Button asChild className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+        <Button asChild className="bg-crucible-orange hover:bg-crucible-orange/90">
           <Link href="/hackathons/create">
             <ArrowRight className="h-4 w-4 mr-2" />
             Create Hackathon

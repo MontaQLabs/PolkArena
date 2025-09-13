@@ -46,7 +46,7 @@ export default function ShareableEventPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink mx-auto" />
+        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange mx-auto" />
         <p className="text-muted-foreground">Redirecting to event...</p>
       </div>
     </div>

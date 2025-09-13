@@ -367,7 +367,7 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-polkadot-pink mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-crucible-orange mx-auto mb-4"></div>
           <p>Loading room...</p>
         </div>
       </div>
@@ -422,14 +422,14 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-gray-600 mb-6">
             {error || 'Room not found'}
           </p>
           <div className="flex gap-4 justify-center">
             <Button onClick={retryLoadRoom} variant="outline" disabled={loading}>
               {loading ? 'Retrying...' : 'Retry'}
             </Button>
-            <Button onClick={() => router.push('/tools/buzzer')} className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+            <Button onClick={() => router.push('/tools/buzzer')} className="bg-crucible-orange hover:bg-crucible-orange/90">
               Create New Room
             </Button>
             <Button onClick={leaveRoom} variant="outline">
@@ -446,19 +446,19 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
   const hasBuzzed = currentParticipant?.buzzed || false;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Header Section */}
         <div className="text-center mb-8 lg:mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-polkadot-pink/10 rounded-full mb-4 lg:mb-6">
-            <Zap className="h-8 w-8 sm:h-10 sm:w-10 text-polkadot-pink" />
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-crucible-orange/10 rounded-full mb-4 lg:mb-6">
+            <Zap className="h-8 w-8 sm:h-10 sm:w-10 text-crucible-orange" />
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-polkadot-pink mb-3 lg:mb-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crucible-orange mb-3 lg:mb-4">
             ⚡ {room.room_name}
           </h1>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-lg border-2 border-storm-200 max-w-md mx-auto mb-6">
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-2">Room PIN</p>
-            <p className="text-2xl sm:text-3xl font-mono font-bold text-polkadot-pink tracking-widest">
+          <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border-2 border-storm-200 max-w-md mx-auto mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-2">Room PIN</p>
+            <p className="text-2xl sm:text-3xl font-mono font-bold text-crucible-orange tracking-widest">
               {room.pin}
             </p>
           </div>
@@ -469,13 +469,13 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
             >
               {room.status.toUpperCase()}
             </Badge>
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
               <Users className="h-4 w-4" />
               <span>{Object.keys(room.participants).length} participants</span>
             </div>
             <div className="flex items-center gap-2 text-xs sm:text-sm">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-gray-600 dark:text-gray-300">
+              <span className="text-gray-600">
                 {isConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
@@ -498,7 +498,7 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
                 {room.status === 'waiting' && (
                   <Button 
                     onClick={startRoom} 
-                    className="bg-polkadot-pink hover:bg-polkadot-pink/90 h-12 sm:h-14 text-base sm:text-lg font-semibold col-span-1 sm:col-span-1"
+                    className="bg-crucible-orange hover:bg-crucible-orange/90 h-12 sm:h-14 text-base sm:text-lg font-semibold col-span-1 sm:col-span-1"
                   >
                     <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Start Room
@@ -532,8 +532,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
           <Card className="mb-6 lg:mb-8 border-2 border-storm-200 shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                <div className="p-2 bg-polkadot-pink/10 rounded-lg">
-                  <Zap className="h-5 w-5 text-polkadot-pink" />
+                <div className="p-2 bg-crucible-orange/10 rounded-lg">
+                  <Zap className="h-5 w-5 text-crucible-orange" />
                 </div>
                 Your Buzzer
               </CardTitle>
@@ -545,7 +545,7 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
                 className={`w-full h-20 sm:h-24 text-lg sm:text-xl font-bold transition-all duration-300 ${
                   hasBuzzed 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-polkadot-pink hover:bg-polkadot-pink/90 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'
+                    : 'bg-crucible-orange hover:bg-crucible-orange/90 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'
                 }`}
               >
                 {hasBuzzed ? `BUZZED! (#${currentParticipant?.order})` : 'BUZZ IN!'}
@@ -558,8 +558,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
         <Card className="border-2 border-storm-200 shadow-lg">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-              <div className="p-2 bg-polkadot-pink/10 rounded-lg">
-                <Users className="h-5 w-5 text-polkadot-pink" />
+              <div className="p-2 bg-crucible-orange/10 rounded-lg">
+                <Users className="h-5 w-5 text-crucible-orange" />
               </div>
               Participants ({participantsArray.length})
             </CardTitle>
@@ -571,8 +571,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
                   key={userId} 
                   className={`flex items-center justify-between p-3 sm:p-4 rounded-lg transition-all duration-200 ${
                     participant.buzzed 
-                      ? 'bg-polkadot-pink/10 border-2 border-polkadot-pink/30' 
-                      : 'bg-gray-50 dark:bg-gray-800 border-2 border-transparent'
+                      ? 'bg-crucible-orange/10 border-2 border-crucible-orange/30' 
+                      : 'bg-gray-50 border-2 border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -583,7 +583,7 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
                     )}
                     <span className="font-medium text-sm sm:text-base">{participant.name}</span>
                     {participant.buzzed && (
-                      <Badge variant="default" className="bg-polkadot-pink text-xs sm:text-sm">
+                      <Badge variant="default" className="bg-crucible-orange text-xs sm:text-sm">
                         #{participant.order}
                       </Badge>
                     )}
@@ -594,7 +594,7 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
                         <Zap className="h-4 w-4 text-green-500" />
                       </div>
                     ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+                      <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>
                     )}
                   </div>
                 </div>
@@ -608,7 +608,7 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
           <Button 
             onClick={leaveRoom} 
             variant="outline"
-            className="h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg font-semibold border-2 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700"
+            className="h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg font-semibold border-2 hover:bg-red-50 hover:border-red-300"
           >
             <LogOut className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             Leave Room

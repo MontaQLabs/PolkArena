@@ -2,7 +2,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -10,15 +9,15 @@
   --font-sans: 'Unbounded', ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   
-  /* Custom Polkadot Colors */
+  /* Custom Crucible Colors */
   --color-mirage: #131b25;
-  --color-bright-turquoise: #08ceeb;
+  --color-bright-turquoise: #FFD700;
   --color-iron: #e4e6e8;
   --color-eastern-blue: #198a96;
-  --color-polkadot-pink: #FF2670;
-  --color-lime: #E4FF07;
-  --color-cyan: #07FFFF;
-  --color-violet: #7916F3;
+  --color-crucible-orange: #FF6B35;
+  --color-innovation-gold: #FFD700;
+  --color-success-green: #10B981;
+  --color-accent-orange: #FF8C00;
   --color-storm-200: #DCE2E9;
   --color-storm-400: #AEB7CB;
   --color-storm-700: #6E7391;
@@ -66,66 +65,33 @@
   --card-foreground: #131b25;
   --popover: #ffffff;
   --popover-foreground: #131b25;
-  --primary: #FF2670;
+  --primary: #FF6B35;
   --primary-foreground: #ffffff;
   --secondary: #DCE2E9;
   --secondary-foreground: #131b25;
   --muted: #e4e6e8;
   --muted-foreground: #6E7391;
-  --accent: #08ceeb;
+  --accent: #FFD700;
   --accent-foreground: #131b25;
   --destructive: oklch(0.577 0.245 27.325);
   --border: #DCE2E9;
   --input: #e4e6e8;
-  --ring: #FF2670;
-  --chart-1: #FF2670;
-  --chart-2: #08ceeb;
-  --chart-3: #7916F3;
-  --chart-4: #E4FF07;
+  --ring: #FF6B35;
+  --chart-1: #FF6B35;
+  --chart-2: #FFD700;
+  --chart-3: #FF8C00;
+  --chart-4: #10B981;
   --chart-5: #198a96;
   --sidebar: #ffffff;
   --sidebar-foreground: #131b25;
-  --sidebar-primary: #FF2670;
+  --sidebar-primary: #FF6B35;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #DCE2E9;
   --sidebar-accent-foreground: #131b25;
   --sidebar-border: #DCE2E9;
-  --sidebar-ring: #FF2670;
+  --sidebar-ring: #FF6B35;
 }
 
-.dark {
-  --background: #131b25;
-  --foreground: #ffffff;
-  --card: #131b25;
-  --card-foreground: #ffffff;
-  --popover: #131b25;
-  --popover-foreground: #ffffff;
-  --primary: #FF2670;
-  --primary-foreground: #ffffff;
-  --secondary: #6E7391;
-  --secondary-foreground: #ffffff;
-  --muted: #6E7391;
-  --muted-foreground: #AEB7CB;
-  --accent: #08ceeb;
-  --accent-foreground: #131b25;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: #6E7391;
-  --input: #6E7391;
-  --ring: #FF2670;
-  --chart-1: #FF2670;
-  --chart-2: #08ceeb;
-  --chart-3: #7916F3;
-  --chart-4: #E4FF07;
-  --chart-5: #198a96;
-  --sidebar: #131b25;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #FF2670;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #6E7391;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #6E7391;
-  --sidebar-ring: #FF2670;
-}
 
 @layer base {
   * {
@@ -139,37 +105,37 @@
 /* Custom utility classes for Polkadot colors */
 @layer utilities {
   .text-mirage { color: #131b25; }
-  .text-bright-turquoise { color: #08ceeb; }
+  .text-bright-turquoise { color: #FFD700; }
   .text-iron { color: #e4e6e8; }
   .text-eastern-blue { color: #198a96; }
-  .text-polkadot-pink { color: #FF2670; }
-  .text-lime { color: #E4FF07; }
-  .text-cyan { color: #07FFFF; }
-  .text-violet { color: #7916F3; }
+  .text-crucible-orange { color: #FF6B35; }
+  .text-innovation-gold { color: #FFD700; }
+  .text-success-green { color: #10B981; }
+  .text-accent-orange { color: #FF8C00; }
   .text-storm-200 { color: #DCE2E9; }
   .text-storm-400 { color: #AEB7CB; }
   .text-storm-700 { color: #6E7391; }
   
   .bg-mirage { background-color: #131b25; }
-  .bg-bright-turquoise { background-color: #08ceeb; }
+  .bg-bright-turquoise { background-color: #FFD700; }
   .bg-iron { background-color: #e4e6e8; }
   .bg-eastern-blue { background-color: #198a96; }
-  .bg-polkadot-pink { background-color: #FF2670; }
-  .bg-lime { background-color: #E4FF07; }
-  .bg-cyan { background-color: #07FFFF; }
-  .bg-violet { background-color: #7916F3; }
+  .bg-crucible-orange { background-color: #FF6B35; }
+  .bg-innovation-gold { background-color: #FFD700; }
+  .bg-success-green { background-color: #10B981; }
+  .bg-accent-orange { background-color: #FF8C00; }
   .bg-storm-200 { background-color: #DCE2E9; }
   .bg-storm-400 { background-color: #AEB7CB; }
   .bg-storm-700 { background-color: #6E7391; }
   
   .border-mirage { border-color: #131b25; }
-  .border-bright-turquoise { border-color: #08ceeb; }
+  .border-bright-turquoise { border-color: #FFD700; }
   .border-iron { border-color: #e4e6e8; }
   .border-eastern-blue { border-color: #198a96; }
-  .border-polkadot-pink { border-color: #FF2670; }
-  .border-lime { border-color: #E4FF07; }
-  .border-cyan { border-color: #07FFFF; }
-  .border-violet { border-color: #7916F3; }
+  .border-crucible-orange { border-color: #FF6B35; }
+  .border-innovation-gold { border-color: #FFD700; }
+  .border-success-green { border-color: #10B981; }
+  .border-accent-orange { border-color: #FF8C00; }
   .border-storm-200 { border-color: #DCE2E9; }
   .border-storm-400 { border-color: #AEB7CB; }
   .border-storm-700 { border-color: #6E7391; }

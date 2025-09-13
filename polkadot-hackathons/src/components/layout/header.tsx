@@ -6,14 +6,11 @@ import { useRouter } from "next/navigation";
 import {
   LogOut,
   Menu,
-  Moon,
-  Sun,
   User,
   Plus,
   Calendar,
   Trophy,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +25,6 @@ import { useAuth } from "@/contexts/auth-context";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -45,45 +41,45 @@ export function Header() {
           <Link href="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
             <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg overflow-hidden">
               <img 
-                src="/logo.png" 
-                alt="PolkaArena Logo" 
+                src="/logo.svg" 
+                alt="Crucible Logo" 
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="font-bold text-lg sm:text-xl text-polkadot-pink">
-              PolkaArena
+            <span className="font-bold text-lg sm:text-xl text-crucible-orange">
+              Crucible
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 ml-8 lg:ml-12">
-            <Link
-              href="/hackathons"
-              className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium whitespace-nowrap"
-            >
-              ⚔️ Hackathons
-            </Link>
+              <Link
+                href="/hackathons"
+                className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
+              >
+                🚀 Hackathons
+              </Link>
             <Link
               href="/leaderboard"
-              className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium whitespace-nowrap"
+              className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
             >
               🏆 Hall of Fame
             </Link>
             <Link
               href="/events"
-              className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium whitespace-nowrap"
+              className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
             >
               📅 Events
             </Link>
             <Link
               href="/bounties"
-              className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium whitespace-nowrap"
+              className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
             >
               💰 Bounties
             </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium">
+                <Button variant="ghost" className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium">
                   🛠️ Tools
                 </Button>
               </DropdownMenuTrigger>
@@ -109,7 +105,7 @@ export function Header() {
             {/* {user && (
               <Link
                 href="/hackathons/create"
-                className="text-foreground/80 hover:text-polkadot-pink transition-colors font-medium"
+                className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium"
               >
                 Host Event
               </Link>
@@ -118,17 +114,6 @@ export function Header() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Theme toggle - Hidden on mobile, will be in mobile menu */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="hidden sm:flex h-9 w-9 px-0"
-            >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
 
             {user ? (
               <>
@@ -142,7 +127,7 @@ export function Header() {
                       >
                         <Avatar className="h-9 w-9">
                           <AvatarImage src={profile?.avatar_url || ""} />
-                          <AvatarFallback className="bg-polkadot-pink text-white">
+                          <AvatarFallback className="bg-crucible-orange text-white">
                             {profile?.name?.[0]?.toUpperCase() ||
                               user.email?.[0]?.toUpperCase() ||
                               "U"}
@@ -200,13 +185,13 @@ export function Header() {
                   variant="ghost"
                   className="hidden md:inline-flex"
                 >
-                  <Link href="/auth/login">⚔️ Enter Arena</Link>
+                  <Link href="/auth/login">🚀 Get Started</Link>
                 </Button>
                 <Button
                   asChild
-                  className="hidden md:inline-flex bg-polkadot-pink hover:bg-polkadot-pink/90"
+                  className="hidden md:inline-flex bg-crucible-orange hover:bg-crucible-orange/90"
                 >
-                  <Link href="/auth/signup">🛡️ Join Warriors</Link>
+                  <Link href="/auth/signup">👥 Join Community</Link>
                 </Button>
 
                 {/* Mobile auth buttons */}
@@ -214,7 +199,7 @@ export function Header() {
                   <Button asChild variant="ghost" size="sm" className="text-xs px-2">
                     <Link href="/auth/login">Enter</Link>
                   </Button>
-                  <Button asChild size="sm" className="bg-polkadot-pink hover:bg-polkadot-pink/90 text-xs px-2">
+                  <Button asChild size="sm" className="bg-crucible-orange hover:bg-crucible-orange/90 text-xs px-2">
                     <Link href="/auth/signup">Join</Link>
                   </Button>
                 </div>
@@ -240,15 +225,15 @@ export function Header() {
               {/* Navigation Links */}
               <Link
                 href="/hackathons"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Calendar className="h-4 w-4" />
-                <span>⚔️ Hackathons</span>
+                <span>🚀 Hackathons</span>
               </Link>
               <Link
                 href="/leaderboard"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Trophy className="h-4 w-4" />
@@ -256,7 +241,7 @@ export function Header() {
               </Link>
               <Link
                 href="/events"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Calendar className="h-4 w-4" />
@@ -268,7 +253,7 @@ export function Header() {
                 </div>
                 <Link
                   href="/tools/quiz"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
@@ -276,7 +261,7 @@ export function Header() {
                 </Link>
                 <Link
                   href="/tools/buzzer"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
@@ -284,7 +269,7 @@ export function Header() {
                 </Link>
                 <Link
                   href="/tools/social-quest"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
@@ -292,7 +277,7 @@ export function Header() {
                 </Link>
                 <Link
                   href="/bounties"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
@@ -307,7 +292,7 @@ export function Header() {
                     <div className="flex items-center space-x-3 py-2 px-2">
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={profile?.avatar_url || ""} />
-                        <AvatarFallback className="bg-polkadot-pink text-white text-xs">
+                        <AvatarFallback className="bg-crucible-orange text-white text-xs">
                           {profile?.name?.[0]?.toUpperCase() ||
                             user.email?.[0]?.toUpperCase() ||
                             "U"}
@@ -322,25 +307,25 @@ export function Header() {
                   
                   <Link
                     href="/profile"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4" />
-                    <span>⚔️ Warrior Profile</span>
+                    <span>👤 Developer Profile</span>
                   </Link>
                   
                   <Link
                     href="/hackathons/create"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Plus className="h-4 w-4" />
-                    <span>🏟️ Host Hackathon</span>
+                    <span>🏆 Host Hackathon</span>
                   </Link>
                   
                   <Link
                     href="/events/create"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Calendar className="h-4 w-4" />
@@ -349,22 +334,6 @@ export function Header() {
                 </>
               )}
 
-              {/* Theme toggle in mobile menu */}
-              <div className="border-t border-border/40 my-2 pt-2">
-                <button
-                  onClick={() => {
-                    setTheme(theme === "dark" ? "light" : "dark");
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md w-full text-left"
-                >
-                  <div className="relative h-4 w-4">
-                    <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute inset-0 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                  </div>
-                  <span>{theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}</span>
-                </button>
-              </div>
 
               {/* Authentication actions */}
               {user ? (
@@ -376,25 +345,25 @@ export function Header() {
                   className="flex items-center space-x-3 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors py-3 px-2 rounded-md text-left"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span>🚪 Leave Arena</span>
+                    <span>🚪 Sign Out</span>
                   </button>
               ) : (
                 <div className="border-t border-border/40 my-2 pt-2 space-y-1">
                   <Link
                     href="/auth/login"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-polkadot-pink hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4" />
-                    <span>⚔️ Enter Arena</span>
+                    <span>🚀 Get Started</span>
                   </Link>
                 <Link
                   href="/auth/signup"
-                    className="flex items-center space-x-3 text-polkadot-pink hover:text-polkadot-pink/80 hover:bg-polkadot-pink/10 transition-colors py-3 px-2 rounded-md font-medium"
+                    className="flex items-center space-x-3 text-crucible-orange hover:text-crucible-orange/80 hover:bg-crucible-orange/10 transition-colors py-3 px-2 rounded-md font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Plus className="h-4 w-4" />
-                  <span>🛡️ Join Warriors</span>
+                  <span>👥 Join Community</span>
                 </Link>
                 </div>
               )}

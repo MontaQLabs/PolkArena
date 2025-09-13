@@ -101,26 +101,26 @@ export default function SignupPage() {
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
             <div className="h-10 w-10 rounded-lg overflow-hidden">
               <img 
-                src="/logo.png" 
-                alt="PolkaArena Logo" 
+                src="/logo.svg" 
+                alt="Crucible Logo" 
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="font-bold text-2xl text-polkadot-pink">
-              PolkaArena
+            <span className="font-bold text-2xl text-crucible-orange">
+              Crucible
             </span>
           </Link>
-          <h1 className="text-3xl font-bold mb-2">Join the Arena</h1>
+          <h1 className="text-3xl font-bold mb-2">Join Crucible</h1>
           <p className="text-muted-foreground mb-8">
-            Forge your warrior identity and begin your conquest
+            Create your developer profile and start building the future
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Enlist as Warrior</CardTitle>
+            <CardTitle>Create Developer Account</CardTitle>
             <CardDescription>
-              Create your PolkaArena warrior account and enter the battlefield
+              Join the Crucible community and start building innovative Web3 solutions
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -248,7 +248,7 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Create Account"}
@@ -261,7 +261,7 @@ export default function SignupPage() {
               </span>
               <Link
                 href="/auth/login"
-                className="text-polkadot-pink hover:underline font-medium"
+                className="text-crucible-orange hover:underline font-medium"
               >
                 Sign in
               </Link>

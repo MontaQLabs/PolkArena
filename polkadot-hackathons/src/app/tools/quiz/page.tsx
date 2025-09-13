@@ -157,12 +157,12 @@ export default function QuizPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-polkadot-pink">🧠 Quiz</h1>
+          <h1 className="text-3xl font-bold text-crucible-orange">🧠 Quiz</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">Create and host interactive quizzes with real-time scoring</p>
         </div>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+            <Button className="bg-crucible-orange hover:bg-crucible-orange/90">
               <Plus className="w-4 h-4 mr-2" />
               Create Quiz
             </Button>
@@ -202,10 +202,10 @@ export default function QuizPage() {
       </div>
 
       {/* Join Room Section */}
-      <Card className="mb-8 border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300">
+      <Card className="mb-8 border-2 border-storm-200 hover:border-crucible-orange transition-all duration-300">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-polkadot-pink">🎯</span>
+            <span className="text-crucible-orange">🎯</span>
             Join Quiz Room
           </CardTitle>
           <CardDescription>Enter a 6-digit PIN to join an active quiz room</CardDescription>
@@ -222,7 +222,7 @@ export default function QuizPage() {
               />
               {joinError && <p className="text-red-500 text-sm mt-2">{joinError}</p>}
             </div>
-            <Button onClick={joinRoom} disabled={joinPin.length !== 6} className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+            <Button onClick={joinRoom} disabled={joinPin.length !== 6} className="bg-crucible-orange hover:bg-crucible-orange/90">
               Join Room
             </Button>
           </div>
@@ -232,13 +232,13 @@ export default function QuizPage() {
       {/* My Quizzes Section */}
       {myQuizzes.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-polkadot-pink">My Quizzes</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-crucible-orange">My Quizzes</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {myQuizzes.map((quiz) => (
-              <Card key={quiz.id} className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 group">
+              <Card key={quiz.id} className="border-2 border-storm-200 hover:border-crucible-orange transition-all duration-300 group">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <span className="text-polkadot-pink">🧠</span>
+                    <span className="text-crucible-orange">🧠</span>
                     {quiz.title}
                   </CardTitle>
                   <CardDescription>
@@ -247,7 +247,7 @@ export default function QuizPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-2">
-                    <Button asChild size="sm" className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+                    <Button asChild size="sm" className="bg-crucible-orange hover:bg-crucible-orange/90">
                       <Link href={`/tools/quiz/${quiz.id}/edit`}>Edit</Link>
                     </Button>
                     <Button asChild size="sm" variant="outline">
@@ -263,13 +263,13 @@ export default function QuizPage() {
 
       {/* All Quizzes Section */}
       <div>
-        <h2 className="text-2xl font-semibold mb-4 text-polkadot-pink">Available Quizzes</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-crucible-orange">Available Quizzes</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {quizzes.map((quiz) => (
-            <Card key={quiz.id} className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 group">
+            <Card key={quiz.id} className="border-2 border-storm-200 hover:border-crucible-orange transition-all duration-300 group">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="text-polkadot-pink">🧠</span>
+                  <span className="text-crucible-orange">🧠</span>
                   {quiz.title}
                 </CardTitle>
                 <CardDescription>

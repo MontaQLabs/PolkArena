@@ -11,25 +11,25 @@ export function Footer() {
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <div className="h-8 w-8 rounded-lg overflow-hidden">
                 <img 
-                  src="/logo.png" 
-                  alt="PolkaArena Logo" 
+                  src="/logo.svg" 
+                  alt="Crucible Logo" 
                   className="h-full w-full object-contain"
                 />
               </div>
-              <span className="font-bold text-xl text-polkadot-pink">
-                PolkaArena
+              <span className="font-bold text-xl text-crucible-orange">
+                Crucible
               </span>
             </Link>
             <p className="text-muted-foreground mb-4 max-w-md">
-              The ultimate battleground for Polkadot ecosystem innovation. 
-              Where warriors forge the future and legends are born in the heat of battle.
+              The premier platform for Polkadot ecosystem innovation and parachain development. 
+              Where developers build the future and breakthrough ideas come to life.
             </p>
             <div className="flex space-x-4">
               <a
                 href="https://github.com/montaqlabs"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-polkadot-pink transition-colors"
+                className="text-muted-foreground hover:text-crucible-orange transition-colors"
               >
                 <Github className="h-5 w-5" />
               </a>
@@ -37,7 +37,7 @@ export function Footer() {
                 href="https://x.com/montaqlabs"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-polkadot-pink transition-colors"
+                className="text-muted-foreground hover:text-crucible-orange transition-colors"
               >
                 <Twitter className="h-5 w-5" />
               </a>
@@ -51,7 +51,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/hackathons"
-                  className="hover:text-polkadot-pink transition-colors"
+                  className="hover:text-crucible-orange transition-colors"
                 >
                   ⚔️ Browse Hackathons
                 </Link>
@@ -59,7 +59,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/hackathons/create"
-                  className="hover:text-polkadot-pink transition-colors"
+                  className="hover:text-crucible-orange transition-colors"
                 >
                   🏟️ Host a Hackathon
                 </Link>
@@ -67,7 +67,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/leaderboard"
-                  className="hover:text-polkadot-pink transition-colors"
+                  className="hover:text-crucible-orange transition-colors"
                 >
                   🏆 Hall of Fame
                 </Link>
@@ -84,7 +84,7 @@ export function Footer() {
                   href="https://polkadot.network"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-polkadot-pink transition-colors"
+                  className="hover:text-crucible-orange transition-colors"
                 >
                   Polkadot Network
                 </a>
@@ -94,7 +94,7 @@ export function Footer() {
                   href="https://substrate.io"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-polkadot-pink transition-colors"
+                  className="hover:text-crucible-orange transition-colors"
                 >
                   Substrate
                 </a>
@@ -108,7 +108,7 @@ export function Footer() {
             © 2025 MontaQ Labs. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground flex items-center mt-4 sm:mt-0">
-            Forged with <Heart className="h-4 w-4 mx-1 text-polkadot-pink" /> for
+            Forged with <Heart className="h-4 w-4 mx-1 text-crucible-orange" /> for
             the warrior spirit
           </p>
         </div>

@@ -142,7 +142,7 @@ export function LoadingWithTimeout({
 
   return (
     <div className="flex flex-col items-center justify-center p-8 space-y-4">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-polkadot-pink"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-crucible-orange"></div>
       <p className="text-sm text-muted-foreground">Loading...</p>
       {showTimeout && (
         <p className="text-xs text-yellow-600 text-center max-w-md">

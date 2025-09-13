@@ -8,37 +8,37 @@ import { Footer } from "@/components/layout/footer";
 const unbounded = Unbounded({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "PolkaArena - Enter the Arena",
+  title: "Crucible - Enter the Arena",
   description:
-    "The ultimate battleground for Polkadot ecosystem innovation. Compete, build, and conquer in the most intense Web3 competitions.",
-  keywords: "Polkadot, hackathon, blockchain, Web3, Substrate, parachain, arena, competition",
-  authors: [{ name: "PolkaArena Team" }],
+    "The premier platform for Polkadot ecosystem innovation and parachain development. Build, compete, and grow in the most exciting blockchain hackathons.",
+  keywords: "Polkadot, parachains, Web3, hackathon, blockchain, development, innovation, competition, tools, collaboration, Substrate",
+  authors: [{ name: "Crucible Team" }],
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
   },
   openGraph: {
-    title: "PolkaArena - Enter the Arena",
+    title: "Crucible - Enter the Arena",
     description:
-      "The ultimate battleground for Polkadot ecosystem innovation. Compete, build, and conquer in the most intense Web3 competitions.",
+      "The premier platform for Polkadot ecosystem innovation and parachain development. Build, compete, and grow in the most exciting blockchain hackathons.",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "/logo.png",
+        url: "/logo.svg",
         width: 1200,
         height: 630,
-        alt: "PolkaArena - Enter the Arena",
+        alt: "Crucible - Enter the Arena",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PolkaArena - Enter the Arena",
+    title: "Crucible - Enter the Arena",
     description:
-      "The ultimate battleground for Polkadot ecosystem innovation. Compete, build, and conquer in the most intense Web3 competitions.",
-    images: ["/logo.png"],
+      "The premier platform for Polkadot ecosystem innovation and parachain development. Build, compete, and grow in the most exciting blockchain hackathons.",
+    images: ["/logo.svg"],
   },
 };
 
@@ -50,8 +50,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logo.png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="icon" href="/logo.svg" />
+        <link rel="apple-touch-icon" href="/logo.svg" />
       </head>
       <body className={unbounded.className}>
         <Providers>

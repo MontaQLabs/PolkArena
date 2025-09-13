@@ -68,7 +68,7 @@ export async function generateUniqueShortCode(eventName?: string): Promise<strin
  * Create shareable URLs for events
  */
 export function createShareableEventURL(shortCode: string, baseUrl?: string): string {
-  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://polkarena.montaq.org');
+  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://crucible.montaq.org');
   return `${base}/e/${shortCode}`;
 }
 

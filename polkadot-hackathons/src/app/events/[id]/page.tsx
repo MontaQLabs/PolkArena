@@ -453,7 +453,7 @@ export default function EventDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink" />
+        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
       </div>
     );
   }
@@ -606,7 +606,7 @@ export default function EventDetailPage() {
                       <Button
                         type="submit"
                         disabled={registering}
-                        className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                        className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
                       >
                         {registering ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -791,7 +791,7 @@ export default function EventDetailPage() {
                       
                       <div className="space-y-3 pl-6">
                         {event.event_days.map((day: EventDay) => (
-                          <div key={day.id} className="border-l-2 border-polkadot-pink/30 pl-3">
+                          <div key={day.id} className="border-l-2 border-crucible-orange/30 pl-3">
                             <div className="space-y-1">
                               <p className="text-sm font-medium">
                                 Day {day.day_number}
@@ -1043,7 +1043,7 @@ export default function EventDetailPage() {
                           document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' });
                         }
                       }}
-                      className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                      className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
                     >
                       {!user ? "Sign In to Register" : "Register for Event"}
                     </Button>

@@ -1,4 +1,4 @@
-# PolkaArena - Enter the Arena
+# Crucible - Enter the Arena
 
 The ultimate battleground for Polkadot ecosystem innovation. Compete, build, and conquer in the most intense Web3 competitions.
 

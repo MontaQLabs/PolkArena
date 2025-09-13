@@ -95,13 +95,13 @@ export default function AuthCallbackPage() {
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
             <div className="h-10 w-10 rounded-lg overflow-hidden">
               <img 
-                src="/logo.png" 
-                alt="PolkaArena Logo" 
+                src="/logo.svg" 
+                alt="Crucible Logo" 
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="font-bold text-2xl text-polkadot-pink">
-              PolkaArena
+            <span className="font-bold text-2xl text-crucible-orange">
+              Crucible
             </span>
           </Link>
         </div>
@@ -118,7 +118,7 @@ export default function AuthCallbackPage() {
           <CardContent className="text-center">
             {status === "loading" && (
               <div className="space-y-4">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-polkadot-pink" />
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-crucible-orange" />
                 <p className="text-muted-foreground">
                   Please wait while we complete your authentication...
                 </p>
@@ -142,7 +142,7 @@ export default function AuthCallbackPage() {
                 <div className="space-y-2">
                   <Button
                     asChild
-                    className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                    className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
                   >
                     <Link href="/auth/login">Try Again</Link>
                   </Button>

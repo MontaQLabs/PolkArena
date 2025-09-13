@@ -216,7 +216,7 @@ export default function JudgesPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-polkadot-pink" />
+        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
       </div>
     );
   }
@@ -314,7 +314,7 @@ export default function JudgesPage() {
                     <Button
                       type="submit"
                       disabled={addingJudge || !judgeEmail.trim()}
-                      className="w-full bg-polkadot-pink hover:bg-polkadot-pink/90"
+                      className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
                     >
                       {addingJudge ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />

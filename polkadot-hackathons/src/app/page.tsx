@@ -23,50 +23,50 @@ export default function HomePage() {
               <div className="flex items-center justify-center mb-8">
                 <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden mr-4">
                   <img 
-                    src="/logo.png" 
-                    alt="PolkaArena Logo" 
+                    src="/logo.svg" 
+                    alt="Crucible Logo" 
                     className="h-full w-full object-contain"
                   />
                 </div>
                 <div className="text-center">
                   <div className="text-center">
-                    <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
-                      <span className="block text-polkadot-pink">PolkaArena</span>
+                    <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+                      <span className="block text-crucible-orange">Crucible</span>
                     </h1>
                   </div>
                 </div>
               </div>
-              <div className="text-2xl sm:text-4xl font-semibold text-gray-700 dark:text-bright-turquoise mb-6 h-16 flex items-center justify-center">
+              <div className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700 mb-6 h-12 sm:h-16 flex items-center justify-center">
                 <TypingEffect 
-                  text="⚔️ Welcome to the Arena ⚔️" 
+                  text="🚀 Build the Future of Polkadot & Parachains 🚀" 
                   speed={120}
                   startDelay={1000}
-                  className="tracking-wide text-center"
+                  className="tracking-wide text-center px-4"
                 />
               </div>
             </div>
-            <p className="text-xl sm:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-              Where warriors forge the future of Web3. Battle for glory, claim your throne, 
-              and prove your dominance in the ultimate Polkadot ecosystem arena.
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed px-4">
+              The premier platform for Polkadot ecosystem innovation and parachain development. 
+              Where builders create the future of Web3 and breakthrough ideas come to life.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
               <Button
                 asChild
                 size="lg"
-                className="bg-polkadot-pink hover:bg-polkadot-pink/90 text-lg px-10 py-7 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-crucible-orange hover:bg-crucible-orange/90 text-base sm:text-lg px-6 sm:px-10 py-4 sm:py-7 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
               >
                 <Link href="/hackathons">
-                  ⚔️ Enter Battle
-                  <ArrowRight className="ml-3 h-6 w-6" />
+                  🚀 Start Building
+                  <ArrowRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6" />
                 </Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="text-lg px-10 py-7 border-2 border-polkadot-pink text-polkadot-pink hover:bg-polkadot-pink hover:text-white font-semibold transition-all duration-300"
+                className="text-base sm:text-lg px-6 sm:px-10 py-4 sm:py-7 border-2 border-crucible-orange text-crucible-orange hover:bg-crucible-orange hover:text-white font-semibold transition-all duration-300 w-full sm:w-auto"
               >
-                <Link href="/events">Scout the Arena</Link>
+                <Link href="/events">Explore Events</Link>
               </Button>
             </div>
           </div>
@@ -78,23 +78,23 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl sm:text-5xl font-bold mb-6">
-              Why Dominate in Our Arena?
+              Why Build on Crucible?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Join the most ruthless and rewarding battleground where only the strongest survive
+              Join the most innovative Polkadot ecosystem platform where parachain developers thrive
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <Card className="border-2 border-storm-200 hover:border-polkadot-pink transition-all duration-300 group bg-white shadow-lg hover:shadow-xl">
+            <Card className="border-2 border-storm-200 hover:border-crucible-orange transition-all duration-300 group bg-white shadow-lg hover:shadow-xl">
               <CardHeader className="text-center p-8">
-                <div className="w-16 h-16 rounded-xl bg-polkadot-pink flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 rounded-xl bg-crucible-orange flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
                   <Swords className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl mb-4">Forge Your Arsenal</CardTitle>
+                <CardTitle className="text-2xl mb-4">Build with Tools</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Master cutting-edge Polkadot weaponry and development tools crafted 
-                  for high-stakes combat and lightning-fast innovation.
+                  Access cutting-edge Polkadot development tools and Substrate frameworks designed 
+                  for rapid parachain prototyping and innovative blockchain solutions.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -104,23 +104,23 @@ export default function HomePage() {
                 <div className="w-16 h-16 rounded-xl bg-bright-turquoise flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl mb-4">Elite War Council</CardTitle>
+                <CardTitle className="text-2xl mb-4">Expert Community</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Form alliances with legendary warriors, battle-tested mentors, and 
-                  blockchain generals who command the Web3 battlefields.
+                  Connect with experienced Polkadot developers, parachain builders, and 
+                  ecosystem experts who guide the future of Web3 innovation.
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="border-2 border-storm-200 hover:border-violet transition-all duration-300 group bg-white shadow-lg hover:shadow-xl">
+            <Card className="border-2 border-storm-200 hover:border-accent-orange transition-all duration-300 group bg-white shadow-lg hover:shadow-xl">
               <CardHeader className="text-center p-8">
-                <div className="w-16 h-16 rounded-xl bg-violet flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 rounded-xl bg-accent-orange flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
                   <Crown className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl mb-4">Claim Your Crown</CardTitle>
+                <CardTitle className="text-2xl mb-4">Win Rewards</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Conquer challenges for massive bounties, eternal glory, and 
-                  legendary status that opens the gates to Web3 supremacy.
+                  Compete for substantial prizes, recognition, and opportunities 
+                  that accelerate your journey in the Polkadot ecosystem.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -137,7 +137,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div className="space-y-4">
-              <div className="text-6xl sm:text-7xl font-bold text-polkadot-pink">
+              <div className="text-6xl sm:text-7xl font-bold text-crucible-orange">
                 100+
               </div>
               <div className="text-xl font-semibold">Epic Battles Fought</div>
@@ -151,7 +151,7 @@ export default function HomePage() {
               <div className="text-muted-foreground text-lg">Active gladiators in the arena</div>
             </div>
             <div className="space-y-4">
-              <div className="text-6xl sm:text-7xl font-bold text-violet">
+              <div className="text-6xl sm:text-7xl font-bold text-accent-orange">
                 $5M+
               </div>
               <div className="text-xl font-semibold">War Chest</div>
@@ -166,21 +166,21 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl sm:text-5xl font-bold mb-6">
-              Your Path to Domination
+              How to Get Started
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Four battle-tested steps to conquer the arena and ascend to legendary status
+              Four simple steps to join the Polkadot ecosystem and start building parachains
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div className="text-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-polkadot-pink flex items-center justify-center mx-auto shadow-lg">
+              <div className="w-20 h-20 rounded-full bg-crucible-orange flex items-center justify-center mx-auto shadow-lg">
                 <span className="text-white font-bold text-2xl">⚔️</span>
               </div>
-              <h3 className="text-2xl font-semibold">Enlist as Warrior</h3>
+              <h3 className="text-2xl font-semibold">Create Account</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Forge your warrior identity and join the ranks of elite gladiators
+                Sign up and create your developer profile to join the community
               </p>
             </div>
 
@@ -188,29 +188,29 @@ export default function HomePage() {
               <div className="w-20 h-20 rounded-full bg-bright-turquoise flex items-center justify-center mx-auto shadow-lg">
                 <span className="text-white font-bold text-2xl">🎯</span>
               </div>
-              <h3 className="text-2xl font-semibold">Select Your Quest</h3>
+              <h3 className="text-2xl font-semibold">Join Hackathons</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Choose from brutal challenges and high-stakes tournaments
+                Browse and participate in exciting Polkadot hackathons and parachain challenges
               </p>
             </div>
 
             <div className="text-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-violet flex items-center justify-center mx-auto shadow-lg">
+              <div className="w-20 h-20 rounded-full bg-accent-orange flex items-center justify-center mx-auto shadow-lg">
                 <span className="text-white font-bold text-2xl">🔥</span>
               </div>
-              <h3 className="text-2xl font-semibold">Forge & Conquer</h3>
+              <h3 className="text-2xl font-semibold">Build & Collaborate</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Form deadly alliances and craft world-changing weapons
+                Team up with other developers and build innovative parachain solutions
               </p>
             </div>
 
             <div className="text-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-lime flex items-center justify-center mx-auto shadow-lg">
+              <div className="w-20 h-20 rounded-full bg-innovation-gold flex items-center justify-center mx-auto shadow-lg">
                 <span className="text-white font-bold text-2xl">👑</span>
               </div>
-              <h3 className="text-2xl font-semibold">Seize the Throne</h3>
+              <h3 className="text-2xl font-semibold">Win & Grow</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Crush your enemies and claim your rightful place among legends
+                Compete for prizes and recognition while advancing your Polkadot ecosystem career
               </p>
             </div>
           </div>
@@ -218,25 +218,25 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-32 bg-polkadot-pink">
+      <section className="px-4 sm:px-6 lg:px-8 py-32 bg-crucible-orange">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl sm:text-5xl font-bold text-white mb-8">
-              Ready to Test Your Mettle?
+              Ready to Build the Future?
             </h2>
             <p className="text-xl text-white/90 mb-12 leading-relaxed">
-              The arena hungers for new blood. Join thousands of battle-scarred veterans 
-              fighting for dominance in the most savage Web3 battleground ever created.
+              Join thousands of innovative developers building the next generation 
+              of Polkadot parachains and Web3 applications.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button
                 asChild
                 size="lg"
                 variant="secondary"
-                className="text-lg px-10 py-7 bg-white text-polkadot-pink hover:bg-white/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="text-lg px-10 py-7 bg-white text-crucible-orange hover:bg-white/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Link href="/auth/signup">
-                  ⚔️ Join the War
+                  🚀 Start Building
                   <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>
@@ -244,9 +244,9 @@ export default function HomePage() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="text-lg px-10 py-7 border-2 border-white hover:bg-white hover:text-polkadot-pink font-semibold transition-all duration-300"
+                className="text-lg px-10 py-7 border-2 border-white hover:bg-white hover:text-crucible-orange font-semibold transition-all duration-300"
               >
-                <Link href="/hackathons">🏟️ Enter Arena</Link>
+                <Link href="/hackathons">🏆 Join Hackathons</Link>
               </Button>
             </div>
           </div>

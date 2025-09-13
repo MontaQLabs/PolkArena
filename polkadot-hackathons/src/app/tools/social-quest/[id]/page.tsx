@@ -134,7 +134,7 @@ export default function SocialQuestViewPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-polkadot-pink"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crucible-orange"></div>
           </div>
         </div>
       </div>
@@ -171,7 +171,7 @@ export default function SocialQuestViewPage() {
           </Button>
           
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-bright-turquoise to-polkadot-pink bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-bright-turquoise to-crucible-orange bg-clip-text text-transparent mb-4">
               {quest.title}
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
@@ -195,7 +195,7 @@ export default function SocialQuestViewPage() {
           <div className="space-y-6">
             <Card className="border-2 border-storm-200 bg-white shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl text-polkadot-pink">Quest Details</CardTitle>
+                <CardTitle className="text-2xl text-crucible-orange">Quest Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -231,7 +231,7 @@ export default function SocialQuestViewPage() {
                 {!isParticipant ? (
                   <Button 
                     onClick={joinQuest}
-                    className="w-full bg-gradient-to-r from-bright-turquoise to-polkadot-pink text-white"
+                    className="w-full bg-gradient-to-r from-bright-turquoise to-crucible-orange text-white"
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
                     Join Quest
@@ -314,23 +314,23 @@ export default function SocialQuestViewPage() {
             {/* Share Instructions */}
             <Card className="border-2 border-storm-200 bg-white shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl text-polkadot-pink">How to Share</CardTitle>
+                <CardTitle className="text-xl text-crucible-orange">How to Share</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="bg-polkadot-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  <div className="bg-crucible-orange text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                     1
                   </div>
                   <p className="text-gray-600">Copy the AI-generated message for your preferred platform</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="bg-polkadot-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  <div className="bg-crucible-orange text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                     2
                   </div>
                   <p className="text-gray-600">Paste it into your social media post</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="bg-polkadot-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  <div className="bg-crucible-orange text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                     3
                   </div>
                   <p className="text-gray-600">Share and help spread the word!</p>
