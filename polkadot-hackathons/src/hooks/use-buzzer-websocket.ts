@@ -44,6 +44,18 @@ export function useBuzzerWebSocket({
 }: UseBuzzerWebSocketProps) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Keep latest handlers in refs to avoid reconnects on every render
+  const onRoomUpdateRef = useRef<typeof onRoomUpdate | undefined>(undefined);
+  const onBuzzRef = useRef<typeof onBuzz | undefined>(undefined);
+  const onStatusChangeRef = useRef<typeof onStatusChange | undefined>(undefined);
+  const onResetRef = useRef<typeof onReset | undefined>(undefined);
+
+  useEffect(() => {
+    onRoomUpdateRef.current = onRoomUpdate;
+    onBuzzRef.current = onBuzz;
+    onStatusChangeRef.current = onStatusChange;
+    onResetRef.current = onReset;
+  }, [onRoomUpdate, onBuzz, onStatusChange, onReset]);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -74,16 +86,16 @@ export function useBuzzerWebSocket({
           
           switch (message.type) {
             case 'room_update':
-              onRoomUpdate?.(message.data);
+              onRoomUpdateRef.current?.(message.data);
               break;
             case 'buzz':
-              onBuzz?.(message.data);
+              onBuzzRef.current?.(message.data);
               break;
             case 'status_change':
-              onStatusChange?.(message.data);
+              onStatusChangeRef.current?.(message.data);
               break;
             case 'reset_room':
-              onReset?.(message.data);
+              onResetRef.current?.(message.data);
               break;
           }
         } catch (error) {
@@ -109,7 +121,7 @@ export function useBuzzerWebSocket({
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
     }
-  }, [roomId, userId, onRoomUpdate, onBuzz, onStatusChange, onReset]);
+  }, [roomId, userId]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {

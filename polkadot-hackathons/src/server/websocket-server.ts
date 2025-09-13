@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { buzzerStorage } from './buzzer-storage';
+import { quizWsServer } from './quiz-websocket-server';
 import { Server } from 'http';
 
 interface WebSocketMessage {
@@ -45,10 +46,13 @@ class WebSocketServerManager {
   private connections: RoomConnection[] = [];
 
   initialize(server: Server) {
-    this.wss = new WebSocketServer({ server });
+    this.wss = new WebSocketServer({ 
+      server,
+      path: '/api/tools/buzzer/ws'
+    });
     
     this.wss.on('connection', (ws: WebSocket) => {
-      console.log('New WebSocket connection established');
+      console.log('New Buzzer WebSocket connection established');
       
       ws.on('message', (message: string) => {
         try {
@@ -68,6 +72,9 @@ class WebSocketServerManager {
         this.removeConnection(ws);
       });
     });
+
+    // Initialize quiz WebSocket server
+    quizWsServer.initialize(server);
   }
 
   private handleMessage(ws: WebSocket, message: WebSocketMessage) {
