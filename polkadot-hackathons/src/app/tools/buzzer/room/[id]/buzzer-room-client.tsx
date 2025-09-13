@@ -124,6 +124,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
       try {
         setLoading(true);
         setError(null); // Clear any previous errors
+        
+        // First try to load from server
         const response = await fetch(`/api/tools/buzzer/rooms/${roomId}`);
         
         if (response.ok) {
@@ -131,9 +133,28 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
           setRoom(data.room);
           // Convert Record to array for rendering
           setParticipantsArray(Object.entries(data.room.participants));
+          
+          // Store room data in localStorage as backup
+          localStorage.setItem(`buzzer-room-${roomId}`, JSON.stringify({
+            ...data.room,
+            created_at: data.room.created_at
+          }));
         } else {
-          const errorData = await response.json();
-          setError(errorData.error || 'Failed to load room');
+          // If server room not found, try to load from localStorage
+          const localRoomData = localStorage.getItem(`buzzer-room-${roomId}`);
+          if (localRoomData) {
+            const localRoom = JSON.parse(localRoomData);
+            setRoom(localRoom);
+            setParticipantsArray(Object.entries(localRoom.participants));
+            setError('Room data loaded from cache. Some features may not work until you refresh.');
+          } else {
+            const errorData = await response.json();
+            if (response.status === 404) {
+              setError('Room not found. The room may have expired or the server was restarted. Please create a new room.');
+            } else {
+              setError(errorData.error || 'Failed to load room');
+            }
+          }
         }
       } catch (error) {
         console.error('Error loading room:', error);
@@ -162,9 +183,28 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
               setRoom(data.room);
               setParticipantsArray(Object.entries(data.room.participants));
               setError(null);
+              
+              // Store room data in localStorage as backup
+              localStorage.setItem(`buzzer-room-${roomId}`, JSON.stringify({
+                ...data.room,
+                created_at: data.room.created_at
+              }));
             } else {
-              const errorData = await response.json();
-              setError(errorData.error || 'Failed to load room');
+              // If server room not found, try to load from localStorage
+              const localRoomData = localStorage.getItem(`buzzer-room-${roomId}`);
+              if (localRoomData) {
+                const localRoom = JSON.parse(localRoomData);
+                setRoom(localRoom);
+                setParticipantsArray(Object.entries(localRoom.participants));
+                setError('Room data loaded from cache. Some features may not work until you refresh.');
+              } else {
+                const errorData = await response.json();
+                if (response.status === 404) {
+                  setError('Room not found. The room may have expired or the server was restarted. Please create a new room.');
+                } else {
+                  setError(errorData.error || 'Failed to load room');
+                }
+              }
             }
           } catch (error) {
             console.error('Error reloading room:', error);
@@ -318,6 +358,8 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
   };
 
   const leaveRoom = () => {
+    // Clean up localStorage data when leaving
+    localStorage.removeItem(`buzzer-room-${roomId}`);
     router.push('/tools/buzzer');
   };
 
@@ -345,9 +387,28 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
           const data = await response.json();
           setRoom(data.room);
           setParticipantsArray(Object.entries(data.room.participants));
+          
+          // Store room data in localStorage as backup
+          localStorage.setItem(`buzzer-room-${roomId}`, JSON.stringify({
+            ...data.room,
+            created_at: data.room.created_at
+          }));
         } else {
-          const errorData = await response.json();
-          setError(errorData.error || 'Failed to load room');
+          // If server room not found, try to load from localStorage
+          const localRoomData = localStorage.getItem(`buzzer-room-${roomId}`);
+          if (localRoomData) {
+            const localRoom = JSON.parse(localRoomData);
+            setRoom(localRoom);
+            setParticipantsArray(Object.entries(localRoom.participants));
+            setError('Room data loaded from cache. Some features may not work until you refresh.');
+          } else {
+            const errorData = await response.json();
+            if (response.status === 404) {
+              setError('Room not found. The room may have expired or the server was restarted. Please create a new room.');
+            } else {
+              setError(errorData.error || 'Failed to load room');
+            }
+          }
         }
       } catch (error) {
         console.error('Error retrying room load:', error);
@@ -367,6 +428,9 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
           <div className="flex gap-4 justify-center">
             <Button onClick={retryLoadRoom} variant="outline" disabled={loading}>
               {loading ? 'Retrying...' : 'Retry'}
+            </Button>
+            <Button onClick={() => router.push('/tools/buzzer')} className="bg-polkadot-pink hover:bg-polkadot-pink/90">
+              Create New Room
             </Button>
             <Button onClick={leaveRoom} variant="outline">
               Back to Buzzer
