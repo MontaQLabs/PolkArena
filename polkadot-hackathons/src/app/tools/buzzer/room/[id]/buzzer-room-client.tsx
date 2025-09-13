@@ -255,7 +255,25 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
       });
 
       if (response.ok) {
-        // The WebSocket will handle the update
+        // Update local state immediately for better UX
+        const responseData = await response.json();
+        if (responseData.order) {
+          setRoom(prevRoom => {
+            if (!prevRoom) return prevRoom;
+            const updatedRoom = { ...prevRoom };
+            const participantsMap = new Map(Object.entries(updatedRoom.participants));
+            
+            // Update the current user's buzz state
+            if (user?.id && participantsMap.has(user.id)) {
+              const participant = participantsMap.get(user.id)!;
+              participantsMap.set(user.id, { ...participant, buzzed: true, order: responseData.order });
+            }
+            
+            updatedRoom.participants = Object.fromEntries(participantsMap.entries());
+            setParticipantsArray(Array.from(participantsMap.entries()));
+            return updatedRoom;
+          });
+        }
         console.log('Buzzed in successfully');
       } else {
         const error = await response.json();

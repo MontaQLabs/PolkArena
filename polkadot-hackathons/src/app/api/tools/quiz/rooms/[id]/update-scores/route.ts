@@ -48,3 +48,4 @@ export async function POST(
     return NextResponse.json({ error: 'Failed to update scores' }, { status: 500 });
   }
 }
+

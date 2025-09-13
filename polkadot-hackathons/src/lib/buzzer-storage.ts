@@ -15,7 +15,7 @@ export interface BuzzerRoom {
   host_name: string;
   pin: string;
   status: 'waiting' | 'active' | 'finished';
-  participants: Map<string, BuzzerParticipant>;
+  participants: Record<string, BuzzerParticipant>;
   created_at: Date;
 }
 
@@ -40,6 +40,7 @@ class BuzzerStorage {
       ...roomData,
       id,
       pin,
+      participants: {},
       created_at: new Date()
     };
     
@@ -81,7 +82,7 @@ class BuzzerStorage {
   addParticipant(roomId: string, userId: string, participant: BuzzerParticipant): boolean {
     const room = this.rooms.get(roomId);
     if (room) {
-      room.participants.set(userId, participant);
+      room.participants[userId] = participant;
       return true;
     }
     return false;
@@ -91,10 +92,10 @@ class BuzzerStorage {
   removeParticipant(roomId: string, userId: string): boolean {
     const room = this.rooms.get(roomId);
     if (room) {
-      room.participants.delete(userId);
+      delete room.participants[userId];
       
       // If no participants left, delete the room
-      if (room.participants.size === 0) {
+      if (Object.keys(room.participants).length === 0) {
         this.rooms.delete(roomId);
       }
       return true;
@@ -106,10 +107,16 @@ class BuzzerStorage {
   updateParticipantBuzzer(roomId: string, userId: string, buzzed: boolean, order?: number): boolean {
     const room = this.rooms.get(roomId);
     if (room) {
-      const participant = room.participants.get(userId);
+      const participant = room.participants[userId];
       if (participant) {
         participant.buzzed = buzzed;
-        participant.order = order;
+        if (buzzed && order === undefined) {
+          // Auto-assign order if not provided and this is a buzz
+          const buzzedCount = Object.values(room.participants).filter(p => p.buzzed).length;
+          participant.order = buzzedCount;
+        } else if (order !== undefined) {
+          participant.order = order;
+        }
         return true;
       }
     }
@@ -120,7 +127,7 @@ class BuzzerStorage {
   resetRoom(id: string): boolean {
     const room = this.rooms.get(id);
     if (room) {
-      room.participants.forEach(participant => {
+      Object.values(room.participants).forEach(participant => {
         participant.buzzed = false;
         participant.order = undefined;
       });
@@ -138,9 +145,10 @@ class BuzzerStorage {
   // Get participant count for a room
   getParticipantCount(roomId: string): number {
     const room = this.rooms.get(roomId);
-    return room ? room.participants.size : 0;
+    return room ? Object.keys(room.participants).length : 0;
   }
 }
 
 // Export a singleton instance
 export const buzzerStorage = new BuzzerStorage();
+

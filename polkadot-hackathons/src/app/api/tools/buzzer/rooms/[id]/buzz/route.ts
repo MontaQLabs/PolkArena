@@ -41,13 +41,17 @@ export async function POST(
     const success = buzzerStorage.updateParticipantBuzzer(id, userId, buzzed);
     
     if (success) {
-      const participant = room.participants[userId];
+      const updatedRoom = buzzerStorage.getRoom(id);
+      const participant = updatedRoom?.participants[userId];
       if (participant && buzzed) {
         // Broadcast buzz to all connected clients
         wsServer.broadcastBuzz(id, participant.name, participant.order || 0);
       }
       
-      return NextResponse.json({ ok: true });
+      return NextResponse.json({ 
+        ok: true, 
+        order: participant?.order 
+      });
     } else {
       return NextResponse.json({ error: 'Failed to update buzzer state' }, { status: 500 });
     }

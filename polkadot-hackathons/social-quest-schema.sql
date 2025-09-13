@@ -44,3 +44,4 @@ CREATE INDEX IF NOT EXISTS idx_social_quests_is_active ON social_quests(is_activ
 CREATE INDEX IF NOT EXISTS idx_social_quest_participants_quest_id ON social_quest_participants(quest_id);
 CREATE INDEX IF NOT EXISTS idx_social_quest_shares_quest_id ON social_quest_shares(quest_id);
 
+

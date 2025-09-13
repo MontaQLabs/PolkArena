@@ -38,3 +38,4 @@ export async function POST(
     return NextResponse.json({ error: 'Failed to end question' }, { status: 500 });
   }
 }
+
