@@ -97,10 +97,12 @@ export function useBuzzerSSE({
         console.error('SSE error:', error);
         eventSource.close();
         
-        // Attempt to reconnect after 3 seconds
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, 3000);
+        // Attempt to reconnect after 3 seconds, but only if we have a valid roomId
+        if (roomId) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            connect();
+          }, 3000);
+        }
       };
 
       eventSourceRef.current = eventSource;
@@ -124,8 +126,21 @@ export function useBuzzerSSE({
   useEffect(() => {
     connect();
     
+    // Handle tab visibility changes
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Tab became visible, reconnect if needed
+        if (!eventSourceRef.current || eventSourceRef.current.readyState === EventSource.CLOSED) {
+          connect();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
       disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [connect, disconnect]);
 

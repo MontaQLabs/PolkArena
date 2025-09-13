@@ -123,14 +123,14 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
       
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
         const response = await fetch(`/api/tools/buzzer/rooms/${roomId}`);
         
         if (response.ok) {
           const data = await response.json();
           setRoom(data.room);
-          // Convert Record to array for rendering via Map
-          const participantsMap = new Map(Object.entries(data.room.participants)) as Map<string, BuzzerParticipant>;
-          setParticipantsArray(Array.from(participantsMap.entries()));
+          // Convert Record to array for rendering
+          setParticipantsArray(Object.entries(data.room.participants));
         } else {
           const errorData = await response.json();
           setError(errorData.error || 'Failed to load room');
@@ -145,6 +145,43 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
 
     loadRoomData();
   }, [user, roomId]);
+
+  // Handle tab visibility changes to reload room data if needed
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !room && !loading) {
+        // Tab became visible and we don't have room data, reload
+        const loadRoomData = async () => {
+          if (!user) return;
+          
+          try {
+            const response = await fetch(`/api/tools/buzzer/rooms/${roomId}`);
+            
+            if (response.ok) {
+              const data = await response.json();
+              setRoom(data.room);
+              setParticipantsArray(Object.entries(data.room.participants));
+              setError(null);
+            } else {
+              const errorData = await response.json();
+              setError(errorData.error || 'Failed to load room');
+            }
+          } catch (error) {
+            console.error('Error reloading room:', error);
+            setError('Failed to load room');
+          }
+        };
+
+        loadRoomData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, roomId, room, loading]);
 
   const startRoom = async () => {
     if (!room || room.host_id !== user?.id) return;
@@ -296,6 +333,30 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
   }
 
   if (error || !room) {
+    const retryLoadRoom = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(`/api/tools/buzzer/rooms/${roomId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setRoom(data.room);
+          setParticipantsArray(Object.entries(data.room.participants));
+        } else {
+          const errorData = await response.json();
+          setError(errorData.error || 'Failed to load room');
+        }
+      } catch (error) {
+        console.error('Error retrying room load:', error);
+        setError('Failed to load room');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -303,9 +364,14 @@ export default function BuzzerRoomClient({ roomId }: BuzzerRoomClientProps) {
           <p className="text-gray-600 dark:text-gray-300 mb-6">
             {error || 'Room not found'}
           </p>
-          <Button onClick={leaveRoom} variant="outline">
-            Back to Buzzer
-          </Button>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={retryLoadRoom} variant="outline" disabled={loading}>
+              {loading ? 'Retrying...' : 'Retry'}
+            </Button>
+            <Button onClick={leaveRoom} variant="outline">
+              Back to Buzzer
+            </Button>
+          </div>
         </div>
       </div>
     );

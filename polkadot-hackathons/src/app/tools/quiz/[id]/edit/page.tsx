@@ -48,7 +48,7 @@ export default function EditQuizPage() {
             .single();
 
           if (quizError || !quizData) {
-            router.push("/quiz");
+            router.push("/tools/quiz");
             return;
           }
 
@@ -160,11 +160,11 @@ export default function EditQuizPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push("/quiz")}>
+          <Button variant="outline" onClick={() => router.push("/tools/quiz")}>
             Back to Quizzes
           </Button>
           <Button 
-            onClick={() => router.push(`/quiz/${quizId}/host`)}
+            onClick={() => router.push(`/tools/quiz/${quizId}/host`)}
             disabled={questions.length === 0}
             className="bg-green-600 hover:bg-green-700"
           >

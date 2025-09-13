@@ -83,7 +83,7 @@ export default function QuizPage() {
         setNewQuiz({ title: "", description: "" });
         setCreateDialogOpen(false);
         // Redirect to edit page to add questions
-        router.push(`/quiz/${data.id}/edit`);
+        router.push(`/tools/quiz/${data.id}/edit`);
       }
     } catch (error) {
       console.error("Error creating quiz:", error);
@@ -119,7 +119,7 @@ export default function QuizPage() {
 
       if (existingParticipant) {
         // Redirect to room
-        window.location.href = `/quiz/room/${room.id}`;
+        window.location.href = `/tools/quiz/room/${room.id}`;
         return;
       }
 
@@ -137,7 +137,7 @@ export default function QuizPage() {
       if (joinError) throw joinError;
 
       if (participant) {
-        window.location.href = `/quiz/room/${room.id}`;
+        window.location.href = `/tools/quiz/room/${room.id}`;
       }
     } catch (error) {
       console.error("Error joining room:", error);
@@ -248,10 +248,10 @@ export default function QuizPage() {
                 <CardContent>
                   <div className="flex gap-2">
                     <Button asChild size="sm" className="bg-polkadot-pink hover:bg-polkadot-pink/90">
-                      <Link href={`/quiz/${quiz.id}/edit`}>Edit</Link>
+                      <Link href={`/tools/quiz/${quiz.id}/edit`}>Edit</Link>
                     </Button>
                     <Button asChild size="sm" variant="outline">
-                      <Link href={`/quiz/${quiz.id}/host`}>Host Room</Link>
+                      <Link href={`/tools/quiz/${quiz.id}/host`}>Host Room</Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -278,7 +278,7 @@ export default function QuizPage() {
               </CardHeader>
               <CardContent>
                 <Button asChild size="sm" variant="outline" className="w-full">
-                  <Link href={`/quiz/${quiz.id}/host`}>Join as Host</Link>
+                  <Link href={`/tools/quiz/${quiz.id}/host`}>Join as Host</Link>
                 </Button>
               </CardContent>
             </Card>
