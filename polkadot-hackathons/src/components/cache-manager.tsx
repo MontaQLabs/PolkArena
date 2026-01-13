@@ -26,7 +26,7 @@ export function CacheManager() {
   const getCacheStats = () => {
     try {
       const keys = Object.keys(localStorage);
-      const cacheKeys = keys.filter(key => key.startsWith('polkadot_events_'));
+      const cacheKeys = keys.filter(key => key.startsWith('sui_events_'));
       return {
         totalKeys: cacheKeys.length,
         cacheSize: cacheKeys.reduce((size, key) => {

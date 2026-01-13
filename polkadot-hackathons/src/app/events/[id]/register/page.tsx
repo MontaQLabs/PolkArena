@@ -388,7 +388,7 @@ export default function RegisterEventPage() {
                   <CardHeader>
                     <CardTitle>Register for Event</CardTitle>
                     <CardDescription>
-                      Join this exciting event and connect with the Polkadot
+                      Join this exciting event and connect with the Sui
                       ecosystem community.
                     </CardDescription>
                   </CardHeader>

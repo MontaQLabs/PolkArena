@@ -275,7 +275,7 @@ export default function EventsPage() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Events</h1>
           <p className="text-muted-foreground">
-            Discover and join amazing Polkadot ecosystem events
+            Discover and join amazing Sui ecosystem events
           </p>
         </div>
         <Button asChild className="bg-sui-sea hover:bg-sui-sea/90">

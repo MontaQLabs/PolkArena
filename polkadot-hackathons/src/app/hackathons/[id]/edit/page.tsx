@@ -522,7 +522,7 @@ export default function EditHackathonPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, technologies: e.target.value })
                     }
-                    placeholder="e.g., Polkadot, Substrate, React, Rust"
+                    placeholder="e.g., Sui, Substrate, React, Rust"
                   />
                 </div>
               </CardContent>

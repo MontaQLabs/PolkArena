@@ -398,7 +398,7 @@ export default function TeamSubmissionPage() {
                         </Label>
                         <Input
                           id="tech_stack"
-                          placeholder="React, TypeScript, Solidity, Polkadot"
+                          placeholder="React, TypeScript, Solidity, Sui"
                           value={formData.tech_stack}
                           onChange={(e) =>
                             setFormData((prev) => ({

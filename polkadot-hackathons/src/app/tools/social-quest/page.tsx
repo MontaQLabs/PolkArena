@@ -182,7 +182,7 @@ export default function SocialQuestPage() {
                       id="context"
                       value={newQuest.context}
                       onChange={(e) => setNewQuest(prev => ({ ...prev, context: e.target.value }))}
-                      placeholder="What should people share about? (e.g., 'We're launching a new Polkadot hackathon')"
+                      placeholder="What should people share about? (e.g., 'We're launching a new Sui hackathon')"
                       rows={3}
                     />
                   </div>
@@ -192,7 +192,7 @@ export default function SocialQuestPage() {
                       id="hashtags"
                       value={newQuest.hashtags}
                       onChange={(e) => setNewQuest(prev => ({ ...prev, hashtags: e.target.value }))}
-                      placeholder="#Polkadot #Hackathon #Web3"
+                      placeholder="#Sui #Hackathon #Web3"
                     />
                   </div>
                   <div>

@@ -138,7 +138,7 @@ export default function LeaderboardPage() {
               Leaderboard
             </h1>
             <p className="text-muted-foreground text-lg">
-              Celebrating the best projects from Polkadot hackathons
+              Celebrating the best projects from Sui hackathons
             </p>
           </div>
 

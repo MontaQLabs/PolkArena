@@ -561,7 +561,7 @@ export default function CreateEventPage() {
                 Create Event
               </h1>
               <p className="text-muted-foreground">
-                Organize an amazing Polkadot ecosystem event
+                Organize an amazing Sui ecosystem event
               </p>
             </div>
           </div>
@@ -587,7 +587,7 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="e.g., Polkadot Developer Workshop"
+                    placeholder="e.g., Sui Developer Workshop"
                     required
                   />
                 </div>

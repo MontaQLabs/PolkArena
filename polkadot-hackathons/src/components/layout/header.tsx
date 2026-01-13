@@ -34,85 +34,67 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-sui-sea/10 bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80">
-      <div className="container mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex h-16 sm:h-18 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl border-b border-gray-100">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 group">
-            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-sui-sea to-walrus-teal p-0.5 transition-transform group-hover:scale-105">
-              <div className="h-full w-full bg-white rounded-lg flex items-center justify-center">
-                <img 
-                  src="/logo.svg" 
-                  alt="Crucible Logo" 
-                  className="h-5 w-5 sm:h-6 sm:w-6 object-contain"
-                  style={{ filter: 'brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(186deg) brightness(118%) contrast(119%)' }}
-                />
-              </div>
+          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
+            <div className="h-9 w-9 rounded-xl bg-sui-ocean flex items-center justify-center">
+              <img 
+                src="/logo.svg" 
+                alt="Crucible" 
+                className="h-5 w-5 object-contain brightness-0 invert"
+              />
             </div>
-            <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-sui-sea to-walrus-teal bg-clip-text text-transparent">
+            <span className="font-bold text-xl text-sui-ocean">
               Crucible
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 ml-8 lg:ml-12">
+          <nav className="hidden md:flex items-center gap-1 ml-10">
             <Link
               href="/hackathons"
-                className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
+              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
             >
-                Hackathons
-            </Link>
-            <Link
-              href="/leaderboard"
-              className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
-            >
-              Leaderboard
+              Hackathons
             </Link>
             <Link
               href="/events"
-              className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
+              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
             >
               Events
             </Link>
             <Link
               href="/bounties"
-              className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
+              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
             >
               Bounties
             </Link>
+            <Link
+              href="/leaderboard"
+              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
+            >
+              Leaderboard
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium">
+                <Button variant="ghost" className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium">
                   Tools
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent align="end" className="w-40">
                 <DropdownMenuItem asChild>
-                  <Link href="/tools/quiz">
-                    Quiz
-                  </Link>
+                  <Link href="/tools/quiz">Quiz</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/tools/buzzer">
-                    Buzzer
-                  </Link>
+                  <Link href="/tools/buzzer">Buzzer</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/tools/social-quest">
-                    Social Quest
-                  </Link>
+                  <Link href="/tools/social-quest">Social Quest</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* {user && (
-              <Link
-                href="/hackathons/create"
-                className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium"
-              >
-                Host Event
-              </Link>
-            )} */}
           </nav>
 
           {/* Right side actions */}
@@ -157,19 +139,19 @@ export function Header() {
                       <DropdownMenuItem asChild>
                         <Link href="/profile">
                           <User className="mr-2 h-4 w-4" />
-                          ⚔️ Warrior Profile
+                          Profile
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/hackathons/create">
                           <Plus className="mr-2 h-4 w-4" />
-                          🏟️ Host Hackathon
+                          Host Hackathon
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/events/create">
                           <Calendar className="mr-2 h-4 w-4" />
-                          📅 Host Event
+                          Host Event
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -186,23 +168,23 @@ export function Header() {
                 <Button
                   asChild
                   variant="ghost"
-                  className="hidden md:inline-flex text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5"
+                  className="hidden md:inline-flex text-sui-ocean/70 hover:text-sui-ocean text-sm"
                 >
                   <Link href="/auth/login">Sign In</Link>
                 </Button>
                 <Button
                   asChild
-                  className="hidden md:inline-flex bg-gradient-to-r from-sui-sea to-walrus-teal hover:from-sui-ocean hover:to-sui-sea text-white rounded-xl"
+                  className="hidden md:inline-flex bg-sui-ocean hover:bg-sui-ocean/90 text-white text-sm font-medium rounded-full px-5"
                 >
                   <Link href="/auth/signup">Get Started</Link>
                 </Button>
 
                 {/* Mobile auth buttons */}
-                <div className="md:hidden flex items-center space-x-1">
-                  <Button asChild variant="ghost" size="sm" className="text-xs px-2">
-                    <Link href="/auth/login">Enter</Link>
+                <div className="md:hidden flex items-center gap-2">
+                  <Button asChild variant="ghost" size="sm" className="text-sm text-sui-ocean/70">
+                    <Link href="/auth/login">Sign In</Link>
                   </Button>
-                  <Button asChild size="sm" className="bg-sui-sea hover:bg-sui-sea/90 text-xs px-2">
+                  <Button asChild size="sm" className="bg-sui-ocean text-white text-sm rounded-full px-4">
                     <Link href="/auth/signup">Join</Link>
                   </Button>
                 </div>

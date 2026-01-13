@@ -48,7 +48,7 @@ export interface Event {
 class EventCache {
   private static instance: EventCache;
   private cache: Map<string, CacheItem<unknown>>;
-  private readonly CACHE_PREFIX = 'polkadot_events_';
+  private readonly CACHE_PREFIX = 'sui_events_';
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 
   private constructor() {

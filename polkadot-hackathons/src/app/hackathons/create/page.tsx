@@ -221,7 +221,7 @@ export default function CreateHackathonPage() {
                 Create Hackathon
               </h1>
               <p className="text-muted-foreground">
-                Organize an amazing Polkadot hackathon
+                Organize an amazing Sui hackathon
               </p>
             </div>
           </div>
@@ -247,7 +247,7 @@ export default function CreateHackathonPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    placeholder="e.g., Polkadot DeFi Innovation Hackathon"
+                    placeholder="e.g., Sui DeFi Innovation Hackathon"
                     required
                   />
                 </div>
@@ -527,7 +527,7 @@ export default function CreateHackathonPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, technologies: e.target.value })
                     }
-                    placeholder="e.g., Polkadot, Substrate, React, Rust"
+                    placeholder="e.g., Sui, Substrate, React, Rust"
                   />
                 </div>
               </CardContent>

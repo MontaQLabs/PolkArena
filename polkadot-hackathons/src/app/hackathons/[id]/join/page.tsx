@@ -304,7 +304,7 @@ export default function JoinHackathonPage() {
                     <CardTitle>Register for Hackathon</CardTitle>
                     <CardDescription>
                       Join this exciting hackathon and start building amazing
-                      projects with the Polkadot ecosystem.
+                      projects with the Sui ecosystem.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
