@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { ArrowRight, Shield, Swords, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-
 export default function HomePage() {
   return (
     <div className="flex flex-col">
