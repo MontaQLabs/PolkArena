@@ -4,12 +4,6 @@ import Link from "next/link";
 import { ArrowRight, Shield, Swords, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { TypingEffect } from "@/components/ui/typing-effect";
 
 export default function HomePage() {
   return (
@@ -41,7 +35,7 @@ export default function HomePage() {
 
             {/* Subtitle */}
             <p className="text-xl sm:text-2xl lg:text-3xl font-medium text-sui-ocean mb-8">
-              Build the Future with Sui & Walrus
+              Build the future for Sui and powered by Walrus
             </p>
 
             {/* Description */}

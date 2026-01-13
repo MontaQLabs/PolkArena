@@ -10,7 +10,7 @@ const interTight = Inter_Tight({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Crucible - Build the Future",
   description:
-    "The premier platform for Sui and Walrus ecosystem innovation. Build, compete, and grow in the most exciting blockchain hackathons with decentralized storage solutions.",
+    "The premier platform for Sui and Walrus ecosystem innovation – built for Sui and powered by Walrus. Build, compete, and grow in the most exciting blockchain hackathons with decentralized storage solutions.",
   keywords: "Sui, Walrus, Web3, hackathon, blockchain, development, innovation, competition, tools, collaboration, Move, decentralized storage",
   authors: [{ name: "Crucible Team" }],
   icons: {
