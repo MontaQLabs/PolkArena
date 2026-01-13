@@ -4,11 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Zap, Users, Crown, Plus, LogIn } from "lucide-react";
+import { Zap, Users, Crown, Plus, LogIn, ArrowUpRight } from "lucide-react";
 
 interface BuzzerRoom {
   id: string;
@@ -80,7 +79,6 @@ export default function BuzzerPage() {
         setNewRoomDescription("");
         setIsCreateDialogOpen(false);
         await updateRoomsList();
-        // Navigate to the new room
         router.push(`/tools/buzzer/room/${data.room.id}`);
       } else {
         const error = await response.json();
@@ -113,7 +111,6 @@ export default function BuzzerPage() {
         const data = await response.json();
         setJoinPin("");
         setIsJoinDialogOpen(false);
-        // Navigate to the joined room
         router.push(`/tools/buzzer/room/${data.room.id}`);
       } else {
         const error = await response.json();
@@ -129,208 +126,210 @@ export default function BuzzerPage() {
 
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-walrus-teal flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-sui-sea mb-4">⚡ Buzzer</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Please sign in to access the buzzer tool.
-          </p>
+          <Zap className="h-16 w-16 text-white mx-auto mb-4" />
+          <h1 className="text-4xl font-black text-white uppercase tracking-tight mb-4">BUZZER</h1>
+          <p className="text-white/70 mb-6">Please sign in to access the buzzer tool.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
-        {/* Header Section */}
-        <div className="text-center mb-8 lg:mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-sui-sea/10 rounded-full mb-4 lg:mb-6">
-            <Zap className="h-8 w-8 sm:h-10 sm:w-10 text-sui-sea" />
+    <div className="min-h-screen bg-white">
+      {/* Hero */}
+      <section className="bg-walrus-teal py-16 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-white p-3">
+                <Zap className="h-8 w-8 text-walrus-teal" />
+              </div>
+              <span className="text-white/80 font-bold uppercase tracking-widest text-sm">
+                Event Tool
+              </span>
+            </div>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white uppercase tracking-tight mb-6">
+              BUZZER
+            </h1>
+            <p className="text-xl text-white/70 max-w-2xl">
+              Create or join buzzer rooms for real-time competitions. Hosts can start, stop, and reset while participants buzz in to answer.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-sui-sea mb-3 lg:mb-4">
-            ⚡ Buzzer
-          </h1>
-          <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-            Create or join buzzer rooms for real-time competitions. Hosts can start, stop, and reset rooms while participants buzz in to answer questions.
-          </p>
         </div>
+      </section>
 
-        {/* Action Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-8 lg:mb-12 max-w-4xl mx-auto">
-          {/* Create Room */}
-          <Card className="border-2 border-storm-200 hover:border-sui-sea transition-all duration-300 group hover:shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                <div className="p-2 bg-sui-sea/10 rounded-lg group-hover:bg-sui-sea/20 transition-colors">
-                  <Plus className="h-5 w-5 text-sui-sea" />
-                </div>
-                Create New Room
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+      {/* Action Cards */}
+      <section className="py-12 border-b-4 border-sui-ocean">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 max-w-4xl mx-auto">
+            {/* Create Room */}
+            <div className="bg-sui-ocean p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <Plus className="h-6 w-6 text-sui-sea" />
+                <h2 className="text-xl font-black text-white uppercase tracking-wide">Create Room</h2>
+              </div>
+              <p className="text-white/60 mb-6">Start a new buzzer room as host</p>
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full h-12 sm:h-14 bg-sui-sea hover:bg-sui-sea/90 text-base sm:text-lg font-semibold">
+                  <Button className="w-full bg-sui-sea hover:bg-white hover:text-sui-ocean text-white font-bold uppercase tracking-wide py-6 rounded-none">
                     Create Room
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="rounded-none border-4 border-sui-ocean">
                   <DialogHeader>
-                    <DialogTitle className="text-xl">Create New Buzzer Room</DialogTitle>
+                    <DialogTitle className="text-2xl font-black text-sui-ocean uppercase">Create Buzzer Room</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="roomName" className="text-sm font-medium">Room Name</Label>
+                      <Label htmlFor="roomName" className="font-bold uppercase text-sm">Room Name</Label>
                       <Input
                         id="roomName"
                         value={newRoomName}
                         onChange={(e) => setNewRoomName(e.target.value)}
                         placeholder="Enter room name"
-                        className="mt-1"
+                        className="rounded-none border-2 border-sui-ocean"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="roomDescription" className="text-sm font-medium">Description (Optional)</Label>
+                      <Label htmlFor="roomDescription" className="font-bold uppercase text-sm">Description (Optional)</Label>
                       <Input
                         id="roomDescription"
                         value={newRoomDescription}
                         onChange={(e) => setNewRoomDescription(e.target.value)}
                         placeholder="Enter room description"
-                        className="mt-1"
+                        className="rounded-none border-2 border-sui-ocean"
                       />
                     </div>
                     <Button 
                       onClick={createRoom} 
                       disabled={loading || !newRoomName.trim()}
-                      className="w-full h-12 bg-sui-sea hover:bg-sui-sea/90 text-base font-semibold"
+                      className="w-full bg-walrus-teal hover:bg-sui-ocean text-white font-bold uppercase rounded-none py-6"
                     >
                       {loading ? 'Creating...' : 'Create Room'}
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Join Room */}
-          <Card className="border-2 border-storm-200 hover:border-sui-sea transition-all duration-300 group hover:shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                  <LogIn className="h-5 w-5 text-blue-500" />
-                </div>
-                Join Room
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+            {/* Join Room */}
+            <div className="bg-sui-sea p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <LogIn className="h-6 w-6 text-white" />
+                <h2 className="text-xl font-black text-white uppercase tracking-wide">Join Room</h2>
+              </div>
+              <p className="text-white/70 mb-6">Enter a PIN to join an existing room</p>
               <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold border-2 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <Button className="w-full bg-white hover:bg-sui-ocean text-sui-sea hover:text-white font-bold uppercase tracking-wide py-6 rounded-none">
                     Join Room
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="rounded-none border-4 border-sui-ocean">
                   <DialogHeader>
-                    <DialogTitle className="text-xl">Join Buzzer Room</DialogTitle>
+                    <DialogTitle className="text-2xl font-black text-sui-ocean uppercase">Join Buzzer Room</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="joinPin" className="text-sm font-medium">Room PIN</Label>
+                      <Label htmlFor="joinPin" className="font-bold uppercase text-sm">Room PIN</Label>
                       <Input
                         id="joinPin"
                         value={joinPin}
                         onChange={(e) => setJoinPin(e.target.value)}
-                        placeholder="Enter 6-digit PIN"
+                        placeholder="000000"
                         maxLength={6}
-                        className="mt-1 text-center text-lg font-mono tracking-widest"
+                        className="text-center text-3xl font-mono tracking-[0.5em] rounded-none border-2 border-sui-ocean py-6"
                       />
                     </div>
                     <Button 
                       onClick={joinRoom} 
                       disabled={loading || !joinPin.trim()}
-                      className="w-full h-12 bg-sui-sea hover:bg-sui-sea/90 text-base font-semibold"
+                      className="w-full bg-walrus-teal hover:bg-sui-ocean text-white font-bold uppercase rounded-none py-6"
                     >
                       {loading ? 'Joining...' : 'Join Room'}
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Available Rooms */}
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-sui-sea/10 rounded-lg">
-              <Users className="h-5 w-5 text-sui-sea" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-sui-sea">Available Rooms</h2>
+          </div>
+        </div>
+      </section>
+
+      {/* Available Rooms */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 mb-8">
+            <Users className="h-6 w-6 text-sui-ocean" />
+            <h2 className="text-3xl font-black text-sui-ocean uppercase tracking-tight">Available Rooms</h2>
           </div>
           
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sui-sea mx-auto mb-4"></div>
-              <p className="text-gray-500">Loading rooms...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-sui-sea mx-auto mb-4"></div>
+              <p className="text-sui-ocean/50 font-bold uppercase tracking-wide">Loading rooms...</p>
             </div>
           ) : rooms.length === 0 ? (
-            <Card className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600">
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Zap className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">No rooms available</h3>
-              <p className="text-gray-500">Create one to get started!</p>
-            </Card>
+            <div className="bg-gray-50 border-4 border-dashed border-sui-ocean/30 p-12 text-center">
+              <Zap className="h-12 w-12 text-sui-ocean/30 mx-auto mb-4" />
+              <p className="text-sui-ocean/50 font-bold uppercase tracking-wide mb-2">No rooms available</p>
+              <p className="text-sui-ocean/40">Create one to get started!</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {rooms.map((room) => (
-                <Card key={room.id} className="border-2 border-storm-200 hover:border-sui-sea transition-all duration-300 group hover:shadow-lg">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center justify-between text-base sm:text-lg">
-                      <span className="truncate pr-2">{room.room_name}</span>
-                      <Crown className={`h-4 w-4 flex-shrink-0 ${room.host_id === user?.id ? 'text-yellow-500' : 'text-gray-400'}`} />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    {room.description && (
-                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-                        {room.description}
-                      </p>
-                    )}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-                        <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span>{room.participant_count} participants</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm">
-                        <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span className={`capitalize font-medium ${
-                          room.status === 'waiting' ? 'text-blue-500' :
-                          room.status === 'active' ? 'text-green-500' :
-                          'text-red-500'
-                        }`}>
-                          {room.status}
-                        </span>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {rooms.map((room, i) => (
+                <div 
+                  key={room.id} 
+                  className={`p-6 border-4 ${room.host_id === user?.id ? 'border-walrus-teal bg-walrus-teal/5' : 'border-sui-ocean'} hover:bg-sui-ocean hover:text-white group transition-colors`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-black text-sui-ocean group-hover:text-white uppercase tracking-wide truncate pr-2">
+                      {room.room_name}
+                    </h3>
+                    <Crown className={`h-5 w-5 flex-shrink-0 ${room.host_id === user?.id ? 'text-walrus-teal group-hover:text-yellow-300' : 'text-sui-ocean/30 group-hover:text-white/30'}`} />
+                  </div>
+                  {room.description && (
+                    <p className="text-sui-ocean/60 group-hover:text-white/70 text-sm mb-4 line-clamp-2">
+                      {room.description}
+                    </p>
+                  )}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-sui-ocean/60 group-hover:text-white/60">
+                      <Users className="h-4 w-4" />
+                      <span>{room.participant_count} participants</span>
                     </div>
-                    <Button 
-                      onClick={() => router.push(`/tools/buzzer/room/${room.id}`)}
-                      className={`w-full h-10 text-sm font-semibold ${
-                        room.host_id === user?.id 
-                          ? 'bg-sui-sea hover:bg-sui-sea/90' 
-                          : 'bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600'
-                      }`}
-                    >
+                    <div className="flex items-center gap-2 text-sm">
+                      <Zap className="h-4 w-4" />
+                      <span className={`capitalize font-bold ${
+                        room.status === 'waiting' ? 'text-sui-sea group-hover:text-sui-sea' :
+                        room.status === 'active' ? 'text-green-500' :
+                        'text-red-500'
+                      }`}>
+                        {room.status}
+                      </span>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => router.push(`/tools/buzzer/room/${room.id}`)}
+                    className={`w-full font-bold uppercase text-sm rounded-none ${
+                      room.host_id === user?.id 
+                        ? 'bg-walrus-teal group-hover:bg-white group-hover:text-walrus-teal' 
+                        : 'bg-sui-sea group-hover:bg-white group-hover:text-sui-ocean'
+                    } text-white`}
+                  >
+                    <span className="flex items-center justify-center gap-2">
                       {room.host_id === user?.id ? 'Host Room' : 'Join Room'}
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <ArrowUpRight className="h-4 w-4" />
+                    </span>
+                  </Button>
+                </div>
               ))}
             </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

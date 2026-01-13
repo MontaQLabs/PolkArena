@@ -4,16 +4,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/lib/database.types";
-import { Plus, Share2, Twitter, Instagram, Linkedin, Facebook, Target } from "lucide-react";
+import { Plus, Share2, Twitter, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
 type SocialQuest = Database["public"]["Tables"]["social_quests"]["Row"];
@@ -60,10 +57,6 @@ export default function SocialQuestPage() {
     }
   }, [user]);
 
-
-
-
-
   const createQuest = async () => {
     if (!user || !newQuest.title.trim() || !newQuest.context.trim()) return;
 
@@ -104,123 +97,124 @@ export default function SocialQuestPage() {
     }
   };
 
-
+  const platformIcons: Record<string, React.ReactNode> = {
+    twitter: <Twitter className="w-4 h-4" />,
+    instagram: <span className="text-sm font-bold">IG</span>,
+    linkedin: <span className="text-sm font-bold">in</span>,
+    facebook: <span className="text-sm font-bold">f</span>,
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sui-sea"></div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-sui-ocean font-bold text-xl uppercase tracking-widest">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-bright-turquoise to-crucible-orange rounded-full blur-xl opacity-30 animate-pulse"></div>
-              <div className="relative bg-gradient-to-r from-bright-turquoise to-crucible-orange text-white p-4 rounded-full">
-                <Share2 className="w-8 h-8" />
+    <div className="min-h-screen bg-white">
+      {/* Hero */}
+      <section className="bg-sui-ocean py-16 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-walrus-teal p-3">
+                <Share2 className="h-8 w-8 text-white" />
               </div>
+              <span className="text-white/80 font-bold uppercase tracking-widest text-sm">
+                Event Tool
+              </span>
             </div>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-bright-turquoise to-crucible-orange bg-clip-text text-transparent mb-4">
-            Social Quest
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Create viral social media campaigns with AI-powered messaging! 
-            Organizers can craft engaging quests and participants get ready-to-share content.
-          </p>
-          
-          {/* Quick Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white uppercase tracking-tight mb-6">
+              SOCIAL QUEST
+            </h1>
+            <p className="text-xl text-white/70 max-w-2xl mb-8">
+              Create viral social media campaigns with AI-powered messaging. Organizers craft engaging quests and participants get ready-to-share content.
+            </p>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-bright-turquoise to-crucible-orange hover:from-bright-turquoise/90 hover:to-crucible-orange/90 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                <Button className="bg-walrus-teal hover:bg-white hover:text-sui-ocean text-white font-bold uppercase tracking-wide px-8 py-6 rounded-none transition-all duration-150">
                   <Plus className="w-5 h-5 mr-2" />
-                  Create Social Quest
+                  Create Quest
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-2xl">
+              <DialogContent className="sm:max-w-2xl rounded-none border-4 border-sui-ocean">
                 <DialogHeader>
-                  <DialogTitle>Create Social Quest</DialogTitle>
-                  <DialogDescription>
-                    Create an engaging social media campaign with AI-generated messages for different platforms.
+                  <DialogTitle className="text-2xl font-black text-sui-ocean uppercase">Create Social Quest</DialogTitle>
+                  <DialogDescription className="text-sui-ocean/60">
+                    Create an engaging social media campaign with AI-generated messages.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Quest Title</Label>
+                    <Label htmlFor="title" className="font-bold uppercase text-sm">Quest Title</Label>
                     <Input
                       id="title"
                       value={newQuest.title}
                       onChange={(e) => setNewQuest(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="Enter quest title"
-                      className="text-lg"
+                      className="rounded-none border-2 border-sui-ocean"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description" className="font-bold uppercase text-sm">Description</Label>
                     <Textarea
                       id="description"
                       value={newQuest.description}
                       onChange={(e) => setNewQuest(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Describe your social quest"
-                      rows={3}
+                      rows={2}
+                      className="rounded-none border-2 border-sui-ocean"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="context">Campaign Context</Label>
+                    <Label htmlFor="context" className="font-bold uppercase text-sm">Campaign Context</Label>
                     <Textarea
                       id="context"
                       value={newQuest.context}
                       onChange={(e) => setNewQuest(prev => ({ ...prev, context: e.target.value }))}
-                      placeholder="What should people share about? (e.g., 'We're launching a new Sui hackathon')"
-                      rows={3}
+                      placeholder="What should people share about?"
+                      rows={2}
+                      className="rounded-none border-2 border-sui-ocean"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="hashtags">Hashtags</Label>
+                    <Label htmlFor="hashtags" className="font-bold uppercase text-sm">Hashtags</Label>
                     <Input
                       id="hashtags"
                       value={newQuest.hashtags}
                       onChange={(e) => setNewQuest(prev => ({ ...prev, hashtags: e.target.value }))}
                       placeholder="#Sui #Hackathon #Web3"
+                      className="rounded-none border-2 border-sui-ocean"
                     />
                   </div>
                   <div>
-                    <Label>Social Platforms</Label>
+                    <Label className="font-bold uppercase text-sm">Social Platforms</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       {['twitter', 'instagram', 'linkedin', 'facebook'].map((platform) => (
                         <Button
                           key={platform}
                           type="button"
-                          variant={newQuest.social_platforms.includes(platform) ? "default" : "outline"}
                           onClick={() => {
                             const updated = newQuest.social_platforms.includes(platform)
                               ? newQuest.social_platforms.filter(p => p !== platform)
                               : [...newQuest.social_platforms, platform];
                             setNewQuest(prev => ({ ...prev, social_platforms: updated }));
                           }}
-                          className="justify-start"
+                          className={`justify-start rounded-none font-bold uppercase ${
+                            newQuest.social_platforms.includes(platform) 
+                              ? 'bg-sui-sea text-white' 
+                              : 'bg-gray-100 text-sui-ocean hover:bg-sui-ocean hover:text-white'
+                          }`}
                         >
-                          {platform === 'twitter' && <Twitter className="w-4 h-4 mr-2" />}
-                          {platform === 'instagram' && <Instagram className="w-4 h-4 mr-2" />}
-                          {platform === 'linkedin' && <Linkedin className="w-4 h-4 mr-2" />}
-                          {platform === 'facebook' && <Facebook className="w-4 h-4 mr-2" />}
-                          {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                          {platformIcons[platform]}
+                          <span className="ml-2">{platform}</span>
                         </Button>
                       ))}
                     </div>
                   </div>
-                  <Button onClick={createQuest} className="w-full bg-gradient-to-r from-bright-turquoise to-crucible-orange">
+                  <Button onClick={createQuest} className="w-full bg-walrus-teal hover:bg-sui-ocean text-white font-bold uppercase rounded-none py-6">
                     Create Quest
                   </Button>
                 </div>
@@ -228,110 +222,95 @@ export default function SocialQuestPage() {
             </Dialog>
           </div>
         </div>
+      </section>
 
-        {/* My Quests Section */}
-        {myQuests.length > 0 && (
-          <div className="mb-12">
-            <div className="text-center mb-8">
-              <div className="flex items-center justify-center mb-2">
-                <Target className="w-6 h-6 text-walrus-teal mr-2" />
-                <h2 className="text-3xl font-bold text-walrus-teal">My Quests</h2>
-              </div>
-              <p className="text-muted-foreground">Your created social campaigns</p>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* My Quests Section */}
+      {myQuests.length > 0 && (
+        <section className="py-16 bg-walrus-teal">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-8">My Quests</h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {myQuests.map((quest) => (
-                <Card key={quest.id} className="border-2 border-storm-200 hover:border-walrus-teal transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
-                  <CardHeader>
-                    <CardTitle className="text-xl group-hover:text-walrus-teal transition-colors">{quest.title}</CardTitle>
-                    <CardDescription className="text-base">
-                      {quest.description || "No description"}
-                    </CardDescription>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {quest.social_platforms.map((platform) => (
-                        <Badge key={platform} variant="secondary" className="text-xs">
-                          {platform === 'twitter' && <Twitter className="w-3 h-3 mr-1" />}
-                          {platform === 'instagram' && <Instagram className="w-3 h-3 mr-1" />}
-                          {platform === 'linkedin' && <Linkedin className="w-3 h-3 mr-1" />}
-                          {platform === 'facebook' && <Facebook className="w-3 h-3 mr-1" />}
-                          {platform}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="text-sm text-gray-600">
-                        <strong>Context:</strong> {quest.context}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button asChild size="sm" className="bg-walrus-teal hover:bg-walrus-teal/90 text-white">
-                          <Link href={`/tools/social-quest/${quest.id}`}>View Quest</Link>
-                        </Button>
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/tools/social-quest/${quest.id}/edit`}>Edit</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div 
+                  key={quest.id} 
+                  className="bg-white p-6 border-4 border-white hover:border-sui-ocean transition-colors"
+                >
+                  <h3 className="text-xl font-black text-sui-ocean uppercase tracking-wide mb-2">
+                    {quest.title}
+                  </h3>
+                  <p className="text-sui-ocean/60 mb-4 line-clamp-2">
+                    {quest.description || "No description"}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {quest.social_platforms.map((platform) => (
+                      <span key={platform} className="bg-sui-ocean/10 text-sui-ocean text-xs font-bold uppercase px-2 py-1">
+                        {platform}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-sui-ocean/50 mb-4 line-clamp-2">
+                    <strong>Context:</strong> {quest.context}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button asChild className="bg-walrus-teal hover:bg-sui-ocean text-white font-bold uppercase text-sm rounded-none px-4 py-2">
+                      <Link href={`/tools/social-quest/${quest.id}`}>View</Link>
+                    </Button>
+                    <Button asChild className="bg-sui-ocean/10 hover:bg-sui-ocean text-sui-ocean hover:text-white font-bold uppercase text-sm rounded-none px-4 py-2">
+                      <Link href={`/tools/social-quest/${quest.id}/edit`}>Edit</Link>
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
-        )}
+        </section>
+      )}
 
-        {/* Available Quests Section */}
-        <div>
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-2">
-                                <Target className="w-6 h-6 text-sui-sea mr-2" />
-              <h2 className="text-3xl font-bold text-sui-sea">Available Quests</h2>
-            </div>
-            <p className="text-muted-foreground">Join social campaigns and share amazing content</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {quests.map((quest) => (
-              <Card key={quest.id} className="border-2 border-storm-200 hover:border-sui-sea transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
-                <CardHeader>
-                  <CardTitle className="text-xl group-hover:text-sui-sea transition-colors">{quest.title}</CardTitle>
-                  <CardDescription className="text-base">
+      {/* Available Quests Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-black text-sui-ocean uppercase tracking-tight mb-8">Available Quests</h2>
+          {quests.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {quests.map((quest) => (
+                <div 
+                  key={quest.id} 
+                  className="bg-white border-4 border-sui-ocean p-6 hover:bg-sui-ocean hover:text-white group transition-colors"
+                >
+                  <h3 className="text-xl font-black text-sui-ocean group-hover:text-white uppercase tracking-wide mb-2">
+                    {quest.title}
+                  </h3>
+                  <p className="text-sui-ocean/60 group-hover:text-white/70 mb-4 line-clamp-2">
                     {quest.description || "No description"}
-                  </CardDescription>
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {quest.social_platforms.map((platform) => (
-                      <Badge key={platform} variant="secondary" className="text-xs">
-                        {platform === 'twitter' && <Twitter className="w-3 h-3 mr-1" />}
-                        {platform === 'instagram' && <Instagram className="w-3 h-3 mr-1" />}
-                        {platform === 'linkedin' && <Linkedin className="w-3 h-3 mr-1" />}
-                        {platform === 'facebook' && <Facebook className="w-3 h-3 mr-1" />}
+                      <span key={platform} className="bg-sui-ocean/10 group-hover:bg-white/20 text-sui-ocean group-hover:text-white text-xs font-bold uppercase px-2 py-1">
                         {platform}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="text-sm text-gray-600">
-                      <strong>Context:</strong> {quest.context}
-                    </div>
-                    <Button asChild size="sm" variant="outline" className="border-sui-sea text-sui-sea hover:bg-sui-sea hover:text-white w-full">
-                      <Link href={`/tools/social-quest/${quest.id}`}>Join Quest</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {quests.length === 0 && (
-            <div className="text-center text-muted-foreground py-12">
-              <div className="text-6xl mb-4">📱</div>
-              <p className="text-xl mb-4">No social quests available yet</p>
-              <p className="text-lg">Be the first to create a viral campaign! 🚀</p>
+                  <p className="text-sm text-sui-ocean/50 group-hover:text-white/60 mb-4 line-clamp-2">
+                    <strong>Context:</strong> {quest.context}
+                  </p>
+                  <Button asChild className="w-full bg-walrus-teal group-hover:bg-white group-hover:text-sui-ocean text-white font-bold uppercase rounded-none">
+                    <Link href={`/tools/social-quest/${quest.id}`} className="flex items-center justify-center gap-2">
+                      Join Quest
+                      <ArrowUpRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-50 border-4 border-dashed border-sui-ocean/30 p-12 text-center">
+              <Share2 className="h-12 w-12 text-sui-ocean/30 mx-auto mb-4" />
+              <p className="text-sui-ocean/50 font-bold uppercase tracking-wide mb-2">No social quests available yet</p>
+              <p className="text-sui-ocean/40">Be the first to create a viral campaign!</p>
             </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
-

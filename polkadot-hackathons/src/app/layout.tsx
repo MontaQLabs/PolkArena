@@ -8,20 +8,20 @@ import { Footer } from "@/components/layout/footer";
 const interTight = Inter_Tight({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Crucible - Build the Future",
+  title: "Crucible - NFT Ticketing Platform for Sui",
   description:
-    "The premier platform for Sui and Walrus ecosystem innovation – built for Sui and powered by Walrus. Build, compete, and grow in the most exciting blockchain hackathons with decentralized storage solutions.",
-  keywords: "Sui, Walrus, Web3, hackathon, blockchain, development, innovation, competition, tools, collaboration, Move, decentralized storage",
+    "Decentralized event and ticketing platform powered by Sui smart contracts, Walrus storage, and Seal encryption. Register with ZkLogin, receive encrypted NFT tickets, and earn proof-of-attendance rewards.",
+  keywords: "Sui, Walrus, NFT Ticketing, ZkLogin, Seal Encryption, Web3, hackathon, blockchain, Move, decentralized storage, proof of attendance, POAP",
   authors: [{ name: "Crucible Team" }],
   icons: {
-    icon: "/logo.svg",
-    shortcut: "/logo.svg",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
     apple: "/logo.svg",
   },
   openGraph: {
-    title: "Crucible - Build the Future",
+    title: "Crucible - NFT Ticketing Platform for Sui",
     description:
-      "The premier platform for Sui and Walrus ecosystem innovation. Build, compete, and grow in the most exciting blockchain hackathons with decentralized storage solutions.",
+      "Decentralized event and ticketing platform with encrypted NFT tickets, ZkLogin identity, and proof-of-attendance rewards. Built for Sui, powered by Walrus.",
     type: "website",
     locale: "en_US",
     images: [
@@ -29,15 +29,15 @@ export const metadata: Metadata = {
         url: "/logo.svg",
         width: 1200,
         height: 630,
-        alt: "Crucible - Build the Future",
+        alt: "Crucible - NFT Ticketing Platform for Sui",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Crucible - Build the Future",
+    title: "Crucible - NFT Ticketing Platform for Sui",
     description:
-      "The premier platform for Sui and Walrus ecosystem innovation. Build, compete, and grow in the most exciting blockchain hackathons with decentralized storage solutions.",
+      "Decentralized event and ticketing platform with encrypted NFT tickets, ZkLogin identity, and proof-of-attendance rewards. Built for Sui, powered by Walrus.",
     images: ["/logo.svg"],
   },
 };
@@ -50,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logo.svg" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/logo.svg" />
       </head>
       <body className={interTight.className}>

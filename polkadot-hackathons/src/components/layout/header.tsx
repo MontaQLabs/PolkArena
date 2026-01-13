@@ -9,7 +9,7 @@ import {
   User,
   Plus,
   Calendar,
-  Trophy,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -34,63 +34,63 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl border-b border-gray-100">
+    <header className="sticky top-0 z-50 w-full bg-white border-b-2 border-sui-ocean">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="h-9 w-9 rounded-xl bg-sui-ocean flex items-center justify-center">
+          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+            <div className="h-8 w-8 bg-sui-ocean flex items-center justify-center">
               <img 
                 src="/logo.svg" 
                 alt="Crucible" 
                 className="h-5 w-5 object-contain brightness-0 invert"
               />
             </div>
-            <span className="font-bold text-xl text-sui-ocean">
+            <span className="font-black text-xl text-sui-ocean uppercase tracking-tight">
               Crucible
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 ml-10">
+          <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/hackathons"
-              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
+              className="text-sui-ocean/70 hover:text-sui-ocean hover:bg-gray-100 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors"
             >
               Hackathons
             </Link>
             <Link
               href="/events"
-              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
+              className="text-sui-ocean/70 hover:text-sui-ocean hover:bg-gray-100 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors"
             >
               Events
             </Link>
             <Link
               href="/bounties"
-              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
+              className="text-sui-ocean/70 hover:text-sui-ocean hover:bg-gray-100 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors"
             >
               Bounties
             </Link>
             <Link
               href="/leaderboard"
-              className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium transition-colors"
+              className="text-sui-ocean/70 hover:text-sui-ocean hover:bg-gray-100 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors"
             >
               Leaderboard
             </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sui-ocean/70 hover:text-sui-ocean px-4 py-2 text-sm font-medium">
+                <Button variant="ghost" className="text-sui-ocean/70 hover:text-sui-ocean hover:bg-gray-100 px-4 py-2 text-sm font-bold uppercase tracking-wide rounded-none">
                   Tools
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem asChild>
+              <DropdownMenuContent align="end" className="rounded-none border-2 border-sui-ocean">
+                <DropdownMenuItem asChild className="font-bold uppercase text-xs tracking-wide">
                   <Link href="/tools/quiz">Quiz</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="font-bold uppercase text-xs tracking-wide">
                   <Link href="/tools/buzzer">Buzzer</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="font-bold uppercase text-xs tracking-wide">
                   <Link href="/tools/social-quest">Social Quest</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -98,8 +98,7 @@ export function Header() {
           </nav>
 
           {/* Right side actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-
+          <div className="flex items-center gap-3">
             {user ? (
               <>
                 {/* Desktop user menu */}
@@ -108,11 +107,11 @@ export function Header() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="relative h-9 w-9 rounded-full"
+                        className="relative h-9 w-9 rounded-none"
                       >
-                        <Avatar className="h-9 w-9">
+                        <Avatar className="h-9 w-9 rounded-none">
                           <AvatarImage src={profile?.avatar_url || ""} />
-                          <AvatarFallback className="bg-sui-sea text-white">
+                          <AvatarFallback className="bg-sui-sea text-white rounded-none font-bold">
                             {profile?.name?.[0]?.toUpperCase() ||
                               user.email?.[0]?.toUpperCase() ||
                               "U"}
@@ -121,41 +120,41 @@ export function Header() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                      className="w-56"
+                      className="w-56 rounded-none border-2 border-sui-ocean"
                       align="end"
                       forceMount
                     >
                       <div className="flex items-center justify-start gap-2 p-2">
                         <div className="flex flex-col space-y-1 leading-none">
                           {profile?.name && (
-                            <p className="font-medium">{profile.name}</p>
+                            <p className="font-bold uppercase text-sm">{profile.name}</p>
                           )}
-                          <p className="w-[200px] truncate text-sm text-muted-foreground">
+                          <p className="w-[200px] truncate text-xs text-muted-foreground">
                             {user.email}
                           </p>
                         </div>
                       </div>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem asChild className="font-bold uppercase text-xs tracking-wide">
                         <Link href="/profile">
                           <User className="mr-2 h-4 w-4" />
                           Profile
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem asChild className="font-bold uppercase text-xs tracking-wide">
                         <Link href="/hackathons/create">
                           <Plus className="mr-2 h-4 w-4" />
                           Host Hackathon
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem asChild className="font-bold uppercase text-xs tracking-wide">
                         <Link href="/events/create">
                           <Calendar className="mr-2 h-4 w-4" />
                           Host Event
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut}>
+                      <DropdownMenuItem onClick={handleSignOut} className="font-bold uppercase text-xs tracking-wide">
                         <LogOut className="mr-2 h-4 w-4" />
                         Sign out
                       </DropdownMenuItem>
@@ -168,188 +167,132 @@ export function Header() {
                 <Button
                   asChild
                   variant="ghost"
-                  className="hidden md:inline-flex text-sui-ocean/70 hover:text-sui-ocean text-sm"
+                  className="hidden md:inline-flex text-sui-ocean/70 hover:text-sui-ocean text-sm font-bold uppercase tracking-wide rounded-none"
                 >
                   <Link href="/auth/login">Sign In</Link>
                 </Button>
                 <Button
                   asChild
-                  className="hidden md:inline-flex bg-sui-ocean hover:bg-sui-ocean/90 text-white text-sm font-medium rounded-full px-5"
+                  className="hidden md:inline-flex bg-sui-ocean hover:bg-sui-sea text-white text-sm font-bold uppercase tracking-wide rounded-none px-6"
                 >
                   <Link href="/auth/signup">Get Started</Link>
                 </Button>
 
                 {/* Mobile auth buttons */}
                 <div className="md:hidden flex items-center gap-2">
-                  <Button asChild variant="ghost" size="sm" className="text-sm text-sui-ocean/70">
-                    <Link href="/auth/login">Sign In</Link>
-                  </Button>
-                  <Button asChild size="sm" className="bg-sui-ocean text-white text-sm rounded-full px-4">
+                  <Button asChild className="bg-sui-ocean text-white text-sm font-bold uppercase rounded-none px-4">
                     <Link href="/auth/signup">Join</Link>
                   </Button>
                 </div>
               </>
             )}
 
-            {/* Mobile menu button - ALWAYS visible */}
+            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden h-8 w-8 px-0"
+              className="md:hidden h-10 w-10 p-0 rounded-none"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              <Menu className="h-4 w-4" />
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-border/40 py-4">
-            <nav className="flex flex-col space-y-1">
-              {/* Navigation Links */}
+          <div className="md:hidden border-t-2 border-sui-ocean py-4">
+            <nav className="flex flex-col">
               <Link
                 href="/hackathons"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="text-sui-ocean font-bold uppercase tracking-wide py-3 hover:bg-gray-100 px-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Calendar className="h-4 w-4" />
-                <span>Hackathons</span>
-              </Link>
-              <Link
-                href="/leaderboard"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Trophy className="h-4 w-4" />
-                <span>Leaderboard</span>
+                Hackathons
               </Link>
               <Link
                 href="/events"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="text-sui-ocean font-bold uppercase tracking-wide py-3 hover:bg-gray-100 px-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Calendar className="h-4 w-4" />
-                <span>Events</span>
+                Events
               </Link>
-              <div className="border-t border-border/40 my-2 pt-2">
-                <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Tools
-                </div>
+              <Link
+                href="/bounties"
+                className="text-sui-ocean font-bold uppercase tracking-wide py-3 hover:bg-gray-100 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Bounties
+              </Link>
+              <Link
+                href="/leaderboard"
+                className="text-sui-ocean font-bold uppercase tracking-wide py-3 hover:bg-gray-100 px-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Leaderboard
+              </Link>
+              
+              <div className="border-t-2 border-gray-200 mt-4 pt-4">
+                <p className="text-xs text-gray-500 uppercase tracking-widest px-2 mb-2">Tools</p>
                 <Link
                   href="/tools/quiz"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="text-sui-ocean/70 font-bold uppercase tracking-wide py-2 hover:bg-gray-100 px-2 block"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Calendar className="h-4 w-4" />
-                  <span>Quiz</span>
+                  Quiz
                 </Link>
                 <Link
                   href="/tools/buzzer"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="text-sui-ocean/70 font-bold uppercase tracking-wide py-2 hover:bg-gray-100 px-2 block"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Calendar className="h-4 w-4" />
-                  <span>Buzzer</span>
+                  Buzzer
                 </Link>
                 <Link
                   href="/tools/social-quest"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="text-sui-ocean/70 font-bold uppercase tracking-wide py-2 hover:bg-gray-100 px-2 block"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Calendar className="h-4 w-4" />
-                  <span>Social Quest</span>
-                </Link>
-                <Link
-                  href="/bounties"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Calendar className="h-4 w-4" />
-                  <span>Bounties</span>
+                  Social Quest
                 </Link>
               </div>
 
-              {/* User-specific actions */}
               {user && (
-                <>
-                  <div className="border-t border-border/40 my-2 pt-2">
-                    <div className="flex items-center space-x-3 py-2 px-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={profile?.avatar_url || ""} />
-                        <AvatarFallback className="bg-sui-sea text-white text-xs">
-                          {profile?.name?.[0]?.toUpperCase() ||
-                            user.email?.[0]?.toUpperCase() ||
-                            "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{profile?.name || "User"}</span>
-                        <span className="text-xs text-muted-foreground truncate">{user.email}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
+                <div className="border-t-2 border-gray-200 mt-4 pt-4">
                   <Link
                     href="/profile"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="text-sui-ocean font-bold uppercase tracking-wide py-3 hover:bg-gray-100 px-2 block"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <User className="h-4 w-4" />
-                    <span>👤 Developer Profile</span>
+                    Profile
                   </Link>
-                  
                   <Link
                     href="/hackathons/create"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="text-sui-ocean font-bold uppercase tracking-wide py-3 hover:bg-gray-100 px-2 block"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Plus className="h-4 w-4" />
-                    <span>🏆 Host Hackathon</span>
+                    Host Hackathon
                   </Link>
-                  
-                  <Link
-                    href="/events/create"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Calendar className="h-4 w-4" />
-                    <span>📅 Host Event</span>
-                  </Link>
-                </>
-              )}
-
-
-              {/* Authentication actions */}
-              {user ? (
                   <button
                     onClick={() => {
                       handleSignOut();
                       setIsMenuOpen(false);
                     }}
-                  className="flex items-center space-x-3 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors py-3 px-2 rounded-md text-left"
+                    className="text-red-600 font-bold uppercase tracking-wide py-3 hover:bg-red-50 px-2 w-full text-left"
                   >
-                    <LogOut className="h-4 w-4" />
-                    <span>🚪 Sign Out</span>
+                    Sign Out
                   </button>
-              ) : (
-                <div className="border-t border-border/40 my-2 pt-2 space-y-1">
-                  <Link
-                    href="/auth/login"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <User className="h-4 w-4" />
-                    <span>🚀 Get Started</span>
-                  </Link>
-                <Link
-                  href="/auth/signup"
-                    className="flex items-center space-x-3 text-sui-sea hover:text-sui-sea/80 hover:bg-sui-sea/10 transition-colors py-3 px-2 rounded-md font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>👥 Join Community</span>
-                </Link>
+                </div>
+              )}
+
+              {!user && (
+                <div className="border-t-2 border-gray-200 mt-4 pt-4 flex gap-2 px-2">
+                  <Button asChild variant="outline" className="flex-1 rounded-none font-bold uppercase border-2 border-sui-ocean">
+                    <Link href="/auth/login">Sign In</Link>
+                  </Button>
+                  <Button asChild className="flex-1 rounded-none font-bold uppercase bg-sui-ocean">
+                    <Link href="/auth/signup">Join</Link>
+                  </Button>
                 </div>
               )}
             </nav>

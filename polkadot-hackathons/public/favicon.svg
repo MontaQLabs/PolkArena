@@ -1,7 +1,5 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Simple Sui-themed Crucible icon -->
   <circle cx="16" cy="16" r="15" fill="#0F172A"/>
-  <circle cx="16" cy="16" r="12" fill="none" stroke="#4DA2FF" stroke-width="2"/>
   <polygon points="16,6 24,22 8,22" fill="#4DA2FF"/>
   <polygon points="16,10 21,20 11,20" fill="#2DD4BF"/>
   <circle cx="16" cy="15" r="2" fill="#FFFFFF"/>

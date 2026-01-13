@@ -1,339 +1,319 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Search, Calendar, MapPin, Award, ArrowRight } from "lucide-react";
+import { Search, MapPin, Calendar, ArrowUpRight, Users } from "lucide-react";
 import Link from "next/link";
-import { toast } from "sonner";
 
-interface Hackathon {
-  id: string;
-  title: string;
-  description: string;
-  short_description: string;
-  location: string;
-  is_online: boolean;
-  start_date: string;
-  end_date: string;
-  registration_deadline: string;
-  max_participants: number | null;
-  prizes: Array<{
-    rank: number;
-    amount: number;
-    currency: string;
-    description: string;
-  }>;
-  rules: string;
-  requirements: string;
-  technologies: string[];
-  website_url: string;
-  discord_url: string;
-  twitter_url: string;
-  github_url: string;
-  organizer_id: string;
-  status: string;
-  created_at: string;
-  organizer: {
-    name: string;
-    email: string;
+// Hardcoded Sui hackathons for Feb/March 2026
+const HACKATHONS = [
+  {
+    id: "sui-overflow-hk-2026",
+    title: "SUI OVERFLOW HONG KONG",
+    description: "The largest Sui hackathon in Asia. Build the future of decentralized applications with Move.",
+    location: "Hong Kong",
+    is_online: false,
+    start_date: "2026-02-15",
+    end_date: "2026-02-17",
+    prize_total: 100000,
+    currency: "USD",
+    status: "registration_open",
+    technologies: ["Sui", "Move", "Walrus"],
+    participants: 500,
+  },
+  {
+    id: "walrus-storage-hack-singapore",
+    title: "WALRUS STORAGE HACK",
+    description: "48-hour hackathon focused on decentralized storage solutions. Build on Walrus protocol.",
+    location: "Singapore",
+    is_online: false,
+    start_date: "2026-02-22",
+    end_date: "2026-02-24",
+    prize_total: 75000,
+    currency: "USD",
+    status: "registration_open",
+    technologies: ["Walrus", "Sui", "DeFi"],
+    participants: 300,
+  },
+  {
+    id: "sui-defi-india",
+    title: "SUI DEFI SUMMIT HACKATHON",
+    description: "Build the next generation of DeFi protocols on Sui. Bangalore edition.",
+    location: "Bangalore, India",
+    is_online: false,
+    start_date: "2026-03-01",
+    end_date: "2026-03-03",
+    prize_total: 50000,
+    currency: "USD",
+    status: "registration_open",
+    technologies: ["Sui", "DeFi", "Move"],
+    participants: 400,
+  },
+  {
+    id: "sui-gaming-hk",
+    title: "SUI GAMING JAM",
+    description: "Create blockchain games on Sui. 72 hours to build the next hit web3 game.",
+    location: "Hong Kong",
+    is_online: false,
+    start_date: "2026-03-08",
+    end_date: "2026-03-11",
+    prize_total: 80000,
+    currency: "USD",
+    status: "upcoming",
+    technologies: ["Sui", "Gaming", "NFT"],
+    participants: 250,
+  },
+  {
+    id: "sui-move-bootcamp-mumbai",
+    title: "MOVE BOOTCAMP MUMBAI",
+    description: "Learn and build with Move. Perfect for developers new to Sui ecosystem.",
+    location: "Mumbai, India",
+    is_online: false,
+    start_date: "2026-03-15",
+    end_date: "2026-03-16",
+    prize_total: 25000,
+    currency: "USD",
+    status: "upcoming",
+    technologies: ["Move", "Sui", "Education"],
+    participants: 200,
+  },
+  {
+    id: "sui-global-online",
+    title: "SUI GLOBAL HACK",
+    description: "Online hackathon open to developers worldwide. Build anything on Sui.",
+    location: "Online",
+    is_online: true,
+    start_date: "2026-03-20",
+    end_date: "2026-03-27",
+    prize_total: 150000,
+    currency: "USD",
+    status: "upcoming",
+    technologies: ["Sui", "Move", "Walrus", "DeFi"],
+    participants: 1000,
+  },
+];
+
+function HackathonCard({ hackathon }: { hackathon: typeof HACKATHONS[0] }) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
   };
-}
 
-function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "in_progress":
-        return "bg-green-500 dark:bg-green-700";
       case "registration_open":
-        return "bg-blue-500 dark:bg-blue-700";
-      case "published":
-        return "bg-purple-500 dark:bg-purple-700";
-      case "draft":
-        return "bg-gray-500 dark:bg-gray-700";
-      case "completed":
-        return "bg-gray-500 dark:bg-gray-700";
-      case "judging":
-        return "bg-yellow-500 dark:bg-yellow-700";
+        return "bg-walrus-teal";
+      case "upcoming":
+        return "bg-sui-sea";
+      case "in_progress":
+        return "bg-green-500";
       default:
-        return "bg-gray-500 dark:bg-gray-700";
+        return "bg-gray-500";
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "in_progress":
-        return "Live Now";
       case "registration_open":
-        return "Registration Open";
-      case "published":
-        return "Published";
-      case "draft":
-        return "Draft";
-      case "completed":
-        return "Completed";
-      case "judging":
-        return "Judging";
+        return "REGISTRATION OPEN";
+      case "upcoming":
+        return "COMING SOON";
+      case "in_progress":
+        return "LIVE NOW";
       default:
-        return "Unknown";
+        return status.toUpperCase();
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const getPrizeText = (prizes: Hackathon["prizes"]) => {
-    if (!prizes || prizes.length === 0) return "No prizes";
-    const total = prizes.reduce((sum, prize) => sum + (prize.amount || 0), 0);
-    const currency = prizes[0]?.currency || "USD";
-    return `${total} ${currency}`;
-  };
-
-  const getTechnologies = (technologies: string[]) => {
-    return technologies || [];
-  };
-
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-sui-sea/50 bg-white dark:bg-gray-900">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span
-                className={`${getStatusColor(
-                  hackathon.status
-                )} text-white px-2 py-1 rounded-full text-xs font-medium`}
-              >
-                {getStatusText(hackathon.status)}
-              </span>
-            </div>
-            <CardTitle className="group-hover:text-sui-sea transition-colors dark:text-white">
-              {hackathon.title}
-            </CardTitle>
-            <CardDescription className="line-clamp-3 dark:text-gray-300">
-              {hackathon.short_description || hackathon.description}
-            </CardDescription>
+    <div className="bg-white border-2 border-sui-ocean group hover:bg-sui-ocean transition-colors duration-150">
+      {/* Status bar */}
+      <div className={`${getStatusColor(hackathon.status)} px-4 py-2`}>
+        <span className="text-white text-xs font-bold uppercase tracking-widest">
+          {getStatusText(hackathon.status)}
+        </span>
+      </div>
+
+      <div className="p-6">
+        {/* Title */}
+        <h3 className="text-2xl font-black text-sui-ocean group-hover:text-white uppercase tracking-tight mb-3 transition-colors">
+          {hackathon.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-sui-ocean/70 group-hover:text-white/70 mb-6 transition-colors">
+          {hackathon.description}
+        </p>
+
+        {/* Meta info */}
+        <div className="space-y-2 mb-6">
+          <div className="flex items-center gap-2 text-sm text-sui-ocean/60 group-hover:text-white/60 transition-colors">
+            <MapPin className="h-4 w-4" />
+            <span className="font-bold uppercase tracking-wide">
+              {hackathon.is_online ? "ONLINE" : hackathon.location}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-sui-ocean/60 group-hover:text-white/60 transition-colors">
+            <Calendar className="h-4 w-4" />
+            <span className="font-bold uppercase tracking-wide">
+              {formatDate(hackathon.start_date)} - {formatDate(hackathon.end_date)}, 2026
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-sui-ocean/60 group-hover:text-white/60 transition-colors">
+            <Users className="h-4 w-4" />
+            <span className="font-bold uppercase tracking-wide">
+              {hackathon.participants} BUILDERS
+            </span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-4">
-          {getTechnologies(hackathon.technologies).map((tech) => (
+        {/* Prize */}
+        <div className="mb-6">
+          <div className="text-3xl font-black text-sui-sea group-hover:text-walrus-teal transition-colors">
+            ${hackathon.prize_total.toLocaleString()}
+          </div>
+          <div className="text-xs font-bold text-sui-ocean/50 group-hover:text-white/50 uppercase tracking-widest transition-colors">
+            In Prizes
+          </div>
+        </div>
+
+        {/* Technologies */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {hackathon.technologies.map((tech) => (
             <span
               key={tech}
-              className="px-2 py-1 bg-secondary text-secondary-foreground rounded text-xs"
+              className="px-3 py-1 bg-sui-ocean/10 group-hover:bg-white/10 text-sui-ocean group-hover:text-white text-xs font-bold uppercase tracking-wide transition-colors"
             >
               {tech}
             </span>
           ))}
         </div>
-      </CardHeader>
 
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
-            <Calendar className="h-4 w-4" />
-            <span>
-              {formatDate(hackathon.start_date)} -{" "}
-              {formatDate(hackathon.end_date)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
-            <MapPin className="h-4 w-4" />
-            <span>
-              {hackathon.is_online ? "Online" : hackathon.location || "TBD"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-400">
-            <Award className="h-4 w-4" />
-            <span>{getPrizeText(hackathon.prizes)} in prizes</span>
-          </div>
-        </div>
-
+        {/* Actions */}
         <div className="flex gap-2">
           <Button
             asChild
-            className="flex-1 bg-sui-sea hover:bg-sui-sea/90"
+            className="flex-1 bg-sui-sea hover:bg-walrus-teal text-white font-bold uppercase tracking-wide rounded-none"
           >
-            <Link href={`/hackathons/${hackathon.id}`}>View Details</Link>
+            <Link href={`/hackathons/${hackathon.id}`}>
+              View Details
+              <ArrowUpRight className="h-4 w-4 ml-2" />
+            </Link>
           </Button>
-          {hackathon.status === "in_progress" ||
-          hackathon.status === "registration_open" ? (
-            <Button asChild variant="outline" className="flex-1">
-              <Link href={`/hackathons/${hackathon.id}/join`}>Join Now</Link>
+          {hackathon.status === "registration_open" && (
+            <Button
+              asChild
+              variant="outline"
+              className="flex-1 border-2 border-sui-ocean group-hover:border-white text-sui-ocean group-hover:text-white font-bold uppercase tracking-wide rounded-none hover:bg-transparent transition-colors"
+            >
+              <Link href={`/hackathons/${hackathon.id}/join`}>Register</Link>
             </Button>
-          ) : null}
+          )}
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function HackathonsLoading() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
-        <Card key={i} className="animate-pulse bg-white dark:bg-gray-900">
-          <CardHeader>
-            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-20 mb-2"></div>
-            <div className="h-6 bg-muted dark:bg-gray-800 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-full mb-1"></div>
-            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-2/3"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-20 bg-muted dark:bg-gray-800 rounded mb-4"></div>
-            <div className="flex gap-2">
-              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
-              <div className="h-9 bg-muted dark:bg-gray-800 rounded flex-1"></div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      </div>
     </div>
   );
 }
 
 export default function HackathonsPage() {
-  const [hackathons, setHackathons] = useState<Hackathon[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => {
-    const fetchHackathons = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch hackathons with organizer info
-        const { data, error } = await supabase
-          .from("hackathons")
-          .select(
-            `
-            *,
-            organizer:users(name, email)
-          `
-          )
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Error fetching hackathons:", error);
-          toast.error("Failed to load hackathons");
-          return;
-        }
-
-        setHackathons(data || []);
-      } catch (error) {
-        console.error("Error:", error);
-        toast.error("Failed to load hackathons");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHackathons();
-  }, []);
-
-  const filteredHackathons = hackathons.filter((hackathon) => {
+  const filteredHackathons = HACKATHONS.filter((hackathon) => {
     const matchesSearch =
       hackathon.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hackathon.description.toLowerCase().includes(searchTerm.toLowerCase());
+      hackathon.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hackathon.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || hackathon.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Hackathons</h1>
-          <p className="text-muted-foreground">
-            Discover and join amazing Sui and Walrus hackathons
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero */}
+      <section className="bg-sui-ocean py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl">
+            <span className="text-walrus-teal font-bold uppercase tracking-widest text-sm">
+              Build on Sui
+            </span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white uppercase tracking-tight mt-4 mb-6">
+              HACKATHONS
+            </h1>
+            <p className="text-xl text-white/60 max-w-2xl">
+              Join the most exciting Sui ecosystem hackathons. Ship products, win prizes, build the future.
+            </p>
+          </div>
         </div>
-        <Button asChild className="bg-sui-sea hover:bg-sui-sea/90">
-          <Link href="/hackathons/create">
-            <ArrowRight className="h-4 w-4 mr-2" />
-            Create Hackathon
-          </Link>
-        </Button>
-      </div>
+      </section>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search hackathons..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+      {/* Filters */}
+      <section className="bg-white border-b-2 border-sui-ocean py-6">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-sui-ocean/40" />
+              <Input
+                placeholder="SEARCH HACKATHONS..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 h-12 rounded-none border-2 border-sui-ocean font-bold uppercase tracking-wide placeholder:text-sui-ocean/40"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-12 px-4 border-2 border-sui-ocean bg-white text-sui-ocean font-bold uppercase tracking-wide rounded-none"
+            >
+              <option value="all">ALL STATUS</option>
+              <option value="registration_open">REGISTRATION OPEN</option>
+              <option value="upcoming">COMING SOON</option>
+              <option value="in_progress">LIVE NOW</option>
+            </select>
+            <Button
+              asChild
+              className="h-12 bg-sui-sea hover:bg-walrus-teal text-white font-bold uppercase tracking-wide rounded-none px-8"
+            >
+              <Link href="/hackathons/create">
+                + HOST HACKATHON
+              </Link>
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-input rounded-md bg-background text-sm"
-            aria-label="Filter by status"
-          >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="registration_open">Registration Open</option>
-            <option value="in_progress">In Progress</option>
-            <option value="judging">Judging</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-      </div>
+      </section>
 
       {/* Hackathons Grid */}
-      {loading ? (
-        <HackathonsLoading />
-      ) : filteredHackathons.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-muted-foreground mb-4">
-            {searchTerm || statusFilter !== "all"
-              ? "No hackathons found matching your criteria."
-              : "No hackathons found."}
-          </div>
-          {searchTerm || statusFilter !== "all" ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-              }}
-            >
-              Clear Filters
-            </Button>
+      <section className="py-12 sm:py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          {filteredHackathons.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-sui-ocean/60 font-bold uppercase tracking-wide mb-4">
+                No hackathons found
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                }}
+                className="rounded-none border-2 border-sui-ocean font-bold uppercase"
+              >
+                Clear Filters
+              </Button>
+            </div>
           ) : (
-            <Button asChild>
-              <Link href="/hackathons/create">Create the First Hackathon</Link>
-            </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredHackathons.map((hackathon) => (
+                <HackathonCard key={hackathon.id} hackathon={hackathon} />
+              ))}
+            </div>
           )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredHackathons.map((hackathon) => (
-            <HackathonCard key={hackathon.id} hackathon={hackathon} />
-          ))}
-        </div>
-      )}
+      </section>
     </div>
   );
 }
