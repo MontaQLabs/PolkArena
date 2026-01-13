@@ -100,7 +100,7 @@ export default function AuthCallbackPage() {
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="font-bold text-2xl text-crucible-orange">
+            <span className="font-bold text-2xl text-sui-sea">
               Crucible
             </span>
           </Link>
@@ -118,7 +118,7 @@ export default function AuthCallbackPage() {
           <CardContent className="text-center">
             {status === "loading" && (
               <div className="space-y-4">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-crucible-orange" />
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-sui-sea" />
                 <p className="text-muted-foreground">
                   Please wait while we complete your authentication...
                 </p>
@@ -142,7 +142,7 @@ export default function AuthCallbackPage() {
                 <div className="space-y-2">
                   <Button
                     asChild
-                    className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
+                    className="w-full bg-sui-sea hover:bg-sui-sea/90"
                   >
                     <Link href="/auth/login">Try Again</Link>
                   </Button>

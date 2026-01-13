@@ -107,7 +107,7 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-crucible-orange/50 bg-white dark:bg-gray-900">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-storm-200 hover:border-sui-sea/50 bg-white dark:bg-gray-900">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -120,7 +120,7 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
                 {getStatusText(hackathon.status)}
               </span>
             </div>
-            <CardTitle className="group-hover:text-crucible-orange transition-colors dark:text-white">
+            <CardTitle className="group-hover:text-sui-sea transition-colors dark:text-white">
               {hackathon.title}
             </CardTitle>
             <CardDescription className="line-clamp-3 dark:text-gray-300">
@@ -165,7 +165,7 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
         <div className="flex gap-2">
           <Button
             asChild
-            className="flex-1 bg-crucible-orange hover:bg-crucible-orange/90"
+            className="flex-1 bg-sui-sea hover:bg-sui-sea/90"
           >
             <Link href={`/hackathons/${hackathon.id}`}>View Details</Link>
           </Button>
@@ -261,10 +261,10 @@ export default function HackathonsPage() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Hackathons</h1>
           <p className="text-muted-foreground">
-            Discover and join amazing Polkadot hackathons
+            Discover and join amazing Sui and Walrus hackathons
           </p>
         </div>
-        <Button asChild className="bg-crucible-orange hover:bg-crucible-orange/90">
+        <Button asChild className="bg-sui-sea hover:bg-sui-sea/90">
           <Link href="/hackathons/create">
             <ArrowRight className="h-4 w-4 mr-2" />
             Create Hackathon

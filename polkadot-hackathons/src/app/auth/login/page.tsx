@@ -91,7 +91,7 @@ export default function LoginPage() {
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="font-bold text-2xl text-crucible-orange">
+            <span className="font-bold text-2xl text-sui-sea">
               Crucible
             </span>
           </Link>
@@ -182,7 +182,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
+                className="w-full bg-sui-sea hover:bg-sui-sea/90"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign In"}
@@ -195,7 +195,7 @@ export default function LoginPage() {
               </span>
               <Link
                 href="/auth/signup"
-                className="text-crucible-orange hover:underline font-medium"
+                className="text-sui-sea hover:underline font-medium"
               >
                 Sign up
               </Link>

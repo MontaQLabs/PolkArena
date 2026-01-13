@@ -229,7 +229,7 @@ export default function ProfilePage() {
                   <div className="flex justify-center mb-4">
                     <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
                       <AvatarImage src={profile?.avatar_url || ""} />
-                      <AvatarFallback className="text-xl sm:text-2xl bg-crucible-orange text-white">
+                      <AvatarFallback className="text-xl sm:text-2xl bg-sui-sea text-white">
                         {profile?.name?.charAt(0) ||
                           user?.email?.charAt(0) ||
                           "U"}
@@ -351,7 +351,7 @@ export default function ProfilePage() {
                     {!editing ? (
                       <Button
                         onClick={() => setEditing(true)}
-                        className="bg-crucible-orange hover:bg-crucible-orange/90 self-start sm:self-auto"
+                        className="bg-sui-sea hover:bg-sui-sea/90 self-start sm:self-auto"
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit Profile
@@ -361,7 +361,7 @@ export default function ProfilePage() {
                         <Button
                           onClick={handleSave}
                           disabled={saving}
-                          className="bg-crucible-orange hover:bg-crucible-orange/90"
+                          className="bg-sui-sea hover:bg-sui-sea/90"
                         >
                           {saving ? (
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -134,7 +134,7 @@ export default function SocialQuestViewPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crucible-orange"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sui-sea"></div>
           </div>
         </div>
       </div>
@@ -195,7 +195,7 @@ export default function SocialQuestViewPage() {
           <div className="space-y-6">
             <Card className="border-2 border-storm-200 bg-white shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl text-crucible-orange">Quest Details</CardTitle>
+                <CardTitle className="text-2xl text-sui-sea">Quest Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -224,7 +224,7 @@ export default function SocialQuestViewPage() {
             {/* Participants */}
             <Card className="border-2 border-storm-200 bg-white shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl text-bright-turquoise">Participants</CardTitle>
+                <CardTitle className="text-2xl text-walrus-teal">Participants</CardTitle>
                 <CardDescription>Join the social campaign!</CardDescription>
               </CardHeader>
               <CardContent>
@@ -269,8 +269,8 @@ export default function SocialQuestViewPage() {
             <Card className="border-2 border-storm-200 bg-white shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-bright-turquoise" />
-                  <CardTitle className="text-2xl text-bright-turquoise">AI Generated Messages</CardTitle>
+                  <Sparkles className="w-6 h-6 text-walrus-teal" />
+                  <CardTitle className="text-2xl text-walrus-teal">AI Generated Messages</CardTitle>
                 </div>
                 <CardDescription>
                   Ready-to-share content for each platform
@@ -314,23 +314,23 @@ export default function SocialQuestViewPage() {
             {/* Share Instructions */}
             <Card className="border-2 border-storm-200 bg-white shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl text-crucible-orange">How to Share</CardTitle>
+                <CardTitle className="text-xl text-sui-sea">How to Share</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="bg-crucible-orange text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  <div className="bg-sui-sea text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                     1
                   </div>
                   <p className="text-gray-600">Copy the AI-generated message for your preferred platform</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="bg-crucible-orange text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  <div className="bg-sui-sea text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                     2
                   </div>
                   <p className="text-gray-600">Paste it into your social media post</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="bg-crucible-orange text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                  <div className="bg-sui-sea text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">
                     3
                   </div>
                   <p className="text-gray-600">Share and help spread the word!</p>

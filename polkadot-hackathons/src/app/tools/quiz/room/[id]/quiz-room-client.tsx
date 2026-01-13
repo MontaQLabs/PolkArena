@@ -369,7 +369,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-crucible-orange mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sui-sea mx-auto mb-4"></div>
           <p>Loading quiz room...</p>
         </div>
       </div>
@@ -397,7 +397,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
       <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crucible-orange mb-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-sui-sea mb-4">
             🧠 {room.room_name}
           </h1>
           <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
@@ -429,7 +429,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
             <CardContent>
               <div className="flex flex-wrap gap-3">
                 {!questionActive && !showResults && (
-                  <Button onClick={startQuestion} className="bg-crucible-orange hover:bg-crucible-orange/90">
+                  <Button onClick={startQuestion} className="bg-sui-sea hover:bg-sui-sea/90">
                     <Play className="h-4 w-4 mr-2" />
                     Start Question
                   </Button>
@@ -462,7 +462,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
               <CardTitle className="flex items-center justify-between">
                 <span>Question {currentQuestionIndex + 1}</span>
                 {questionActive && (
-                  <div className="flex items-center gap-2 text-crucible-orange">
+                  <div className="flex items-center gap-2 text-sui-sea">
                     <Clock className="h-4 w-4" />
                     <span className="font-mono text-lg">{timeLeft}s</span>
                   </div>
@@ -483,7 +483,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
                       variant={selectedAnswer === option ? "default" : "outline"}
                       className={`w-full justify-start h-12 text-left ${
                         selectedAnswer === option 
-                          ? 'bg-crucible-orange hover:bg-crucible-orange/90' 
+                          ? 'bg-sui-sea hover:bg-sui-sea/90' 
                           : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                       }`}
                       onClick={() => !hasAnswered && setSelectedAnswer(option)}
@@ -502,7 +502,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
                     variant={selectedAnswer === 'true' ? "default" : "outline"}
                     className={`w-full h-12 ${
                       selectedAnswer === 'true' 
-                        ? 'bg-crucible-orange hover:bg-crucible-orange/90' 
+                        ? 'bg-sui-sea hover:bg-sui-sea/90' 
                         : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                     onClick={() => !hasAnswered && setSelectedAnswer('true')}
@@ -514,7 +514,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
                     variant={selectedAnswer === 'false' ? "default" : "outline"}
                     className={`w-full h-12 ${
                       selectedAnswer === 'false' 
-                        ? 'bg-crucible-orange hover:bg-crucible-orange/90' 
+                        ? 'bg-sui-sea hover:bg-sui-sea/90' 
                         : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                     onClick={() => !hasAnswered && setSelectedAnswer('false')}
@@ -529,7 +529,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
                 <div className="mt-6">
                   <Button 
                     onClick={submitAnswer} 
-                    className="w-full h-12 bg-crucible-orange hover:bg-crucible-orange/90 text-lg font-semibold"
+                    className="w-full h-12 bg-sui-sea hover:bg-sui-sea/90 text-lg font-semibold"
                   >
                     Submit Answer
                   </Button>
@@ -575,7 +575,7 @@ export default function QuizRoomClient({ roomId }: QuizRoomClientProps) {
                   key={participant.id}
                   className={`flex items-center justify-between p-3 rounded-lg ${
                     participant.user_id === user?.id 
-                      ? 'bg-crucible-orange/10 border-2 border-crucible-orange/30' 
+                      ? 'bg-sui-sea/10 border-2 border-sui-sea/30' 
                       : 'bg-gray-50 dark:bg-gray-800'
                   }`}
                 >

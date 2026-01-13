@@ -34,69 +34,72 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-sui-sea/10 bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80">
       <div className="container mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex h-14 sm:h-16 items-center justify-between">
+        <div className="flex h-16 sm:h-18 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-            <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg overflow-hidden">
-              <img 
-                src="/logo.svg" 
-                alt="Crucible Logo" 
-                className="h-full w-full object-contain"
-              />
+          <Link href="/" className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 group">
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-sui-sea to-walrus-teal p-0.5 transition-transform group-hover:scale-105">
+              <div className="h-full w-full bg-white rounded-lg flex items-center justify-center">
+                <img 
+                  src="/logo.svg" 
+                  alt="Crucible Logo" 
+                  className="h-5 w-5 sm:h-6 sm:w-6 object-contain"
+                  style={{ filter: 'brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(186deg) brightness(118%) contrast(119%)' }}
+                />
+              </div>
             </div>
-            <span className="font-bold text-lg sm:text-xl text-crucible-orange">
+            <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-sui-sea to-walrus-teal bg-clip-text text-transparent">
               Crucible
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 ml-8 lg:ml-12">
-              <Link
-                href="/hackathons"
-                className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
-              >
-                🚀 Hackathons
-              </Link>
+            <Link
+              href="/hackathons"
+                className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
+            >
+                Hackathons
+            </Link>
             <Link
               href="/leaderboard"
-              className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
+              className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
             >
-              🏆 Hall of Fame
+              Leaderboard
             </Link>
             <Link
               href="/events"
-              className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
+              className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
             >
-              📅 Events
+              Events
             </Link>
             <Link
               href="/bounties"
-              className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium whitespace-nowrap"
+              className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium whitespace-nowrap"
             >
-              💰 Bounties
+              Bounties
             </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-foreground/80 hover:text-crucible-orange transition-colors font-medium">
-                  🛠️ Tools
+                <Button variant="ghost" className="text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5 transition-all px-3 py-2 rounded-lg font-medium">
+                  Tools
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem asChild>
                   <Link href="/tools/quiz">
-                    🧠 Quiz
+                    Quiz
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/tools/buzzer">
-                    ⚡ Buzzer
+                    Buzzer
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/tools/social-quest">
-                    📱 Social Quest
+                    Social Quest
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -127,7 +130,7 @@ export function Header() {
                       >
                         <Avatar className="h-9 w-9">
                           <AvatarImage src={profile?.avatar_url || ""} />
-                          <AvatarFallback className="bg-crucible-orange text-white">
+                          <AvatarFallback className="bg-sui-sea text-white">
                             {profile?.name?.[0]?.toUpperCase() ||
                               user.email?.[0]?.toUpperCase() ||
                               "U"}
@@ -183,15 +186,15 @@ export function Header() {
                 <Button
                   asChild
                   variant="ghost"
-                  className="hidden md:inline-flex"
+                  className="hidden md:inline-flex text-sui-ocean/70 hover:text-sui-sea hover:bg-sui-sea/5"
                 >
-                  <Link href="/auth/login">🚀 Get Started</Link>
+                  <Link href="/auth/login">Sign In</Link>
                 </Button>
                 <Button
                   asChild
-                  className="hidden md:inline-flex bg-crucible-orange hover:bg-crucible-orange/90"
+                  className="hidden md:inline-flex bg-gradient-to-r from-sui-sea to-walrus-teal hover:from-sui-ocean hover:to-sui-sea text-white rounded-xl"
                 >
-                  <Link href="/auth/signup">👥 Join Community</Link>
+                  <Link href="/auth/signup">Get Started</Link>
                 </Button>
 
                 {/* Mobile auth buttons */}
@@ -199,7 +202,7 @@ export function Header() {
                   <Button asChild variant="ghost" size="sm" className="text-xs px-2">
                     <Link href="/auth/login">Enter</Link>
                   </Button>
-                  <Button asChild size="sm" className="bg-crucible-orange hover:bg-crucible-orange/90 text-xs px-2">
+                  <Button asChild size="sm" className="bg-sui-sea hover:bg-sui-sea/90 text-xs px-2">
                     <Link href="/auth/signup">Join</Link>
                   </Button>
                 </div>
@@ -225,27 +228,27 @@ export function Header() {
               {/* Navigation Links */}
               <Link
                 href="/hackathons"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Calendar className="h-4 w-4" />
-                <span>🚀 Hackathons</span>
+                <span>Hackathons</span>
               </Link>
               <Link
                 href="/leaderboard"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Trophy className="h-4 w-4" />
-                <span>🏆 Hall of Fame</span>
+                <span>Leaderboard</span>
               </Link>
               <Link
                 href="/events"
-                className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Calendar className="h-4 w-4" />
-                <span>📅 Events</span>
+                <span>Events</span>
               </Link>
               <div className="border-t border-border/40 my-2 pt-2">
                 <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -253,35 +256,35 @@ export function Header() {
                 </div>
                 <Link
                   href="/tools/quiz"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
-                  <span>🧠 Quiz</span>
+                  <span>Quiz</span>
                 </Link>
                 <Link
                   href="/tools/buzzer"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
-                  <span>⚡ Buzzer</span>
+                  <span>Buzzer</span>
                 </Link>
                 <Link
                   href="/tools/social-quest"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
-                  <span>📱 Social Quest</span>
+                  <span>Social Quest</span>
                 </Link>
                 <Link
                   href="/bounties"
-                  className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                  className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Calendar className="h-4 w-4" />
-                  <span>💰 Bounties</span>
+                  <span>Bounties</span>
                 </Link>
               </div>
 
@@ -292,7 +295,7 @@ export function Header() {
                     <div className="flex items-center space-x-3 py-2 px-2">
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={profile?.avatar_url || ""} />
-                        <AvatarFallback className="bg-crucible-orange text-white text-xs">
+                        <AvatarFallback className="bg-sui-sea text-white text-xs">
                           {profile?.name?.[0]?.toUpperCase() ||
                             user.email?.[0]?.toUpperCase() ||
                             "U"}
@@ -307,7 +310,7 @@ export function Header() {
                   
                   <Link
                     href="/profile"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4" />
@@ -316,7 +319,7 @@ export function Header() {
                   
                   <Link
                     href="/hackathons/create"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Plus className="h-4 w-4" />
@@ -325,7 +328,7 @@ export function Header() {
                   
                   <Link
                     href="/events/create"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Calendar className="h-4 w-4" />
@@ -351,7 +354,7 @@ export function Header() {
                 <div className="border-t border-border/40 my-2 pt-2 space-y-1">
                   <Link
                     href="/auth/login"
-                    className="flex items-center space-x-3 text-foreground/80 hover:text-crucible-orange hover:bg-muted transition-colors py-3 px-2 rounded-md"
+                    className="flex items-center space-x-3 text-foreground/80 hover:text-sui-sea hover:bg-muted transition-colors py-3 px-2 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4" />
@@ -359,7 +362,7 @@ export function Header() {
                   </Link>
                 <Link
                   href="/auth/signup"
-                    className="flex items-center space-x-3 text-crucible-orange hover:text-crucible-orange/80 hover:bg-crucible-orange/10 transition-colors py-3 px-2 rounded-md font-medium"
+                    className="flex items-center space-x-3 text-sui-sea hover:text-sui-sea/80 hover:bg-sui-sea/10 transition-colors py-3 px-2 rounded-md font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Plus className="h-4 w-4" />

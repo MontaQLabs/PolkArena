@@ -123,7 +123,7 @@ export default function LeaderboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
+        <Loader2 className="h-8 w-8 animate-spin text-sui-sea" />
       </div>
     );
   }
@@ -151,7 +151,7 @@ export default function LeaderboardPage() {
                   onClick={() => setSelectedHackathon("all")}
                   className={
                     selectedHackathon === "all"
-                      ? "bg-crucible-orange hover:bg-crucible-orange/90"
+                      ? "bg-sui-sea hover:bg-sui-sea/90"
                       : ""
                   }
                 >
@@ -172,7 +172,7 @@ export default function LeaderboardPage() {
                       onClick={() => setSelectedHackathon(hackathonId)}
                       className={
                         selectedHackathon === hackathonId
-                          ? "bg-crucible-orange hover:bg-crucible-orange/90"
+                          ? "bg-sui-sea hover:bg-sui-sea/90"
                           : ""
                       }
                     >
@@ -294,7 +294,7 @@ export default function LeaderboardPage() {
                 </Card>
                 <Card>
                   <CardContent className="text-center pt-6">
-                    <Users className="h-8 w-8 text-crucible-orange mx-auto mb-2" />
+                    <Users className="h-8 w-8 text-sui-sea mx-auto mb-2" />
                     <p className="text-2xl font-bold">
                       {uniqueHackathons.length}
                     </p>

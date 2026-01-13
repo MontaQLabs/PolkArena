@@ -1,15 +1,15 @@
-# Crucible - Enter the Arena
+# Crucible - Build the Future
 
-The ultimate battleground for Polkadot ecosystem innovation. Compete, build, and conquer in the most intense Web3 competitions.
+The premier platform for Sui and Walrus ecosystem innovation. Build, collaborate, and innovate in the most exciting Web3 hackathons.
 
 ## Features
 
-- **Arena Battles**: Join intense hackathons and competitive programming events
-- **Elite Community**: Connect with top-tier developers and industry leaders
-- **Battle-Ready Tools**: Access cutting-edge Polkadot development infrastructure
-- **Legendary Rewards**: Compete for substantial prizes and recognition
-- **Team Formation**: Create alliances and build groundbreaking solutions
-- **Leaderboards**: Track your progress and rise through the ranks
+- **Hackathons & Events**: Join exciting Sui and Walrus hackathons and development challenges
+- **Developer Community**: Connect with experienced Sui developers and Walrus storage experts
+- **Powerful Tools**: Access cutting-edge Sui Move development tools and Walrus storage frameworks
+- **Rewards & Recognition**: Compete for substantial prizes and ecosystem opportunities
+- **Team Collaboration**: Form teams and build innovative decentralized storage solutions
+- **Leaderboards**: Track your progress and showcase your achievements
 
 ## Tech Stack
 
@@ -38,7 +38,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ## Contributing
 
-We welcome contributions from the warrior community! Please read our contributing guidelines before submitting pull requests.
+We welcome contributions from the Sui and Walrus community! Please read our contributing guidelines before submitting pull requests.
 
 ## License
 

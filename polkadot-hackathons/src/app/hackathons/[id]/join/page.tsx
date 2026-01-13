@@ -186,7 +186,7 @@ export default function JoinHackathonPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
+        <Loader2 className="h-8 w-8 animate-spin text-sui-sea" />
       </div>
     );
   }
@@ -266,7 +266,7 @@ export default function JoinHackathonPage() {
                     <div className="flex gap-2">
                       <Button
                         asChild
-                        className="bg-crucible-orange hover:bg-crucible-orange/90"
+                        className="bg-sui-sea hover:bg-sui-sea/90"
                       >
                         <Link href={`/hackathons/${hackathon.id}/teams/create`}>
                           Create Team
@@ -330,7 +330,7 @@ export default function JoinHackathonPage() {
                         <Button
                           type="submit"
                           disabled={joining}
-                          className="bg-crucible-orange hover:bg-crucible-orange/90"
+                          className="bg-sui-sea hover:bg-sui-sea/90"
                         >
                           {joining ? (
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -478,7 +478,7 @@ export default function JoinHackathonPage() {
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-crucible-orange">
+                          <p className="font-bold text-sui-sea">
                             {prize.amount} {prize.currency}
                           </p>
                         </div>

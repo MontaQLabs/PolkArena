@@ -213,7 +213,7 @@ export default function TeamInvitePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
+        <Loader2 className="h-8 w-8 animate-spin text-sui-sea" />
       </div>
     );
   }
@@ -317,7 +317,7 @@ export default function TeamInvitePage() {
                     <Button
                       type="submit"
                       disabled={sending || !formData.email.trim()}
-                      className="w-full bg-crucible-orange hover:bg-crucible-orange/90"
+                      className="w-full bg-sui-sea hover:bg-sui-sea/90"
                     >
                       {sending ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -366,7 +366,7 @@ export default function TeamInvitePage() {
                               "Unknown"}
                           </span>
                           {member.role === "leader" && (
-                            <span className="text-xs bg-crucible-orange text-white px-1 rounded">
+                            <span className="text-xs bg-sui-sea text-white px-1 rounded">
                               Leader
                             </span>
                           )}

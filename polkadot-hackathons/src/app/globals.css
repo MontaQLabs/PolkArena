@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200;300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -6,21 +6,22 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Unbounded', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   
-  /* Custom Crucible Colors */
-  --color-mirage: #131b25;
-  --color-bright-turquoise: #FFD700;
-  --color-iron: #e4e6e8;
-  --color-eastern-blue: #198a96;
-  --color-crucible-orange: #FF6B35;
-  --color-innovation-gold: #FFD700;
-  --color-success-green: #10B981;
-  --color-accent-orange: #FF8C00;
-  --color-storm-200: #DCE2E9;
-  --color-storm-400: #AEB7CB;
-  --color-storm-700: #6E7391;
+  /* Sui Brand Colors */
+  --color-sui-sea: #4DA2FF;
+  --color-sui-ocean: #011829;
+  --color-sui-aqua: #C0E6FF;
+  --color-sui-deep-ocean: #030F1C;
+  --color-sui-cloud: #FFFFFF;
+  
+  /* Walrus Brand Colors */
+  --color-walrus-teal: #0B9BA4;
+  --color-walrus-dark-blue: #003449;
+  --color-walrus-purple: #A30071;
+  --color-walrus-gray: #999B9B;
+  --color-walrus-black: #000000;
   
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -58,38 +59,38 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --background: #ffffff;
-  --foreground: #131b25;
+  --foreground: #011829;
   --card: #ffffff;
-  --card-foreground: #131b25;
+  --card-foreground: #011829;
   --popover: #ffffff;
-  --popover-foreground: #131b25;
-  --primary: #FF6B35;
+  --popover-foreground: #011829;
+  --primary: #4DA2FF;
   --primary-foreground: #ffffff;
-  --secondary: #DCE2E9;
-  --secondary-foreground: #131b25;
-  --muted: #e4e6e8;
-  --muted-foreground: #6E7391;
-  --accent: #FFD700;
-  --accent-foreground: #131b25;
+  --secondary: #F8FCFF;
+  --secondary-foreground: #011829;
+  --muted: #F8FCFF;
+  --muted-foreground: #003449;
+  --accent: #0B9BA4;
+  --accent-foreground: #ffffff;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #DCE2E9;
-  --input: #e4e6e8;
-  --ring: #FF6B35;
-  --chart-1: #FF6B35;
-  --chart-2: #FFD700;
-  --chart-3: #FF8C00;
-  --chart-4: #10B981;
-  --chart-5: #198a96;
+  --border: rgba(77, 162, 255, 0.1);
+  --input: rgba(77, 162, 255, 0.1);
+  --ring: #4DA2FF;
+  --chart-1: #4DA2FF;
+  --chart-2: #0B9BA4;
+  --chart-3: #A30071;
+  --chart-4: #003449;
+  --chart-5: #C0E6FF;
   --sidebar: #ffffff;
-  --sidebar-foreground: #131b25;
-  --sidebar-primary: #FF6B35;
+  --sidebar-foreground: #011829;
+  --sidebar-primary: #4DA2FF;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #DCE2E9;
-  --sidebar-accent-foreground: #131b25;
-  --sidebar-border: #DCE2E9;
-  --sidebar-ring: #FF6B35;
+  --sidebar-accent: #F8FCFF;
+  --sidebar-accent-foreground: #011829;
+  --sidebar-border: rgba(77, 162, 255, 0.1);
+  --sidebar-ring: #4DA2FF;
 }
 
 
@@ -102,41 +103,43 @@
   }
 }
 
-/* Custom utility classes for Polkadot colors */
+/* Custom utility classes for Sui and Walrus colors */
 @layer utilities {
-  .text-mirage { color: #131b25; }
-  .text-bright-turquoise { color: #FFD700; }
-  .text-iron { color: #e4e6e8; }
-  .text-eastern-blue { color: #198a96; }
-  .text-crucible-orange { color: #FF6B35; }
-  .text-innovation-gold { color: #FFD700; }
-  .text-success-green { color: #10B981; }
-  .text-accent-orange { color: #FF8C00; }
-  .text-storm-200 { color: #DCE2E9; }
-  .text-storm-400 { color: #AEB7CB; }
-  .text-storm-700 { color: #6E7391; }
+  /* Sui Colors */
+  .text-sui-sea { color: #4DA2FF; }
+  .text-sui-ocean { color: #011829; }
+  .text-sui-aqua { color: #C0E6FF; }
+  .text-sui-deep-ocean { color: #030F1C; }
+  .text-sui-cloud { color: #FFFFFF; }
   
-  .bg-mirage { background-color: #131b25; }
-  .bg-bright-turquoise { background-color: #FFD700; }
-  .bg-iron { background-color: #e4e6e8; }
-  .bg-eastern-blue { background-color: #198a96; }
-  .bg-crucible-orange { background-color: #FF6B35; }
-  .bg-innovation-gold { background-color: #FFD700; }
-  .bg-success-green { background-color: #10B981; }
-  .bg-accent-orange { background-color: #FF8C00; }
-  .bg-storm-200 { background-color: #DCE2E9; }
-  .bg-storm-400 { background-color: #AEB7CB; }
-  .bg-storm-700 { background-color: #6E7391; }
+  .bg-sui-sea { background-color: #4DA2FF; }
+  .bg-sui-ocean { background-color: #011829; }
+  .bg-sui-aqua { background-color: #C0E6FF; }
+  .bg-sui-deep-ocean { background-color: #030F1C; }
+  .bg-sui-cloud { background-color: #FFFFFF; }
   
-  .border-mirage { border-color: #131b25; }
-  .border-bright-turquoise { border-color: #FFD700; }
-  .border-iron { border-color: #e4e6e8; }
-  .border-eastern-blue { border-color: #198a96; }
-  .border-crucible-orange { border-color: #FF6B35; }
-  .border-innovation-gold { border-color: #FFD700; }
-  .border-success-green { border-color: #10B981; }
-  .border-accent-orange { border-color: #FF8C00; }
-  .border-storm-200 { border-color: #DCE2E9; }
-  .border-storm-400 { border-color: #AEB7CB; }
-  .border-storm-700 { border-color: #6E7391; }
+  .border-sui-sea { border-color: #4DA2FF; }
+  .border-sui-ocean { border-color: #011829; }
+  .border-sui-aqua { border-color: #C0E6FF; }
+  .border-sui-deep-ocean { border-color: #030F1C; }
+  .border-sui-cloud { border-color: #FFFFFF; }
+  
+  /* Walrus Colors */
+  .text-walrus-teal { color: #0B9BA4; }
+  .text-walrus-dark-blue { color: #003449; }
+  .text-walrus-purple { color: #A30071; }
+  .text-walrus-gray { color: #999B9B; }
+  .text-walrus-black { color: #000000; }
+  
+  .bg-walrus-teal { background-color: #0B9BA4; }
+  .bg-walrus-dark-blue { background-color: #003449; }
+  .bg-walrus-purple { background-color: #A30071; }
+  .bg-walrus-gray { background-color: #999B9B; }
+  .bg-walrus-black { background-color: #000000; }
+  
+  .border-walrus-teal { border-color: #0B9BA4; }
+  .border-walrus-dark-blue { border-color: #003449; }
+  .border-walrus-purple { border-color: #A30071; }
+  .border-walrus-gray { border-color: #999B9B; }
+  .border-walrus-black { border-color: #000000; }
 }

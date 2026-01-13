@@ -578,7 +578,7 @@ export default function EventParticipantsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
+        <Loader2 className="h-8 w-8 animate-spin text-sui-sea" />
       </div>
     );
   }
@@ -818,7 +818,7 @@ export default function EventParticipantsPage() {
                             onClick={() => toggleParticipantSelection(participant.id)}
                           >
                             {selectedParticipants.has(participant.id) ? (
-                              <CheckSquare className="h-4 w-4 text-crucible-orange" />
+                              <CheckSquare className="h-4 w-4 text-sui-sea" />
                             ) : (
                               <Square className="h-4 w-4 text-muted-foreground" />
                             )}

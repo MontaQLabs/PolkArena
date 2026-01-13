@@ -240,7 +240,7 @@ export default function TeamSubmissionPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
+        <Loader2 className="h-8 w-8 animate-spin text-sui-sea" />
       </div>
     );
   }
@@ -436,7 +436,7 @@ export default function TeamSubmissionPage() {
                         <Button
                           type="submit"
                           disabled={saving}
-                          className="bg-crucible-orange hover:bg-crucible-orange/90"
+                          className="bg-sui-sea hover:bg-sui-sea/90"
                         >
                           {saving ? (
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -490,7 +490,7 @@ export default function TeamSubmissionPage() {
                               "Unknown"}
                           </span>
                           {member.role === "leader" && (
-                            <span className="text-xs bg-crucible-orange text-white px-1 rounded">
+                            <span className="text-xs bg-sui-sea text-white px-1 rounded">
                               Leader
                             </span>
                           )}

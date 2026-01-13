@@ -111,7 +111,7 @@ export default function SocialQuestPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crucible-orange"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sui-sea"></div>
           </div>
         </div>
       </div>
@@ -234,16 +234,16 @@ export default function SocialQuestPage() {
           <div className="mb-12">
             <div className="text-center mb-8">
               <div className="flex items-center justify-center mb-2">
-                <Target className="w-6 h-6 text-bright-turquoise mr-2" />
-                <h2 className="text-3xl font-bold text-bright-turquoise">My Quests</h2>
+                <Target className="w-6 h-6 text-walrus-teal mr-2" />
+                <h2 className="text-3xl font-bold text-walrus-teal">My Quests</h2>
               </div>
               <p className="text-muted-foreground">Your created social campaigns</p>
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {myQuests.map((quest) => (
-                <Card key={quest.id} className="border-2 border-storm-200 hover:border-bright-turquoise transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
+                <Card key={quest.id} className="border-2 border-storm-200 hover:border-walrus-teal transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
                   <CardHeader>
-                    <CardTitle className="text-xl group-hover:text-bright-turquoise transition-colors">{quest.title}</CardTitle>
+                    <CardTitle className="text-xl group-hover:text-walrus-teal transition-colors">{quest.title}</CardTitle>
                     <CardDescription className="text-base">
                       {quest.description || "No description"}
                     </CardDescription>
@@ -265,7 +265,7 @@ export default function SocialQuestPage() {
                         <strong>Context:</strong> {quest.context}
                       </div>
                       <div className="flex gap-2">
-                        <Button asChild size="sm" className="bg-bright-turquoise hover:bg-bright-turquoise/90 text-white">
+                        <Button asChild size="sm" className="bg-walrus-teal hover:bg-walrus-teal/90 text-white">
                           <Link href={`/tools/social-quest/${quest.id}`}>View Quest</Link>
                         </Button>
                         <Button asChild size="sm" variant="outline">
@@ -284,16 +284,16 @@ export default function SocialQuestPage() {
         <div>
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-2">
-                                <Target className="w-6 h-6 text-crucible-orange mr-2" />
-              <h2 className="text-3xl font-bold text-crucible-orange">Available Quests</h2>
+                                <Target className="w-6 h-6 text-sui-sea mr-2" />
+              <h2 className="text-3xl font-bold text-sui-sea">Available Quests</h2>
             </div>
             <p className="text-muted-foreground">Join social campaigns and share amazing content</p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {quests.map((quest) => (
-              <Card key={quest.id} className="border-2 border-storm-200 hover:border-crucible-orange transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
+              <Card key={quest.id} className="border-2 border-storm-200 hover:border-sui-sea transition-all duration-300 bg-white shadow-lg hover:shadow-xl group transform hover:scale-105">
                 <CardHeader>
-                  <CardTitle className="text-xl group-hover:text-crucible-orange transition-colors">{quest.title}</CardTitle>
+                  <CardTitle className="text-xl group-hover:text-sui-sea transition-colors">{quest.title}</CardTitle>
                   <CardDescription className="text-base">
                     {quest.description || "No description"}
                   </CardDescription>
@@ -314,7 +314,7 @@ export default function SocialQuestPage() {
                     <div className="text-sm text-gray-600">
                       <strong>Context:</strong> {quest.context}
                     </div>
-                    <Button asChild size="sm" variant="outline" className="border-crucible-orange text-crucible-orange hover:bg-crucible-orange hover:text-white w-full">
+                    <Button asChild size="sm" variant="outline" className="border-sui-sea text-sui-sea hover:bg-sui-sea hover:text-white w-full">
                       <Link href={`/tools/social-quest/${quest.id}`}>Join Quest</Link>
                     </Button>
                   </div>

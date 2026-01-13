@@ -231,7 +231,7 @@ export default function EditHackathonPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-crucible-orange" />
+        <Loader2 className="h-8 w-8 animate-spin text-sui-sea" />
       </div>
     );
   }
@@ -600,7 +600,7 @@ export default function EditHackathonPage() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-crucible-orange hover:bg-crucible-orange/90"
+                className="bg-sui-sea hover:bg-sui-sea/90"
               >
                 {saving ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

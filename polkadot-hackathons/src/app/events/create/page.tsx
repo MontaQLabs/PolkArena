@@ -1043,7 +1043,7 @@ export default function CreateEventPage() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-crucible-orange hover:bg-crucible-orange/90"
+                className="bg-sui-sea hover:bg-sui-sea/90"
               >
                 {saving ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
